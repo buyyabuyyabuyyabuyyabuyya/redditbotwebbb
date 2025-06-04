@@ -7,16 +7,6 @@ import { createClient } from '@supabase/supabase-js';
 const supabase = createClientSupabaseClient();
 
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-);
 
 interface SendMessageProps {
   userId: string;
@@ -109,7 +99,7 @@ export default function SendMessage({ userId, onSuccess }: SendMessageProps) {
       }
 
       // Record the sent message in Supabase
-      const { error: dbError } = await supabaseAdmin
+      const { error: dbError } = await supabase
         .from('sent_messages')
         .insert([
           {

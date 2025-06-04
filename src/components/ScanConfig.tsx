@@ -4,22 +4,14 @@ import { createClientSupabaseClient } from '../utils/supabase';
 import { useUserPlan } from '../hooks/useUserPlan';
 import { createClient } from '@supabase/supabase-js';
 
+
 interface ScanConfigProps {
   userId: string;
   onSuccess?: () => void;
 }
 
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-);
+
 
 export default function ScanConfig({ userId, onSuccess }: ScanConfigProps) {
   const [subreddits, setSubreddits] = useState('');
@@ -177,7 +169,7 @@ export default function ScanConfig({ userId, onSuccess }: ScanConfigProps) {
       }
 
       // Log the action to bot_logs
-      await supabaseAdmin.from('bot_logs').insert([
+      await supabase.from('bot_logs').insert([
         {
           user_id: userId,
           account_id: activeBots.find((bot) => bot.id === botId)
