@@ -2,8 +2,23 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import snoowrap from 'snoowrap';
 import { createServerSupabaseClient } from '../../../utils/supabase-server';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize the Supabase Admin client
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+);
 
 // Using the imported createServerSupabaseClient function
+
+
 
 export async function POST(req: Request) {
   const supabase = createServerSupabaseClient();
@@ -39,7 +54,7 @@ export async function POST(req: Request) {
       isValid = false;
     }
 
-    // Store the account in Supabase
+    // Store the account in Supabase using admin client to bypass RLS
     const { error } = await supabaseAdmin.from('reddit_accounts').insert([
       {
         user_id: userId,
