@@ -17,7 +17,10 @@ export async function GET() {
 
       if (configError) {
         // Check if error is due to missing table
-        if (configError.code === '42P01' || configError.message?.includes('does not exist')) {
+        if (
+          configError.code === '42P01' ||
+          configError.message?.includes('does not exist')
+        ) {
           console.warn('scan_configs table does not exist yet');
           configs = [];
         } else {
@@ -25,30 +28,34 @@ export async function GET() {
         }
       } else {
         // Filter configs based on their individual scan intervals
-        configs = (data || []).filter(config => {
+        configs = (data || []).filter((config) => {
           // If no last scan time, it's eligible for scanning
           if (!config.last_scan_time) {
             return true;
           }
-          
+
           const lastScanTime = new Date(config.last_scan_time).getTime();
           const currentTime = Date.now();
           const intervalMs = (config.scan_interval || 30) * 60 * 1000; // Convert minutes to milliseconds
-          
+
           // Check if enough time has passed since the last scan based on this config's interval
           return currentTime - lastScanTime >= intervalMs;
         });
-        
-        console.log(`Found ${configs.length} configs due for scanning out of ${data?.length || 0} active configs`);
+
+        console.log(
+          `Found ${configs.length} configs due for scanning out of ${data?.length || 0} active configs`
+        );
       }
     } catch (error: any) {
-      console.error(`Error fetching scan configs: ${error?.message || 'Unknown error'}`);
+      console.error(
+        `Error fetching scan configs: ${error?.message || 'Unknown error'}`
+      );
       configs = [];
     }
 
     // Get all active users from the configurations
     const uniqueUserConfigs = new Map();
-    configs?.forEach(config => {
+    configs?.forEach((config) => {
       if (!uniqueUserConfigs.has(config.user_id)) {
         uniqueUserConfigs.set(config.user_id, []);
       }
@@ -57,66 +64,85 @@ export async function GET() {
 
     // Check for logs that need archiving for each user and their configs
     console.log('========== PROACTIVE LOG ARCHIVAL CHECK ==========');
-    console.log(`Starting proactive log archival check for ${uniqueUserConfigs.size} users`);
-    
-    const archivePromises = Array.from(uniqueUserConfigs.entries()).map(async ([userId, userConfigs]) => {
-      try {
-        console.log(`Checking logs for archival for user ${userId} with ${userConfigs.length} configs`);
-        
-        // For each user's config, check if logs need to be archived
-        const configArchivePromises = userConfigs.map(async (config : any) => {
-          try {
-            console.log(`Sending archive check request for config ${config.id} (r/${config.subreddit})`);
-            
-            const response = await fetch(
-              process.env.NEXT_PUBLIC_APP_URL + '/api/reddit/check-archive',
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ 
-                  userId: userId,
-                  configId: config.id,
-                  subreddit: config.subreddit
-                }),
+    console.log(
+      `Starting proactive log archival check for ${uniqueUserConfigs.size} users`
+    );
+
+    const archivePromises = Array.from(uniqueUserConfigs.entries()).map(
+      async ([userId, userConfigs]) => {
+        try {
+          console.log(
+            `Checking logs for archival for user ${userId} with ${userConfigs.length} configs`
+          );
+
+          // For each user's config, check if logs need to be archived
+          const configArchivePromises = userConfigs.map(async (config: any) => {
+            try {
+              console.log(
+                `Sending archive check request for config ${config.id} (r/${config.subreddit})`
+              );
+
+              const response = await fetch(
+                process.env.NEXT_PUBLIC_APP_URL + '/api/reddit/check-archive',
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    userId: userId,
+                    configId: config.id,
+                    subreddit: config.subreddit,
+                  }),
+                }
+              );
+
+              if (!response.ok) {
+                throw new Error(
+                  `Failed to check logs for archival for config ${config.id}`
+                );
               }
-            );
 
-            if (!response.ok) {
-              throw new Error(`Failed to check logs for archival for config ${config.id}`);
+              const result = await response.json();
+              console.log(
+                `Archive check for config ${config.id} completed: ${JSON.stringify(result)}`
+              );
+              return result;
+            } catch (error) {
+              console.error(
+                `Error checking logs for archival for config ${config.id}:`,
+                error
+              );
+              return null;
             }
+          });
 
-            const result = await response.json();
-            console.log(`Archive check for config ${config.id} completed: ${JSON.stringify(result)}`);
-            return result;
-          } catch (error) {
-            console.error(`Error checking logs for archival for config ${config.id}:`, error);
-            return null;
-          }
-        });
-
-        const results = await Promise.all(configArchivePromises);
-        console.log(`Completed archive checks for user ${userId}: ${results.length} configs processed`);
-        return results;
-      } catch (error) {
-        console.error(`Error processing archival for user ${userId}:`, error);
-        return null;
+          const results = await Promise.all(configArchivePromises);
+          console.log(
+            `Completed archive checks for user ${userId}: ${results.length} configs processed`
+          );
+          return results;
+        } catch (error) {
+          console.error(`Error processing archival for user ${userId}:`, error);
+          return null;
+        }
       }
-    });
+    );
 
     // Wait for archive checks to complete
     const archiveResults = await Promise.all(archivePromises || []);
     console.log(`========== PROACTIVE LOG ARCHIVAL COMPLETE ==========`);
-    console.log(`Processed archive checks for ${archiveResults.filter(Boolean).length} users`);
-    
+    console.log(
+      `Processed archive checks for ${archiveResults.filter(Boolean).length} users`
+    );
+
     // Record the archive check in the logs table
     try {
       const entries = Array.from(uniqueUserConfigs.entries());
       for (const entry of entries) {
         const userId = entry[0];
         const userConfigs = entry[1];
-        
+
         for (const config of userConfigs) {
           await supabase.from('bot_logs').insert({
             user_id: userId,
@@ -125,7 +151,7 @@ export async function GET() {
             subreddit: config.subreddit,
             config_id: config.id,
             message: 'Proactive log archival check from worker',
-            created_at: new Date().toISOString()
+            created_at: new Date().toISOString(),
           });
         }
       }

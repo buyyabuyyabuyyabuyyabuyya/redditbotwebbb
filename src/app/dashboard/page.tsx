@@ -26,7 +26,6 @@ const createSupabaseServerClient = () => {
 
 import Dashboard from '@/components/Dashboard';
 
-
 export default async function DashboardPage() {
   const { userId } = await auth();
 
@@ -35,7 +34,7 @@ export default async function DashboardPage() {
   }
 
   const supabase = createSupabaseServerClient();
-  
+
   // Fetch user's Reddit accounts
   const { data: redditAccounts } = await supabase
     .from('reddit_accounts')
@@ -63,9 +62,7 @@ export default async function DashboardPage() {
       </div>
       <div className="mt-5">
         {sentMessages?.length === 0 ? (
-          <p className="text-sm text-gray-500">
-            No messages sent yet.
-          </p>
+          <p className="text-sm text-gray-500">No messages sent yet.</p>
         ) : (
           <ul className="divide-y divide-gray-200">
             {sentMessages?.map((message) => (
@@ -79,9 +76,7 @@ export default async function DashboardPage() {
                       {message.content}
                     </p>
                     <p className="text-xs text-gray-400">
-                      {new Date(
-                        message.created_at
-                      ).toLocaleString()}
+                      {new Date(message.created_at).toLocaleString()}
                     </p>
                   </div>
                 </div>

@@ -51,9 +51,10 @@ export default async function Pricing() {
         '15 message limit',
         '1 template',
         '1 scan config',
-        'Basic analytics'
+        'Basic analytics',
       ],
-      cta: user?.subscription_status === 'free' ? 'Current Plan' : 'Get Started'
+      cta:
+        user?.subscription_status === 'free' ? 'Current Plan' : 'Get Started',
     },
     {
       name: 'Pro',
@@ -65,9 +66,10 @@ export default async function Pricing() {
         '3 templates',
         '3 scan configs',
         'Advanced analytics',
-        'Priority support'
+        'Priority support',
       ],
-      cta: user?.subscription_status === 'pro' ? 'Current Plan' : 'Upgrade to Pro'
+      cta:
+        user?.subscription_status === 'pro' ? 'Current Plan' : 'Upgrade to Pro',
     },
     {
       name: 'Advanced',
@@ -79,10 +81,13 @@ export default async function Pricing() {
         'Unlimited templates',
         'Unlimited scan configs',
         'AI message optimization',
-        '24/7 premium support'
+        '24/7 premium support',
       ],
-      cta: user?.subscription_status === 'advanced' ? 'Current Plan' : 'Get Advanced'
-    }
+      cta:
+        user?.subscription_status === 'advanced'
+          ? 'Current Plan'
+          : 'Get Advanced',
+    },
   ];
 
   return (
@@ -99,7 +104,10 @@ export default async function Pricing() {
         </div>
         <div className="mx-auto mt-16 max-w-2xl rounded-3xl ring-1 ring-gray-200 sm:mt-20 lg:mx-0 lg:flex lg:max-w-none">
           {PLANS.map((plan, index) => (
-            <div key={plan.name} className={`p-8 sm:p-10 ${index === 1 ? 'lg:flex-auto' : ''}`}>
+            <div
+              key={plan.name}
+              className={`p-8 sm:p-10 ${index === 1 ? 'lg:flex-auto' : ''}`}
+            >
               <h3 className="text-2xl font-bold tracking-tight text-gray-900">
                 {plan.name} Plan
               </h3>
@@ -155,36 +163,35 @@ export default async function Pricing() {
                       >
                         {plan.cta}
                       </button>
+                    ) : plan.name === 'Pro' ? (
+                      <a
+                        href="https://buy.stripe.com/test_9B6cN76L34NO5MoeYigYU00"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-10 block w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                      >
+                        {plan.cta}
+                      </a>
+                    ) : plan.name === 'Advanced' ? (
+                      <a
+                        href="https://buy.stripe.com/test_5kQbJ3glD944b6I6rMgYU01"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-10 block w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                      >
+                        {plan.cta}
+                      </a>
                     ) : (
-                      plan.name === 'Pro' ? (
-                        <a
-                          href="https://buy.stripe.com/test_9B6cN76L34NO5MoeYigYU00"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-10 block w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-                        >
-                          {plan.cta}
-                        </a>
-                      ) : plan.name === 'Advanced' ? (
-                        <a
-                          href="https://buy.stripe.com/test_5kQbJ3glD944b6I6rMgYU01"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-10 block w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-                        >
-                          {plan.cta}
-                        </a>
-                      ) : (
-                        <Link
-                          href="/api/stripe"
-                          className="mt-10 block w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-                        >
-                          {plan.cta}
-                        </Link>
-                      )
+                      <Link
+                        href="/api/stripe"
+                        className="mt-10 block w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                      >
+                        {plan.cta}
+                      </Link>
                     )}
                     <p className="mt-6 text-xs leading-5 text-gray-600">
-                      Invoices and receipts available for easy company reimbursement
+                      Invoices and receipts available for easy company
+                      reimbursement
                     </p>
                   </div>
                 </div>

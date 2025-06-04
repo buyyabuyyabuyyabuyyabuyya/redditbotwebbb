@@ -10,7 +10,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 const createSupabaseServerClient = () => {
   const cookieStore = cookies();
-  
+
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -56,7 +56,10 @@ export async function POST(req: Request) {
         const userId = session.metadata?.userId || session.client_reference_id;
 
         if (!userId) {
-          console.warn('No user ID in session for checkout.session.completed event:', session.id);
+          console.warn(
+            'No user ID in session for checkout.session.completed event:',
+            session.id
+          );
           break; // Skip processing if userId is missing
         }
 
@@ -66,7 +69,9 @@ export async function POST(req: Request) {
 
         if (session.mode === 'subscription' && session.subscription) {
           // Retrieve subscription items to extract price ID
-          const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+          const subscription = await stripe.subscriptions.retrieve(
+            session.subscription as string
+          );
           if (subscription.items.data.length > 0) {
             priceId = subscription.items.data[0].price.id;
           }
@@ -97,7 +102,10 @@ export async function POST(req: Request) {
         const userId = subscription.metadata?.userId;
 
         if (!userId) {
-          console.warn('No user ID in subscription for customer.subscription.deleted event:', subscription.id);
+          console.warn(
+            'No user ID in subscription for customer.subscription.deleted event:',
+            subscription.id
+          );
           break; // Skip processing if userId is missing
         }
 

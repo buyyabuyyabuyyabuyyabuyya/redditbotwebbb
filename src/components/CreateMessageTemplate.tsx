@@ -10,7 +10,6 @@ interface MessageTemplate {
   ai_prompt?: string;
 }
 
-
 interface CreateMessageTemplateProps {
   userId: string;
   onSuccess: () => void;
@@ -44,7 +43,7 @@ export default function CreateMessageTemplate({
         content,
         ai_prompt: aiPrompt,
       };
-      
+
       // If editing, include the template ID
       if (isEditing && existingTemplate) {
         body.id = existingTemplate.id;
@@ -67,9 +66,11 @@ export default function CreateMessageTemplate({
         throw new Error(data.error || 'Failed to save template to database');
       }
 
-      console.log(`Message template ${isEditing ? 'updated' : 'saved'} successfully!`);
+      console.log(
+        `Message template ${isEditing ? 'updated' : 'saved'} successfully!`
+      );
       onSuccess();
-      
+
       if (!isEditing) {
         // Only reset form if not editing
         setName('');
@@ -147,7 +148,10 @@ export default function CreateMessageTemplate({
             >
               AI Prompt for Post Relevance Check
               <span className="ml-1 inline-flex items-center">
-                <InfoCircleIcon className="h-4 w-4 text-gray-400" tooltip="This prompt will be used by AI to determine if a post is relevant before sending a message." />
+                <InfoCircleIcon
+                  className="h-4 w-4 text-gray-400"
+                  tooltip="This prompt will be used by AI to determine if a post is relevant before sending a message."
+                />
               </span>
             </label>
             <div className="mt-1">
@@ -162,7 +166,8 @@ export default function CreateMessageTemplate({
               />
             </div>
             <p className="mt-2 text-sm text-gray-300">
-              The AI will use this prompt to analyze Reddit posts for relevance. Leave blank to use a default prompt.
+              The AI will use this prompt to analyze Reddit posts for relevance.
+              Leave blank to use a default prompt.
             </p>
           </div>
 
@@ -199,7 +204,13 @@ export default function CreateMessageTemplate({
               variant="primary"
               size="medium"
             >
-              {isLoading ? (isEditing ? 'Saving...' : 'Creating...') : (isEditing ? 'Save Changes' : 'Create Template')}
+              {isLoading
+                ? isEditing
+                  ? 'Saving...'
+                  : 'Creating...'
+                : isEditing
+                  ? 'Save Changes'
+                  : 'Create Template'}
             </RippleButton>
           </div>
         </form>

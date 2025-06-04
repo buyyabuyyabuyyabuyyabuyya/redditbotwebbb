@@ -40,7 +40,9 @@ export default function AddRedditAccount({
 
       if (!validateResponse.ok) {
         const validateData = await validateResponse.json();
-        throw new Error(validateData.error || 'Failed to validate Reddit credentials');
+        throw new Error(
+          validateData.error || 'Failed to validate Reddit credentials'
+        );
       }
 
       // If validation succeeds, use our API endpoint to save the account

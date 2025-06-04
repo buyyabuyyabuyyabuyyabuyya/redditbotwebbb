@@ -53,14 +53,17 @@ export async function GET(req: Request) {
     }
 
     const subscriptionStatus = userData?.subscription_status || 'free';
-    const messagesRemaining = subscriptionStatus === 'free' ? Math.max(0, 15 - (messageCount || 0)) : null;
+    const messagesRemaining =
+      subscriptionStatus === 'free'
+        ? Math.max(0, 15 - (messageCount || 0))
+        : null;
 
     // Return the user stats
     return NextResponse.json({
       subscription_status: subscriptionStatus,
       message_count: messageCount || 0,
       remaining: messagesRemaining,
-      is_pro: subscriptionStatus === 'pro'
+      is_pro: subscriptionStatus === 'pro',
     });
   } catch (error: any) {
     console.error('Server error:', error);

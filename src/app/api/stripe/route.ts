@@ -25,7 +25,8 @@ export async function POST(req: Request) {
     if (action === 'create-checkout-session') {
       // Determine which price ID to use based on requested plan
       const selectedPlan = plan === 'advanced' ? 'advanced' : 'pro';
-      const priceId = selectedPlan === 'advanced' ? ADVANCED_PRICE_ID : PRO_PRICE_ID;
+      const priceId =
+        selectedPlan === 'advanced' ? ADVANCED_PRICE_ID : PRO_PRICE_ID;
 
       // Fetch user email/phone/name from DB (if stored)
       const { data: userRow } = await supabase

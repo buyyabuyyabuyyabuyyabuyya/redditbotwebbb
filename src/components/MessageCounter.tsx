@@ -11,34 +11,40 @@ interface MessageCounterProps {
 
 /**
  * MessageCounter - A client component that displays message count with real-time updates
- * 
+ *
  * This component subscribes to Supabase real-time changes to update the message count
  * whenever new messages are sent, without requiring a page refresh.
  */
-export default function MessageCounter({ initialCount, userId }: MessageCounterProps) {
+export default function MessageCounter({
+  initialCount,
+  userId,
+}: MessageCounterProps) {
   const [count, setCount] = useState(initialCount);
   const { messageCount } = useUserPlan();
-  
+
   // If messageCount from useUserPlan is available, use it instead of our local state
-  const displayCount = messageCount !== undefined && messageCount !== null 
-    ? messageCount 
-    : count;
+  const displayCount =
+    messageCount !== undefined && messageCount !== null ? messageCount : count;
 
   useEffect(() => {
     // Subscribe to real-time changes on the sent_messages table
     const supabase = createClientSupabaseClient();
-    
+
     const subscription = supabase
       .channel('message-counter')
-      .on('postgres_changes', { 
-        event: 'INSERT', 
-        schema: 'public', 
-        table: 'sent_messages',
-        filter: `user_id=eq.${userId}`
-      }, () => {
-        // Increment local count when a new message is sent
-        setCount(prevCount => prevCount + 1);
-      })
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'sent_messages',
+          filter: `user_id=eq.${userId}`,
+        },
+        () => {
+          // Increment local count when a new message is sent
+          setCount((prevCount) => prevCount + 1);
+        }
+      )
       .subscribe();
 
     // Cleanup subscription when component unmounts

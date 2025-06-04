@@ -31,11 +31,18 @@ export async function POST(req: Request) {
       .single();
 
     if (userError || !userData?.is_admin) {
-      return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Forbidden: Admin access required' },
+        { status: 403 }
+      );
     }
 
     // Parse the request body
-    const { keys, provider = 'gemini', model = 'gemini-2.0-flash-lite' } = await req.json();
+    const {
+      keys,
+      provider = 'gemini',
+      model = 'gemini-2.0-flash-lite',
+    } = await req.json();
 
     // Validate the required fields
     if (!keys || !Array.isArray(keys) || keys.length === 0) {
@@ -46,7 +53,7 @@ export async function POST(req: Request) {
     }
 
     // Prepare the keys for insertion
-    const keysToInsert = keys.map(key => ({
+    const keysToInsert = keys.map((key) => ({
       key: key.trim(),
       provider,
       model,
@@ -70,15 +77,15 @@ export async function POST(req: Request) {
     }
 
     // Mask the API keys in the response
-    const maskedData = data.map(key => ({
+    const maskedData = data.map((key) => ({
       ...key,
       key: `${key.key.substring(0, 8)}...${key.key.substring(key.key.length - 4)}`,
     }));
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       data: maskedData,
-      message: `Successfully imported ${data.length} API keys. Note that your API keys are not stored in our database for security reasons.`
+      message: `Successfully imported ${data.length} API keys. Note that your API keys are not stored in our database for security reasons.`,
     });
   } catch (error: any) {
     console.error('Server error:', error);

@@ -9,10 +9,14 @@ export default function Navigation() {
   const { user, isLoaded } = useUser();
   const pathname = usePathname();
   const router = useRouter();
-  
+
   // Redirect authenticated users away from auth pages
   useEffect(() => {
-    if (isLoaded && user && (pathname === '/sign-in' || pathname === '/sign-up')) {
+    if (
+      isLoaded &&
+      user &&
+      (pathname === '/sign-in' || pathname === '/sign-up')
+    ) {
       router.push('/dashboard');
     }
   }, [isLoaded, user, pathname, router]);
@@ -32,8 +36,8 @@ export default function Navigation() {
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <Link 
-                href={user ? '/dashboard' : '/'} 
+              <Link
+                href={user ? '/dashboard' : '/'}
                 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-red-400 hover:from-purple-400 hover:to-red-300 transition-all duration-300"
               >
                 Reddit Bot
@@ -74,7 +78,7 @@ export default function Navigation() {
               </div>
             )}
           </div>
-          
+
           {/* Mobile menu button */}
           <div className="-mr-2 flex items-center sm:hidden">
             <button

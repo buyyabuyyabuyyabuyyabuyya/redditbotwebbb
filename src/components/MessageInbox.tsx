@@ -2,7 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { FaInbox, FaPaperPlane, FaEnvelope, FaReply, FaFilter, FaSearch } from 'react-icons/fa';
+import {
+  FaInbox,
+  FaPaperPlane,
+  FaEnvelope,
+  FaReply,
+  FaFilter,
+  FaSearch,
+} from 'react-icons/fa';
 
 interface RedditAccount {
   id: string;
@@ -26,7 +33,9 @@ interface MessageInboxProps {
 }
 
 export default function MessageInbox({ accounts, userId }: MessageInboxProps) {
-  const [selectedAccount, setSelectedAccount] = useState<RedditAccount | null>(null);
+  const [selectedAccount, setSelectedAccount] = useState<RedditAccount | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [filter, setFilter] = useState<'all' | 'received' | 'sent'>('all');
@@ -48,23 +57,27 @@ export default function MessageInbox({ accounts, userId }: MessageInboxProps) {
     setLoading(true);
     setError(null);
     setMessages([]);
-    
+
     try {
       // Show a loading message
-      console.log(`Fetching messages for Reddit account: ${account.username}...`);
-      
+      console.log(
+        `Fetching messages for Reddit account: ${account.username}...`
+      );
+
       // Fetch messages from the private-messages endpoint with the specified limit
-      const response = await fetch(`/api/reddit/private-messages?accountId=${account.id}&limit=${messageLimit}`);
-      
+      const response = await fetch(
+        `/api/reddit/private-messages?accountId=${account.id}&limit=${messageLimit}`
+      );
+
       const data = await response.json();
-      
+
       if (!response.ok) {
         // Handle API error response
         const errorMessage = data.error || 'Failed to fetch messages';
         const details = data.details ? `: ${data.details}` : '';
         throw new Error(`${errorMessage}${details}`);
       }
-      
+
       if (data.messages && Array.isArray(data.messages)) {
         setMessages(data.messages);
         console.log(`Retrieved ${data.messages.length} messages`);
@@ -74,7 +87,11 @@ export default function MessageInbox({ accounts, userId }: MessageInboxProps) {
       }
     } catch (error) {
       console.error('Error fetching messages:', error);
-      setError(error instanceof Error ? error.message : 'Failed to fetch messages from Reddit');
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'Failed to fetch messages from Reddit'
+      );
     } finally {
       setLoading(false);
     }
@@ -85,14 +102,16 @@ export default function MessageInbox({ accounts, userId }: MessageInboxProps) {
 
   const handleSendReply = async (messageId: string) => {
     if (!selectedAccount || !replyMessage.trim()) return;
-    
+
     setSendingReply(true);
     setReplyError(null);
-    
+
     try {
       // Call the API to send the reply
-      console.log(`Sending reply to message ${messageId} from account ${selectedAccount.username}`);
-      
+      console.log(
+        `Sending reply to message ${messageId} from account ${selectedAccount.username}`
+      );
+
       const response = await fetch('/api/reddit/private-messages', {
         method: 'POST',
         headers: {
@@ -101,38 +120,42 @@ export default function MessageInbox({ accounts, userId }: MessageInboxProps) {
         body: JSON.stringify({
           accountId: selectedAccount.id,
           messageId,
-          body: replyMessage
+          body: replyMessage,
         }),
       });
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
         // Handle API error response
         const errorMessage = data.error || 'Failed to send reply';
         const details = data.details ? `: ${data.details}` : '';
         throw new Error(`${errorMessage}${details}`);
       }
-      
+
       // Success - clear form and refresh messages
       setReplyingTo(null);
       setReplyMessage('');
-      
+
       // Refresh the messages to show the new reply
       setTimeout(() => fetchMessages(selectedAccount), 1000);
     } catch (error) {
       console.error('Error sending reply:', error);
-      setReplyError(error instanceof Error ? error.message : 'Failed to send reply. Please try again.');
+      setReplyError(
+        error instanceof Error
+          ? error.message
+          : 'Failed to send reply. Please try again.'
+      );
     } finally {
       setSendingReply(false);
     }
   };
 
-  const filteredMessages = messages.filter(message => {
+  const filteredMessages = messages.filter((message) => {
     // Apply filter (all, received, sent)
     if (filter === 'received' && !message.isIncoming) return false;
     if (filter === 'sent' && message.isIncoming) return false;
-    
+
     // Apply search term
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
@@ -142,7 +165,7 @@ export default function MessageInbox({ accounts, userId }: MessageInboxProps) {
         message.author.toLowerCase().includes(term)
       );
     }
-    
+
     return true;
   });
 
@@ -155,7 +178,9 @@ export default function MessageInbox({ accounts, userId }: MessageInboxProps) {
     return (
       <div className="text-center py-8">
         <FaInbox className="mx-auto h-12 w-12 text-gray-400" />
-        <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No Reddit accounts</h3>
+        <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+          No Reddit accounts
+        </h3>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           You need to add a Reddit account before you can view messages.
         </p>
@@ -175,7 +200,10 @@ export default function MessageInbox({ accounts, userId }: MessageInboxProps) {
     <div>
       {/* Account Selector */}
       <div className="mb-6">
-        <label htmlFor="account-select" className="block text-sm font-medium text-gray-300 mb-2">
+        <label
+          htmlFor="account-select"
+          className="block text-sm font-medium text-gray-300 mb-2"
+        >
           Select Reddit Account
         </label>
         <select
@@ -183,12 +211,12 @@ export default function MessageInbox({ accounts, userId }: MessageInboxProps) {
           className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-gray-700 text-white"
           value={selectedAccount?.id || ''}
           onChange={(e) => {
-            const account = accounts.find(a => a.id === e.target.value);
+            const account = accounts.find((a) => a.id === e.target.value);
             setSelectedAccount(account || null);
           }}
         >
           <option value="">Select an account</option>
-          {accounts.map(account => (
+          {accounts.map((account) => (
             <option key={account.id} value={account.id}>
               {account.username}
             </option>
@@ -237,7 +265,7 @@ export default function MessageInbox({ accounts, userId }: MessageInboxProps) {
               >
                 <FaPaperPlane className="inline mr-2" /> Sent
               </button>
-              <select 
+              <select
                 className="ml-4 bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-1"
                 value={messageLimit}
                 onChange={(e) => {
@@ -275,7 +303,9 @@ export default function MessageInbox({ accounts, userId }: MessageInboxProps) {
               <p className="text-white font-medium">Error loading messages</p>
               <p className="text-gray-300 mt-1">{error}</p>
               <button
-                onClick={() => selectedAccount && fetchMessages(selectedAccount)}
+                onClick={() =>
+                  selectedAccount && fetchMessages(selectedAccount)
+                }
                 className="mt-4 bg-purple-600 hover:bg-purple-700 text-white rounded-md px-4 py-2 text-sm inline-flex items-center"
               >
                 Try Again
@@ -283,13 +313,13 @@ export default function MessageInbox({ accounts, userId }: MessageInboxProps) {
             </div>
           ) : filteredMessages.length > 0 ? (
             <div className="space-y-4">
-              {filteredMessages.map(message => (
-                <div 
-                  key={message.id} 
+              {filteredMessages.map((message) => (
+                <div
+                  key={message.id}
                   className={`bg-gray-800 rounded-lg p-4 border ${
-                    message.isIncoming 
-                      ? message.wasRead 
-                        ? 'border-gray-700' 
+                    message.isIncoming
+                      ? message.wasRead
+                        ? 'border-gray-700'
                         : 'border-purple-500'
                       : 'border-blue-500'
                   }`}
@@ -300,7 +330,8 @@ export default function MessageInbox({ accounts, userId }: MessageInboxProps) {
                         {message.subject}
                       </h3>
                       <p className="text-sm text-gray-400">
-                        {message.isIncoming ? 'From' : 'To'}: {message.author} • {formatDate(message.created_utc)}
+                        {message.isIncoming ? 'From' : 'To'}: {message.author} •{' '}
+                        {formatDate(message.created_utc)}
                       </p>
                     </div>
                     {message.isIncoming && (
@@ -352,9 +383,25 @@ export default function MessageInbox({ accounts, userId }: MessageInboxProps) {
                         >
                           {sendingReply ? (
                             <>
-                              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              <svg
+                                className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                ></circle>
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
                               </svg>
                               Sending...
                             </>

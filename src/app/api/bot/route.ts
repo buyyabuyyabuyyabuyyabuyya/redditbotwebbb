@@ -8,7 +8,7 @@ import { getPlanLimits } from '../../../utils/planLimits';
 
 const createSupabaseServerClient = () => {
   const cookieStore = cookies();
-  
+
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -42,7 +42,7 @@ const supabaseAdmin = createClient(
 
 export async function POST(req: Request) {
   const supabase = createSupabaseServerClient();
-  
+
   try {
     const { userId } = auth();
     if (!userId) {
@@ -195,7 +195,7 @@ export async function POST(req: Request) {
                   sent_at: new Date().toISOString(),
                 },
               ]);
-              
+
               // Also log to the bot_logs table as required by the rules
               await supabaseAdmin.from('bot_logs').insert([
                 {

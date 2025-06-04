@@ -66,15 +66,23 @@ export default function SubredditScanner({
         setConfigs(data || []);
       } catch (e: any) {
         // If table doesn't exist, just use empty array
-        if (e?.message && typeof e.message === 'string' && e.message.includes('does not exist')) {
-          console.warn('scan_configs table does not exist yet, using empty array');
+        if (
+          e?.message &&
+          typeof e.message === 'string' &&
+          e.message.includes('does not exist')
+        ) {
+          console.warn(
+            'scan_configs table does not exist yet, using empty array'
+          );
           setConfigs([]);
         } else {
           throw e;
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load configurations');
+      setError(
+        err instanceof Error ? err.message : 'Failed to load configurations'
+      );
     }
   };
 
@@ -91,7 +99,9 @@ export default function SubredditScanner({
   const handleRemoveKeyword = (indexToRemove: number) => {
     setNewConfig({
       ...newConfig,
-      keywords: newConfig.keywords.filter((_, index) => index !== indexToRemove),
+      keywords: newConfig.keywords.filter(
+        (_, index) => index !== indexToRemove
+      ),
     });
   };
 
@@ -101,12 +111,14 @@ export default function SubredditScanner({
     setError(null);
 
     try {
-      const { error: dbError } = await supabaseAdmin.from('scan_configs').insert([
-        {
-          user_id: userId,
-          ...newConfig,
-        },
-      ]);
+      const { error: dbError } = await supabaseAdmin
+        .from('scan_configs')
+        .insert([
+          {
+            user_id: userId,
+            ...newConfig,
+          },
+        ]);
 
       if (dbError) throw dbError;
 
@@ -120,7 +132,9 @@ export default function SubredditScanner({
         scanInterval: 30,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save configuration');
+      setError(
+        err instanceof Error ? err.message : 'Failed to save configuration'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -136,7 +150,9 @@ export default function SubredditScanner({
       if (dbError) throw dbError;
       await loadConfigs();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update configuration');
+      setError(
+        err instanceof Error ? err.message : 'Failed to update configuration'
+      );
     }
   };
 
@@ -259,9 +275,7 @@ export default function SubredditScanner({
           />
         </div>
 
-        {error && (
-          <div className="text-red-600 text-sm">{error}</div>
-        )}
+        {error && <div className="text-red-600 text-sm">{error}</div>}
 
         <RippleButton
           type="submit"
@@ -275,7 +289,9 @@ export default function SubredditScanner({
       </form>
 
       <div className="mt-8">
-        <h3 className="text-lg font-medium text-white">Active Configurations</h3>
+        <h3 className="text-lg font-medium text-white">
+          Active Configurations
+        </h3>
         <div className="mt-4 space-y-4">
           {configs.map((config) => (
             <div
@@ -293,7 +309,9 @@ export default function SubredditScanner({
               </div>
               <div>
                 <Button3D
-                  onClick={() => config.id && toggleConfig(config.id, !config.isActive)}
+                  onClick={() =>
+                    config.id && toggleConfig(config.id, !config.isActive)
+                  }
                   variant={config.isActive ? 'danger' : 'success'}
                   size="small"
                 >

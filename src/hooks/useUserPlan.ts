@@ -20,13 +20,13 @@ export function useUserPlan() {
       try {
         // Use the API endpoint instead of direct Supabase queries
         const response = await fetch('/api/user/stats');
-        
+
         if (!response.ok) {
           throw new Error('Failed to fetch user stats');
         }
-        
+
         const data = await response.json();
-        
+
         setPlan(data.subscription_status);
         setMessageCount(data.message_count);
       } catch (error) {
@@ -38,24 +38,27 @@ export function useUserPlan() {
 
     async function setupRealtimeSubscription() {
       if (!user) return;
-      
+
       try {
         const supabase = createClientSupabaseClient();
-        
+
         // Setup realtime subscription to sent_messages table
         supabaseSubscription = supabase
           .channel('message-count-changes')
-          .on('postgres_changes', { 
-            event: '*', 
-            schema: 'public', 
-            table: 'sent_messages',
-            filter: `user_id=eq.${user.id}`
-          }, () => {
-            // When any change happens to sent_messages, refresh the count
-            fetchUserPlan();
-          })
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'sent_messages',
+              filter: `user_id=eq.${user.id}`,
+            },
+            () => {
+              // When any change happens to sent_messages, refresh the count
+              fetchUserPlan();
+            }
+          )
           .subscribe();
-
       } catch (error) {
         console.error('Error setting up realtime subscription:', error);
       }
@@ -73,11 +76,11 @@ export function useUserPlan() {
     };
   }, [user]);
 
-  return { 
-    plan, 
-    messageCount, 
-    loading, 
+  return {
+    plan,
+    messageCount,
+    loading,
     remaining: plan === 'free' ? Math.max(0, 15 - messageCount) : null,
-    isProUser: plan === 'pro'
+    isProUser: plan === 'pro',
   };
 }

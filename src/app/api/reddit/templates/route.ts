@@ -11,8 +11,8 @@ const supabaseAdmin = createClient(
   {
     auth: {
       autoRefreshToken: false,
-      persistSession: false
-    }
+      persistSession: false,
+    },
   }
 );
 
@@ -103,13 +103,13 @@ export async function POST(req: Request) {
     // If user doesn't exist in Supabase yet, create them
     if (!existingUser) {
       console.log(`User ${userId} not found in users table, creating...`);
-      
+
       const { error: createUserError } = await supabaseAdmin
         .from('users')
         .insert([
           {
             id: userId,
-            user_id: userId,  // Set both id and user_id to the Clerk userId
+            user_id: userId, // Set both id and user_id to the Clerk userId
             subscription_status: 'free',
             message_count: 0,
             created_at: new Date().toISOString(),
@@ -140,7 +140,10 @@ export async function POST(req: Request) {
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId);
 
-    if (limits.maxTemplates !== null && (templateCount || 0) >= limits.maxTemplates) {
+    if (
+      limits.maxTemplates !== null &&
+      (templateCount || 0) >= limits.maxTemplates
+    ) {
       return NextResponse.json(
         {
           error:
@@ -211,7 +214,9 @@ export async function PUT(req: Request) {
 
     if (checkError || !existingTemplate) {
       return NextResponse.json(
-        { error: 'Template not found or you do not have permission to edit it' },
+        {
+          error: 'Template not found or you do not have permission to edit it',
+        },
         { status: 404 }
       );
     }
@@ -277,7 +282,10 @@ export async function DELETE(req: Request) {
 
     if (checkError || !existingTemplate) {
       return NextResponse.json(
-        { error: 'Template not found or you do not have permission to delete it' },
+        {
+          error:
+            'Template not found or you do not have permission to delete it',
+        },
         { status: 404 }
       );
     }

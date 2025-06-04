@@ -7,13 +7,16 @@ interface LogArchiveButtonProps {
   onSuccess?: () => void;
 }
 
-export default function LogArchiveButton({ configId, onSuccess }: LogArchiveButtonProps) {
+export default function LogArchiveButton({
+  configId,
+  onSuccess,
+}: LogArchiveButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const triggerArchive = async () => {
     try {
       setIsLoading(true);
-      
+
       // Call the archive endpoint
       const response = await fetch('/api/logs/archive', {
         method: 'POST',
@@ -22,22 +25,22 @@ export default function LogArchiveButton({ configId, onSuccess }: LogArchiveButt
         },
         body: JSON.stringify(configId ? { configId } : {}),
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to archive logs');
       }
-      
+
       // Get the response data
       const data = await response.json();
-      
+
       // Show success message
       alert('Logs archived successfully!');
-      
+
       // Call the onSuccess callback if provided
       if (onSuccess) {
         onSuccess();
       }
-      
+
       // Refresh the page to see the changes
       window.location.reload();
     } catch (error) {

@@ -39,25 +39,30 @@ export async function POST(req: Request) {
       const userInfoPromise = reddit.getMe().then((me: any) => {
         return { name: me?.name || 'unknown' };
       });
-      
+
       const userInfo = await userInfoPromise;
-      console.log('Reddit account validation successful for user:', userInfo.name);
+      console.log(
+        'Reddit account validation successful for user:',
+        userInfo.name
+      );
 
       // If we get here, the credentials are valid
       return NextResponse.json({ success: true, username: userInfo.name });
     } catch (redditError) {
       console.error('Error validating with Reddit API:', redditError);
-      
+
       // Extract more specific error message if possible
       let errorMessage = 'Invalid Reddit credentials';
       if (redditError instanceof Error) {
         if (redditError.message.includes('401')) {
-          errorMessage = 'Reddit authentication failed: Invalid username/password or client ID/secret';
+          errorMessage =
+            'Reddit authentication failed: Invalid username/password or client ID/secret';
         } else if (redditError.message.includes('403')) {
-          errorMessage = 'Reddit authentication failed: Account may be locked or requires additional verification';
+          errorMessage =
+            'Reddit authentication failed: Account may be locked or requires additional verification';
         }
       }
-      
+
       return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
   } catch (error) {

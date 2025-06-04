@@ -11,8 +11,8 @@ const supabaseAdmin = createClient(
   {
     auth: {
       autoRefreshToken: false,
-      persistSession: false
-    }
+      persistSession: false,
+    },
   }
 );
 
@@ -26,14 +26,14 @@ export async function POST(req: Request) {
     }
 
     // Parse the request body
-    const { 
-      subreddit, 
-      keywords, 
-      messageTemplateId, 
-      redditAccountId, 
+    const {
+      subreddit,
+      keywords,
+      messageTemplateId,
+      redditAccountId,
       scanInterval,
       isActive,
-      useAiCheck 
+      useAiCheck,
     } = await req.json();
 
     // Validate the required fields
@@ -54,13 +54,13 @@ export async function POST(req: Request) {
     // If user doesn't exist in Supabase yet, create them
     if (!existingUser) {
       console.log(`User ${userId} not found in users table, creating...`);
-      
+
       const { error: createUserError } = await supabaseAdmin
         .from('users')
         .insert([
           {
             id: userId,
-            user_id: userId,  // Set both id and user_id to the Clerk userId
+            user_id: userId, // Set both id and user_id to the Clerk userId
             subscription_status: 'free',
             message_count: 0,
             created_at: new Date().toISOString(),
@@ -90,7 +90,10 @@ export async function POST(req: Request) {
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId);
 
-    if (limits.maxScanConfigs !== null && (configCount || 0) >= limits.maxScanConfigs) {
+    if (
+      limits.maxScanConfigs !== null &&
+      (configCount || 0) >= limits.maxScanConfigs
+    ) {
       return NextResponse.json(
         {
           error:
@@ -147,26 +150,28 @@ export async function GET(req: Request) {
     // Parse query parameters
     const url = new URL(req.url);
     const configId = url.searchParams.get('id');
-    
-    console.log(`GET scan-config request with userId: ${userId}, configId: ${configId}`);
+
+    console.log(
+      `GET scan-config request with userId: ${userId}, configId: ${configId}`
+    );
 
     // If config ID is provided, get a specific config
     if (configId) {
       console.log(`Looking up specific config with ID: ${configId}`);
-      
+
       // First check if the config exists at all (without user_id filter)
       const { data: rawCheck, error: rawCheckError } = await supabaseAdmin
         .from('scan_configs')
         .select('id, user_id, subreddit')
         .eq('id', configId);
-        
+
       if (rawCheckError) {
         console.error(`Raw check error: ${JSON.stringify(rawCheckError)}`);
       } else {
         console.log(`Raw check found ${rawCheck?.length || 0} configs:`);
         console.log(JSON.stringify(rawCheck, null, 2));
       }
-      
+
       // Now get the config with user_id filter
       const { data, error } = await supabaseAdmin
         .from('scan_configs')
@@ -176,27 +181,30 @@ export async function GET(req: Request) {
         .single();
 
       if (error) {
-        if (error.code === 'PGRST116') { // Record not found
-          console.error(`Config not found for ID ${configId} and user ${userId}`);
+        if (error.code === 'PGRST116') {
+          // Record not found
+          console.error(
+            `Config not found for ID ${configId} and user ${userId}`
+          );
           return NextResponse.json(
             { error: 'Configuration not found' },
             { status: 404 }
           );
         }
-        
+
         console.error(`Error retrieving scan config: ${JSON.stringify(error)}`);
         return NextResponse.json(
           { error: `Database error: ${error.message}` },
           { status: 500 }
         );
       }
-      
+
       console.log(`Successfully found config for ID ${configId}:`);
       console.log(JSON.stringify(data, null, 2));
 
       return NextResponse.json({ config: data });
     }
-    
+
     // Otherwise, get all scan configs for the authenticated user
     const { data, error } = await supabaseAdmin
       .from('scan_configs')
@@ -242,12 +250,13 @@ export async function PATCH(req: Request) {
     }
 
     // Check if the config belongs to the user
-    const { data: existingConfig, error: configCheckError } = await supabaseAdmin
-      .from('scan_configs')
-      .select('id')
-      .eq('id', configId)
-      .eq('user_id', userId)
-      .single();
+    const { data: existingConfig, error: configCheckError } =
+      await supabaseAdmin
+        .from('scan_configs')
+        .select('id')
+        .eq('id', configId)
+        .eq('user_id', userId)
+        .single();
 
     if (configCheckError || !existingConfig) {
       return NextResponse.json(
@@ -272,10 +281,10 @@ export async function PATCH(req: Request) {
       );
     }
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       data,
-      message: `Bot ${isActive ? 'started' : 'stopped'} successfully` 
+      message: `Bot ${isActive ? 'started' : 'stopped'} successfully`,
     });
   } catch (error: any) {
     console.error('Server error:', error);

@@ -11,8 +11,8 @@ const supabaseAdmin = createClient(
   {
     auth: {
       autoRefreshToken: false,
-      persistSession: false
-    }
+      persistSession: false,
+    },
   }
 );
 
@@ -46,13 +46,13 @@ export async function POST(req: Request) {
     // If user doesn't exist in Supabase yet, create them
     if (!existingUser) {
       console.log(`User ${userId} not found in users table, creating...`);
-      
+
       const { error: createUserError } = await supabaseAdmin
         .from('users')
         .insert([
           {
             id: userId,
-            user_id: userId,  // Set both id and user_id to the Clerk userId
+            user_id: userId, // Set both id and user_id to the Clerk userId
             subscription_status: 'free',
             message_count: 0,
             created_at: new Date().toISOString(),
@@ -85,7 +85,10 @@ export async function POST(req: Request) {
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId);
 
-    if (limits.maxAccounts !== null && (accountCount || 0) >= limits.maxAccounts) {
+    if (
+      limits.maxAccounts !== null &&
+      (accountCount || 0) >= limits.maxAccounts
+    ) {
       return NextResponse.json(
         {
           error:
@@ -158,13 +161,14 @@ export async function GET(req: Request) {
         .single();
 
       if (error) {
-        if (error.code === 'PGRST116') { // Record not found
+        if (error.code === 'PGRST116') {
+          // Record not found
           return NextResponse.json(
             { error: 'Reddit account not found' },
             { status: 404 }
           );
         }
-        
+
         console.error('Error retrieving Reddit account:', error);
         return NextResponse.json(
           { error: `Database error: ${error.message}` },

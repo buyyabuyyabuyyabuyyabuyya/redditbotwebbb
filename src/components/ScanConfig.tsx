@@ -28,23 +28,29 @@ export default function ScanConfig({ userId, onSuccess }: ScanConfigProps) {
         // Get message templates using API endpoint
         const templatesResponse = await fetch('/api/reddit/templates');
         const templatesData = await templatesResponse.json();
-        
+
         if (templatesResponse.ok && templatesData.templates) {
           console.log('Templates loaded:', templatesData.templates);
           setMessageTemplates(templatesData.templates);
         } else {
-          console.error('Error loading templates:', templatesData.error || 'Unknown error');
+          console.error(
+            'Error loading templates:',
+            templatesData.error || 'Unknown error'
+          );
         }
-        
+
         // Get Reddit accounts using API endpoint
         const accountsResponse = await fetch('/api/reddit/account');
         const accountsData = await accountsResponse.json();
-        
+
         if (accountsResponse.ok && accountsData.accounts) {
           console.log('Accounts loaded:', accountsData.accounts);
           setRedditAccounts(accountsData.accounts);
         } else {
-          console.error('Error loading accounts:', accountsData.error || 'Unknown error');
+          console.error(
+            'Error loading accounts:',
+            accountsData.error || 'Unknown error'
+          );
         }
 
         // Load active bots
@@ -53,10 +59,10 @@ export default function ScanConfig({ userId, onSuccess }: ScanConfigProps) {
         console.error('Error in fetchData:', err);
       }
     }
-    
+
     fetchData();
   }, [userId]);
-  
+
   // Function to fetch active bots
   const fetchActiveBots = async () => {
     try {
@@ -66,7 +72,7 @@ export default function ScanConfig({ userId, onSuccess }: ScanConfigProps) {
         .select('*')
         .eq('user_id', userId)
         .eq('is_active', true);
-      
+
       if (configs) {
         setActiveBots(configs);
       } else if (error) {
@@ -75,22 +81,24 @@ export default function ScanConfig({ userId, onSuccess }: ScanConfigProps) {
     } catch (err) {
       console.error('Error fetching active bots:', err);
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      const keywordsArray = keywords.split(',').map(k => k.trim());
-      
+      const keywordsArray = keywords.split(',').map((k) => k.trim());
+
       // Check if user has reached message limit
       if (!isProUser && remaining === 0) {
-        setError('You have reached your message limit. Please upgrade to Pro for unlimited messages.');
+        setError(
+          'You have reached your message limit. Please upgrade to Pro for unlimited messages.'
+        );
         return;
       }
-      
+
       // Use the API endpoint instead of direct Supabase calls
       const response = await fetch('/api/reddit/scan-config', {
         method: 'POST',
@@ -103,26 +111,26 @@ export default function ScanConfig({ userId, onSuccess }: ScanConfigProps) {
           messageTemplateId: messageTemplateId,
           redditAccountId: redditAccountId,
           scanInterval: scanInterval,
-          isActive: false
+          isActive: false,
         }),
       });
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
         console.error('Server response error:', data);
         throw new Error(data.error || 'Failed to create scan configuration');
       }
-      
+
       console.log('Scan configuration created successfully!');
-      
+
       // After successful creation, refresh active bots list
       await fetchActiveBots();
-      
+
       if (onSuccess) {
         onSuccess();
       }
-      
+
       // Reset form
       setSubreddits('');
       setKeywords('');
@@ -138,43 +146,46 @@ export default function ScanConfig({ userId, onSuccess }: ScanConfigProps) {
 
   const toggleBotStatus = async (botId: string, currentStatus: boolean) => {
     setIsLoading(true);
-    
+
     try {
       const supabase = createClientSupabaseClient();
-      
+
       const { error } = await supabase
         .from('scan_configs')
         .update({ is_active: !currentStatus })
         .eq('id', botId)
         .eq('user_id', userId);
-      
+
       if (error) {
         throw error;
       }
-      
+
       // Log the action to bot_logs
       await supabaseAdmin.from('bot_logs').insert([
         {
           user_id: userId,
-          account_id: activeBots.find(bot => bot.id === botId)?.reddit_account_id,
-          subreddit: activeBots.find(bot => bot.id === botId)?.subreddit,
+          account_id: activeBots.find((bot) => bot.id === botId)
+            ?.reddit_account_id,
+          subreddit: activeBots.find((bot) => bot.id === botId)?.subreddit,
           action: currentStatus ? 'stop_bot' : 'start_bot',
-          status: 'success'
-        }
+          status: 'success',
+        },
       ]);
-      
+
       // Refresh the list of active bots
       const { data: configs } = await supabase
         .from('scan_configs')
         .select('*')
         .eq('user_id', userId)
         .eq('is_active', true);
-      
+
       if (configs) {
         setActiveBots(configs);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update bot status');
+      setError(
+        err instanceof Error ? err.message : 'Failed to update bot status'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -189,16 +200,15 @@ export default function ScanConfig({ userId, onSuccess }: ScanConfigProps) {
         <div className="mt-2 max-w-xl text-sm text-gray-300">
           <p>Create a new subreddit scanning configuration for your bot.</p>
         </div>
-        
-        {error && (
-          <div className="mt-2 text-sm text-red-500">
-            {error}
-          </div>
-        )}
-        
+
+        {error && <div className="mt-2 text-sm text-red-500">{error}</div>}
+
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           <div>
-            <label htmlFor="subreddits" className="block text-sm font-medium text-gray-300">
+            <label
+              htmlFor="subreddits"
+              className="block text-sm font-medium text-gray-300"
+            >
               Subreddits (comma separated)
             </label>
             <input
@@ -211,9 +221,12 @@ export default function ScanConfig({ userId, onSuccess }: ScanConfigProps) {
               required
             />
           </div>
-          
+
           <div>
-            <label htmlFor="keywords" className="block text-sm font-medium text-gray-300">
+            <label
+              htmlFor="keywords"
+              className="block text-sm font-medium text-gray-300"
+            >
               Keywords to Match (comma separated)
             </label>
             <input
@@ -226,9 +239,12 @@ export default function ScanConfig({ userId, onSuccess }: ScanConfigProps) {
               required
             />
           </div>
-          
+
           <div>
-            <label htmlFor="scanInterval" className="block text-sm font-medium text-gray-300">
+            <label
+              htmlFor="scanInterval"
+              className="block text-sm font-medium text-gray-300"
+            >
               Scan Interval (seconds)
             </label>
             <input
@@ -242,9 +258,12 @@ export default function ScanConfig({ userId, onSuccess }: ScanConfigProps) {
               required
             />
           </div>
-          
+
           <div>
-            <label htmlFor="messageTemplate" className="block text-sm font-medium text-gray-300">
+            <label
+              htmlFor="messageTemplate"
+              className="block text-sm font-medium text-gray-300"
+            >
               Message Template
             </label>
             <select
@@ -263,9 +282,12 @@ export default function ScanConfig({ userId, onSuccess }: ScanConfigProps) {
               ))}
             </select>
           </div>
-          
+
           <div>
-            <label htmlFor="redditAccount" className="block text-sm font-medium text-gray-300">
+            <label
+              htmlFor="redditAccount"
+              className="block text-sm font-medium text-gray-300"
+            >
               Reddit Account
             </label>
             <select
@@ -284,7 +306,7 @@ export default function ScanConfig({ userId, onSuccess }: ScanConfigProps) {
               ))}
             </select>
           </div>
-          
+
           <button
             type="submit"
             disabled={isLoading}
@@ -293,15 +315,20 @@ export default function ScanConfig({ userId, onSuccess }: ScanConfigProps) {
             {isLoading ? 'Creating...' : 'Create Configuration'}
           </button>
         </form>
-        
+
         {activeBots.length > 0 && (
           <div className="mt-8">
             <h4 className="text-md font-medium text-white">Active Bots</h4>
             <div className="mt-4 space-y-4">
               {activeBots.map((bot) => (
-                <div key={bot.id} className="flex justify-between items-center p-3 bg-gray-700 rounded-md">
+                <div
+                  key={bot.id}
+                  className="flex justify-between items-center p-3 bg-gray-700 rounded-md"
+                >
                   <div>
-                    <span className="text-sm text-white font-medium">r/{bot.subreddit}</span>
+                    <span className="text-sm text-white font-medium">
+                      r/{bot.subreddit}
+                    </span>
                     <p className="text-xs text-gray-300">
                       Scanning every {bot.scan_interval} seconds
                     </p>

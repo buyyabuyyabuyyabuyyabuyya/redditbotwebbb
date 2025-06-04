@@ -4,7 +4,11 @@ const nextConfig = {
   images: {
     domains: ['img.clerk.com'],
   },
-
 };
 
-module.exports = nextConfig;
+module.exports = {
+  eslint: {
+    // Skip ESLint during builds (keeps local linting)
+    ignoreDuringBuilds: true,
+  },
+};

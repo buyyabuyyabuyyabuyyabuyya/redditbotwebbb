@@ -9,8 +9,8 @@ const supabaseAdmin = createClient(
   {
     auth: {
       autoRefreshToken: false,
-      persistSession: false
-    }
+      persistSession: false,
+    },
   }
 );
 
@@ -28,7 +28,10 @@ export async function GET(req: Request) {
     const configId = url.searchParams.get('id');
 
     if (!configId) {
-      return NextResponse.json({ error: 'Config ID is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Config ID is required' },
+        { status: 400 }
+      );
     }
 
     // Get the config using admin client
@@ -61,18 +64,21 @@ export async function PUT(req: Request) {
     }
 
     // Parse the request body
-    const { 
+    const {
       id,
-      subreddit, 
-      keywords, 
-      messageTemplateId, 
-      redditAccountId, 
+      subreddit,
+      keywords,
+      messageTemplateId,
+      redditAccountId,
       scanInterval,
-      useAiCheck 
+      useAiCheck,
     } = await req.json();
 
     if (!id) {
-      return NextResponse.json({ error: 'Config ID is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Config ID is required' },
+        { status: 400 }
+      );
     }
 
     // Update the config
@@ -85,7 +91,7 @@ export async function PUT(req: Request) {
         reddit_account_id: redditAccountId,
         scan_interval: scanInterval,
         use_ai_check: useAiCheck,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .eq('id', id)
       .select();
@@ -129,7 +135,10 @@ export async function DELETE(req: Request) {
     const configId = url.searchParams.get('id');
 
     if (!configId) {
-      return NextResponse.json({ error: 'Config ID is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Config ID is required' },
+        { status: 400 }
+      );
     }
 
     // Delete the config

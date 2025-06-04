@@ -18,12 +18,17 @@ export async function POST(req: NextRequest) {
     if (!userId || !configId || !subreddit) {
       console.error('Missing required fields for log archival check');
       return NextResponse.json(
-        { error: 'Missing required fields: userId, configId, and subreddit are required' },
+        {
+          error:
+            'Missing required fields: userId, configId, and subreddit are required',
+        },
         { status: 400 }
       );
     }
 
-    console.log(`ARCHIVAL CHECK: Checking logs for user ${userId}, config ${configId} (r/${subreddit})`);
+    console.log(
+      `ARCHIVAL CHECK: Checking logs for user ${userId}, config ${configId} (r/${subreddit})`
+    );
 
     // First log this check to the database
     try {
@@ -34,7 +39,7 @@ export async function POST(req: NextRequest) {
         subreddit: subreddit,
         config_id: configId,
         message: 'Dedicated archive check endpoint called',
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
       });
       console.log(`ARCHIVAL CHECK: Logged check to database`);
     } catch (logError) {
@@ -47,8 +52,10 @@ export async function POST(req: NextRequest) {
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
       .eq('config_id', configId);
-      
-    console.log(`ARCHIVAL CHECK: Current log count before check: ${beforeCount || 'unknown'}`);
+
+    console.log(
+      `ARCHIVAL CHECK: Current log count before check: ${beforeCount || 'unknown'}`
+    );
 
     // Call the checkAndArchiveLogs function to archive logs if needed
     console.log(`ARCHIVAL CHECK: Calling checkAndArchiveLogs function`);
@@ -60,9 +67,13 @@ export async function POST(req: NextRequest) {
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
       .eq('config_id', configId);
-      
-    console.log(`ARCHIVAL CHECK: Log count after check: ${afterCount || 'unknown'}`);
-    console.log(`ARCHIVAL CHECK: Difference: ${beforeCount && afterCount ? beforeCount - afterCount : 'unknown'}`);
+
+    console.log(
+      `ARCHIVAL CHECK: Log count after check: ${afterCount || 'unknown'}`
+    );
+    console.log(
+      `ARCHIVAL CHECK: Difference: ${beforeCount && afterCount ? beforeCount - afterCount : 'unknown'}`
+    );
     console.log('========== DEDICATED LOG ARCHIVAL CHECK COMPLETE ==========');
 
     // Return a success response with the counts
@@ -71,12 +82,14 @@ export async function POST(req: NextRequest) {
       message: 'Log archival check completed successfully',
       beforeCount: beforeCount || 0,
       afterCount: afterCount || 0,
-      difference: beforeCount && afterCount ? beforeCount - afterCount : 0
+      difference: beforeCount && afterCount ? beforeCount - afterCount : 0,
     });
   } catch (error) {
-    console.error('========== ERROR IN DEDICATED LOG ARCHIVAL CHECK ==========');
+    console.error(
+      '========== ERROR IN DEDICATED LOG ARCHIVAL CHECK =========='
+    );
     console.error('Error in check-archive route:', error);
-    
+
     // Detailed error logging for debugging
     if (error instanceof Error) {
       console.error(`Error name: ${error.name}`);
@@ -85,7 +98,9 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: `Failed to check logs for archival: ${error instanceof Error ? error.message : String(error)}` },
+      {
+        error: `Failed to check logs for archival: ${error instanceof Error ? error.message : String(error)}`,
+      },
       { status: 500 }
     );
   }

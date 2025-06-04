@@ -96,14 +96,16 @@ export default function SendMessage({ userId, onSuccess }: SendMessageProps) {
       }
 
       // Record the sent message in Supabase
-      const { error: dbError } = await supabaseAdmin.from('sent_messages').insert([
-        {
-          user_id: userId,
-          recipient_username: recipientUsername,
-          content: messageContent,
-          reddit_account_id: selectedAccount,
-        },
-      ]);
+      const { error: dbError } = await supabaseAdmin
+        .from('sent_messages')
+        .insert([
+          {
+            user_id: userId,
+            recipient_username: recipientUsername,
+            content: messageContent,
+            reddit_account_id: selectedAccount,
+          },
+        ]);
 
       if (dbError) {
         throw dbError;

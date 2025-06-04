@@ -6,7 +6,6 @@ import Link from 'next/link';
 import MessageCounter from '../../components/MessageCounter';
 import { createClient } from '@supabase/supabase-js';
 
-
 // Using the imported createServerSupabaseClient function
 
 interface User {
@@ -29,8 +28,8 @@ export default async function Settings() {
     {
       auth: {
         autoRefreshToken: false,
-        persistSession: false
-      }
+        persistSession: false,
+      },
     }
   );
 
@@ -40,7 +39,7 @@ export default async function Settings() {
     .select('*')
     .eq('id', userId)
     .single();
-    
+
   // Log the user data for debugging
   console.log('User data from admin client:', user);
 
@@ -86,8 +85,8 @@ export default async function Settings() {
                               {user?.subscription_status === 'pro'
                                 ? 'Pro'
                                 : user?.subscription_status === 'advanced'
-                                ? 'Advanced'
-                                : 'Free'}
+                                  ? 'Advanced'
+                                  : 'Free'}
                             </span>
                           </p>
                           {user?.subscription_status === 'free' && (
@@ -111,7 +110,10 @@ export default async function Settings() {
                             Messages Sent
                           </dt>
                           <dd className="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
-                            <MessageCounter initialCount={user?.message_count || 0} userId={userId} />
+                            <MessageCounter
+                              initialCount={user?.message_count || 0}
+                              userId={userId}
+                            />
                           </dd>
                         </div>
                         <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
@@ -121,9 +123,9 @@ export default async function Settings() {
                           <dd className="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
                             {user?.subscription_status === 'pro'
                               ? '200 / month'
-                              : user?.subscription_status === 'advanced'    
-                              ? 'Unlimited'
-                              : '15'}
+                              : user?.subscription_status === 'advanced'
+                                ? 'Unlimited'
+                                : '15'}
                           </dd>
                         </div>
                       </dl>
@@ -144,15 +146,18 @@ export default async function Settings() {
                     <p>
                       Manage your Reddit accounts. Add up to{' '}
                       <span className="font-semibold text-white">
-                        {user?.subscription_status === 'pro' ? '3' : user?.subscription_status === 'advanced' ? 'Unlimited' : '1'}
-                      </span> accounts.
+                        {user?.subscription_status === 'pro'
+                          ? '3'
+                          : user?.subscription_status === 'advanced'
+                            ? 'Unlimited'
+                            : '1'}
+                      </span>{' '}
+                      accounts.
                     </p>
                   </div>
                   <div className="mt-5">
                     <Link href="/dashboard">
-                      <Button3D>
-                        Manage Accounts
-                      </Button3D>
+                      <Button3D>Manage Accounts</Button3D>
                     </Link>
                   </div>
                 </div>
@@ -247,8 +252,6 @@ export default async function Settings() {
                 </div>
               </div>
             </div>
-
-           
 
             {/* Account Deletion Section */}
             <div className="px-4 py-8 sm:px-0">

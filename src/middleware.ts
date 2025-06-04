@@ -5,7 +5,13 @@ import { createServerClient } from '@supabase/ssr';
 
 export default authMiddleware({
   // Public routes that don't require authentication
-  publicRoutes: ['/', '/pricing', '/api/webhooks/stripe', '/sign-in(.*)', '/sign-up(.*)'],
+  publicRoutes: [
+    '/',
+    '/pricing',
+    '/api/webhooks/stripe',
+    '/sign-in(.*)',
+    '/sign-up(.*)',
+  ],
   ignoredRoutes: ['/api/webhooks/stripe'],
   async afterAuth(auth, req) {
     // If the user is authenticated with Clerk, verify in Supabase as well
@@ -48,7 +54,9 @@ export default authMiddleware({
       );
 
       // Get the Supabase user as required by the rules
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       // Create or update the user in Supabase if they don't exist yet
       if (!user) {

@@ -17,8 +17,8 @@ export default async function PrivateMessages() {
     {
       auth: {
         autoRefreshToken: false,
-        persistSession: false
-      }
+        persistSession: false,
+      },
     }
   );
 

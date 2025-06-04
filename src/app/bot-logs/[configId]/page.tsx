@@ -5,10 +5,17 @@ import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import LogViewer from '../../../components/LogViewer';
 
-export default function BotLogsPage({ params }: { params: { configId: string } }) {
+export default function BotLogsPage({
+  params,
+}: {
+  params: { configId: string };
+}) {
   const { user, isLoaded } = useUser();
   const router = useRouter();
-  const [botInfo, setBotInfo] = useState<{ subreddit: string; isActive: boolean } | null>(null);
+  const [botInfo, setBotInfo] = useState<{
+    subreddit: string;
+    isActive: boolean;
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,25 +29,29 @@ export default function BotLogsPage({ params }: { params: { configId: string } }
   useEffect(() => {
     const fetchBotInfo = async () => {
       if (!params.configId) return;
-      
+
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/reddit/scan-config?id=${params.configId}`);
-        
+        const response = await fetch(
+          `/api/reddit/scan-config?id=${params.configId}`
+        );
+
         if (!response.ok) {
           throw new Error('Failed to fetch bot information');
         }
-        
+
         const data = await response.json();
         setBotInfo(data.config || null);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch bot information');
+        setError(
+          err instanceof Error ? err.message : 'Failed to fetch bot information'
+        );
         console.error(err);
       } finally {
         setIsLoading(false);
       }
     };
-    
+
     fetchBotInfo();
   }, [params.configId]);
 
@@ -65,17 +76,21 @@ export default function BotLogsPage({ params }: { params: { configId: string } }
             <div className="bg-gray-800 p-3 rounded-lg flex items-center justify-between mb-4">
               <div>
                 <span className="text-gray-400 mr-2">Subreddit:</span>
-                <span className="text-indigo-400 font-medium">r/{botInfo.subreddit}</span>
+                <span className="text-indigo-400 font-medium">
+                  r/{botInfo.subreddit}
+                </span>
               </div>
               <div>
                 <span className="text-gray-400 mr-2">Status:</span>
-                <span className={`px-2 py-1 rounded text-xs font-medium ${botInfo.isActive ? 'bg-green-900/50 text-green-400' : 'bg-gray-700 text-gray-400'}`}>
+                <span
+                  className={`px-2 py-1 rounded text-xs font-medium ${botInfo.isActive ? 'bg-green-900/50 text-green-400' : 'bg-gray-700 text-gray-400'}`}
+                >
                   {botInfo.isActive ? 'Active' : 'Inactive'}
                 </span>
               </div>
             </div>
           )}
-          
+
           {isLoading ? (
             <div className="flex justify-center items-center h-32">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
@@ -83,7 +98,7 @@ export default function BotLogsPage({ params }: { params: { configId: string } }
           ) : error ? (
             <div className="bg-red-900/30 border border-red-800 p-4 rounded-lg text-center">
               <p className="text-red-400">{error}</p>
-              <button 
+              <button
                 onClick={handleBack}
                 className="mt-4 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-md transition-colors"
               >
@@ -91,8 +106,8 @@ export default function BotLogsPage({ params }: { params: { configId: string } }
               </button>
             </div>
           ) : (
-            <LogViewer 
-              userId={user.id} 
+            <LogViewer
+              userId={user.id}
               configIdFilter={params.configId}
               showBackButton={true}
               onBack={handleBack}

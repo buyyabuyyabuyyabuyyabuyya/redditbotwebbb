@@ -31,7 +31,10 @@ export async function GET(req: Request) {
       .single();
 
     if (userError || !userData?.is_admin) {
-      return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Forbidden: Admin access required' },
+        { status: 403 }
+      );
     }
 
     // Get all API keys
@@ -49,7 +52,7 @@ export async function GET(req: Request) {
     }
 
     // Mask the actual API keys for security
-    const maskedData = data.map(key => ({
+    const maskedData = data.map((key) => ({
       ...key,
       key: `${key.key.substring(0, 8)}...${key.key.substring(key.key.length - 4)}`,
     }));
@@ -81,11 +84,18 @@ export async function POST(req: Request) {
       .single();
 
     if (userError || !userData?.is_admin) {
-      return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Forbidden: Admin access required' },
+        { status: 403 }
+      );
     }
 
     // Parse the request body
-    const { key, provider = 'gemini', model = 'gemini-2.0-flash-lite' } = await req.json();
+    const {
+      key,
+      provider = 'gemini',
+      model = 'gemini-2.0-flash-lite',
+    } = await req.json();
 
     // Validate the required fields
     if (!key) {
@@ -119,7 +129,7 @@ export async function POST(req: Request) {
     }
 
     // Mask the API key in the response
-    const maskedData = data.map(key => ({
+    const maskedData = data.map((key) => ({
       ...key,
       key: `${key.key.substring(0, 8)}...${key.key.substring(key.key.length - 4)}`,
     }));
@@ -151,7 +161,10 @@ export async function PATCH(req: Request) {
       .single();
 
     if (userError || !userData?.is_admin) {
-      return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Forbidden: Admin access required' },
+        { status: 403 }
+      );
     }
 
     // Parse the request body
@@ -210,7 +223,10 @@ export async function DELETE(req: Request) {
       .single();
 
     if (userError || !userData?.is_admin) {
-      return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Forbidden: Admin access required' },
+        { status: 403 }
+      );
     }
 
     // Parse the URL to get the key ID

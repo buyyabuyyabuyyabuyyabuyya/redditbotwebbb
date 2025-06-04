@@ -27,21 +27,23 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const subreddit = url.searchParams.get('subreddit');
     const countOnly = url.searchParams.get('count') === 'true';
-    
+
     // If count only, return the count
     if (countOnly) {
-      let countQuery = supabaseAdmin.from('sent_messages').select('*', { count: 'exact', head: true });
-      
+      let countQuery = supabaseAdmin
+        .from('sent_messages')
+        .select('*', { count: 'exact', head: true });
+
       // Apply filters
       countQuery = countQuery.eq('user_id', userId);
-      
+
       // Add subreddit filter if provided
       if (subreddit) {
         countQuery = countQuery.eq('subreddit', subreddit);
       }
-      
+
       const { count, error } = await countQuery;
-      
+
       if (error) {
         console.error('Error counting messages:', error);
         return NextResponse.json(
@@ -49,26 +51,26 @@ export async function GET(req: Request) {
           { status: 500 }
         );
       }
-      
+
       return NextResponse.json({ count });
-    } 
+    }
     // Otherwise, return the messages
     else {
       let dataQuery = supabaseAdmin.from('sent_messages').select('*');
-      
+
       // Apply filters
       dataQuery = dataQuery.eq('user_id', userId);
-      
+
       // Add subreddit filter if provided
       if (subreddit) {
         dataQuery = dataQuery.eq('subreddit', subreddit);
       }
-      
+
       // Order by created_at
       dataQuery = dataQuery.order('created_at', { ascending: false });
-      
+
       const { data, error } = await dataQuery;
-      
+
       if (error) {
         console.error('Error fetching messages:', error);
         return NextResponse.json(
@@ -76,7 +78,7 @@ export async function GET(req: Request) {
           { status: 500 }
         );
       }
-      
+
       return NextResponse.json({ messages: data });
     }
   } catch (error: any) {

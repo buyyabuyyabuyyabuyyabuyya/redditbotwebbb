@@ -15,7 +15,7 @@ const supabaseAdmin = createClient(
 
 /**
  * Endpoint to synchronize message_count in users table with actual count from sent_messages
- * 
+ *
  * This can be called periodically or after batch operations to ensure the message_count
  * field is in sync with the actual number of messages sent.
  */
@@ -23,9 +23,12 @@ export async function POST(req: Request) {
   try {
     // Get the userId from the request body
     const { userId } = await req.json();
-    
+
     if (!userId) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'User ID is required' },
+        { status: 400 }
+      );
     }
 
     // Get the actual count from sent_messages table
@@ -33,7 +36,7 @@ export async function POST(req: Request) {
       .from('sent_messages')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId);
-    
+
     if (countError) {
       console.error('Error counting messages:', countError);
       return NextResponse.json(
@@ -41,14 +44,14 @@ export async function POST(req: Request) {
         { status: 500 }
       );
     }
-    
+
     // Update the user's message_count field to match the actual count
     const { data: updateData, error: updateError } = await supabaseAdmin
       .from('users')
       .update({ message_count: actualCount || 0 })
       .eq('id', userId)
       .select();
-      
+
     if (updateError) {
       console.error('Error updating message count:', updateError);
       return NextResponse.json(
@@ -60,7 +63,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       message_count: actualCount || 0,
-      updated: true
+      updated: true,
     });
   } catch (error: any) {
     console.error('Server error:', error);
