@@ -172,7 +172,9 @@ export async function POST(request: NextRequest) {
         );
 
         // Get the message and then reply to it
-        const message = await reddit.getMessage(messageId);
+        // Cast to any to avoid Snoowrap Promise self-referential type error in TS
+        const message:any= reddit.getMessage(messageId);
+        
         await message.reply(body);
 
         // Update user's message count
