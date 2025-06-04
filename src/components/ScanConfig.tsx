@@ -2,11 +2,24 @@ import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { createClientSupabaseClient } from '../utils/supabase';
 import { useUserPlan } from '../hooks/useUserPlan';
+import { createClient } from '@supabase/supabase-js';
 
 interface ScanConfigProps {
   userId: string;
   onSuccess?: () => void;
 }
+
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+);
 
 export default function ScanConfig({ userId, onSuccess }: ScanConfigProps) {
   const [subreddits, setSubreddits] = useState('');
@@ -20,6 +33,9 @@ export default function ScanConfig({ userId, onSuccess }: ScanConfigProps) {
   const [redditAccounts, setRedditAccounts] = useState<any[]>([]);
   const [activeBots, setActiveBots] = useState<any[]>([]);
   const { plan, remaining, isProUser } = useUserPlan();
+
+
+
 
   useEffect(() => {
     // Fetch available message templates and Reddit accounts
