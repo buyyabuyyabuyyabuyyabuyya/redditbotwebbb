@@ -1,0 +1,193 @@
+✅ Proper Supabase SSR usage
+✅ Clerk for auth
+✅ Stripe for billing
+✅ Bot automation safety
+✅ UI with uiverse.io
+✅ Structured logic for bot customization, credential testing, and message tracking
+
+📄 windsurf.txt
+markdown
+Copy
+Edit
+# WINDSURF RULES FOR REDDIT BOT OUTREACH SAAS
+
+# ============= CORE STACK =============
+
+You MUST use:
+- Next.js (App Router)
+- Supabase for backend (auth/session/store)
+- Clerk for authentication
+- Stripe for subscriptions and billing
+- TypeScript
+- Tailwind CSS
+- UI elements from https://uiverse.io
+
+You MUST NOT use:
+- @supabase/auth-helpers-nextjs (DEPRECATED)
+- Any direct `cookies.get`, `cookies.set`, or `cookies.remove` calls
+- Client-side Reddit bot logic
+- Bot logic inside middleware.ts
+
+# ============= SUPABASE SSR =============
+
+✅ You MUST create Supabase clients using ONLY:
+
+```ts
+import { createBrowserClient } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
+✅ Cookie methods MUST only be:
+
+ts
+Copy
+Edit
+cookies.getAll()
+cookies.setAll()
+❌ NEVER use:
+
+cookies.get(name)
+
+cookies.set(name, value)
+
+cookies.remove(name)
+
+✅ Middleware MUST include:
+
+ts
+Copy
+Edit
+const {
+  data: { user },
+} = await supabase.auth.getUser()
+============= AUTH & USER SESSION =============
+✅ Use Clerk for login/signup/session:
+
+Protect /dashboard and /bots routes for logged-in users only
+
+Create Supabase row per Clerk user on first login
+
+✅ Session refresh MUST be handled in middleware using @supabase/ssr
+
+============= BILLING & PLANS =============
+✅ Stripe plans:
+
+Free plan: 15 total messages
+
+Pro plan: $7.99/month, unlimited messages
+
+✅ After successful Stripe payment:
+
+Set Supabase column: users.plan = 'pro'
+
+✅ Track per-user message count in Supabase:
+
+messages_sent int
+
+Auto-increment after each message
+
+❌ DO NOT rely on client-side tracking for limits.
+
+============= BOT SYSTEM =============
+✅ When user adds a Reddit bot account:
+
+Save credentials encrypted in Supabase
+
+Run a background check to verify credentials
+
+Show ✅ or ❌ badge based on test
+
+✅ Bot setup must allow:
+
+Custom subreddit list
+
+Delay time per message
+
+Message template (type 1, type 2, etc.)
+
+Number of bots to run (1–N)
+
+Start/Stop button per bot
+
+✅ Bots MUST:
+
+Run on the server (Node.js API route or server function)
+
+Use Puppeteer or Playwright
+
+Log every message sent to Supabase table bot_logs
+
+============= UI INSTRUCTIONS =============
+✅ UI must:
+
+Be fully responsive using Tailwind CSS
+
+Use cards, buttons, and modals from https://uiverse.io
+
+Feel modern and clean with Reddit-style branding
+
+Include dark mode support
+
+Components to include:
+
+Login screen
+
+Signup screen
+
+Dashboard with usage stats
+
+Bot configuration form
+
+Stripe billing page
+
+Logs viewer
+
+Credential tester
+
+============= SECURITY =============
+✅ Use environment variables for all credentials:
+
+SUPABASE_URL, SUPABASE_ANON_KEY
+
+CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY
+
+STRIPE_SECRET_KEY
+
+✅ NEVER expose:
+
+Reddit passwords to the client
+
+Full logs to non-owners
+
+✅ Run bot logic securely in server environment only.
+
+============= OTHER =============
+✅ Use loading states, success/error toasts, and form validation
+
+✅ All messages, bots, and user data MUST be scoped to the authenticated Clerk user
+
+✅ Use Supabase Row-Level Security (RLS) policies to prevent unauthorized access
+
+✅ Include a reusable hook like useUserPlan() to get current user's plan and message limits
+
+yaml
+Copy
+Edit
+
+---
+
+### ✅ Summary
+
+Save this as `windsurf.txt` in your project. This will act as a **full instruction set for AI and Cursor**, preventing broken code and enforcing:
+
+- Correct SSR auth handling  
+- Secure bot execution  
+- Proper UI/UX  
+- Monetization logic with billing + rate limits  
+
+Would you like a ready-to-deploy `src/` folder structure scaffold + working bot template using Playwright or Puppeteer next?
+
+
+
+
+
+
+

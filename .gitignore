@@ -1,0 +1,49 @@
+# Environment variables
+.env
+.env.*.local
+
+# Node dependencies
+node_modules/
+
+# Next.js build output
+.next/
+out/
+
+# Typescript build
+/dist/
+
+# Logs
+logs/
+*.log
+log.txt
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+api.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Supabase generated/temp
+supabase/.temp
+.supabase
+
+# Temporary or large files
+alreadysent.txt
+temp_lines.txt
+stripe.exe
+
+# misc
+*.local
+
+
+.sql

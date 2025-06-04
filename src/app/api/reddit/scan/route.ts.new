@@ -1,0 +1,213 @@
+// This is a temporary file to hold the new sendMessageToAuthor function
+// Will be used to properly copy this into the main file
+
+const sendMessageToAuthor = async (post: RedditPost): Promise<string | null> => {
+  console.log('========== SENDING MESSAGE ==========');
+  console.log(`Preparing to send message to u/${post.author.name}`);
+  try {
+    // Check if we've already messaged this user about this post
+    const { data: existingMessage, error: existingMessageError } = await supabase
+      .from('sent_messages')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('account_id', config.reddit_account_id)
+      .eq('recipient', post.author.name)
+      .eq('subreddit', config.subreddit)
+      .eq('post_id', post.id) // Add post ID to check for exact post
+      .maybeSingle(); // Use maybeSingle to avoid errors if no record found
+    
+    // Also check if we've messaged this user about any post in the past
+    // This is similar to the Python code's check for previous messages
+    const { data: previousMessages, error: previousMessagesError } = await supabase
+      .from('sent_messages')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('recipient', post.author.name)
+      .limit(1);
+    
+    // Log if we've messaged this user before
+    if (previousMessages && previousMessages.length > 0 && previousMessages[0].id !== (existingMessage?.id || '')) {
+      console.log(`User ${post.author.name} has been messaged before about a different post`);
+    }
+
+    // Skip if we've already messaged about this specific post
+    if (existingMessage) {
+      console.log(`Already messaged ${post.author.name} about this specific post in r/${config.subreddit}`);
+      return null;
+    }
+    
+    // Skip if we've messaged this user before about any post (optional, based on your preference)
+    // Uncomment the following if you want to strictly avoid messaging the same user twice
+    /*
+    if (previousMessages && previousMessages.length > 0) {
+      console.log(`Already messaged ${post.author.name} about a different post, skipping`);
+      return null;
+    }
+    */
+    
+    // Get the analysis data if available
+    const analysisData = (post as any).analysis || null;
+    const analysisDataJson = analysisData ? JSON.stringify(analysisData) : null;
+    
+    // Send the message using direct API call
+    let messageSent = false;
+    try {
+      // Add a small delay before sending message
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Log attempt to send message
+      console.log(`Attempting to send message to u/${post.author.name} about their post in r/${config.subreddit}...`);
+      
+      // Prepare message content with template variables replaced
+      let messageContent = config.message_templates.content;
+      // Replace template variables
+      messageContent = messageContent
+        .replace(/{username}/g, post.author.name)
+        .replace(/{subreddit}/g, config.subreddit)
+        .replace(/{post_title}/g, post.title);
+      
+      // Log debugging info
+      console.log(`Using access token: ${accessToken ? accessToken.substring(0, 5) + '...' : 'undefined'}`);
+      console.log(`Using Reddit API endpoint: https://oauth.reddit.com/api/compose`);
+      
+      // Reddit API endpoint for sending messages
+      const messageResponse = await fetch('https://oauth.reddit.com/api/compose', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': userAgent,
+          'Authorization': `Bearer ${accessToken}` // Using the accessToken from the outer scope
+        },
+        body: new URLSearchParams({
+          'api_type': 'json',
+          'to': post.author.name,
+          'subject': `Regarding your post in r/${config.subreddit}`,
+          'text': messageContent
+        }).toString()
+      });
+      
+      // Capture full response for debugging
+      const responseStatus = messageResponse.status;
+      const responseStatusText = messageResponse.statusText;
+      let responseText;
+      let responseJson;
+      
+      try {
+        responseText = await messageResponse.text();
+        try {
+          responseJson = JSON.parse(responseText);
+        } catch (e) {
+          console.log('Response is not valid JSON:', responseText);
+        }
+      } catch (e) {
+        console.error('Failed to read response text:', e);
+      }
+      
+      console.log(`Reddit API response status: ${responseStatus} ${responseStatusText}`);
+      console.log(`Reddit API response text:`, responseText?.substring(0, 200));
+      
+      // Handle non-ok response
+      if (!messageResponse.ok) {
+        console.error(`Error response from Reddit when messaging ${post.author.name}:`, responseText);
+        throw new Error(`Reddit API error: ${responseStatus} ${responseStatusText}`);
+      }
+      
+      // Parse the JSON response properly
+      const messageResult = responseJson || {};
+      
+      // Check for errors in the response
+      if (messageResult.json && messageResult.json.errors && messageResult.json.errors.length > 0) {
+        console.error(`Reddit API returned errors when messaging ${post.author.name}:`, messageResult.json.errors);
+        throw new Error(`Reddit API error: ${JSON.stringify(messageResult.json.errors)}`);
+      }
+      
+      // Check for rate limiting
+      if (messageResult.json && messageResult.json.ratelimit) {
+        console.warn(`Rate limited when messaging ${post.author.name}. Wait time: ${messageResult.json.ratelimit} seconds`);
+        // Add a longer delay if we're being rate limited
+        await new Promise(resolve => setTimeout(resolve, messageResult.json.ratelimit * 1000 + 5000));
+      }
+      
+      // Mark message as successfully sent
+      messageSent = true;
+      console.log(`Successfully sent message to u/${post.author.name}`);
+    } catch (messageError) {
+      console.error(`Error sending message to ${post.author.name}:`, messageError);
+      
+      // Check if it's a rate limit error
+      const errorMsg = messageError instanceof Error ? messageError.message : String(messageError);
+      if (errorMsg.includes('rate limit') || errorMsg.includes('429')) {
+        console.warn('Rate limited by Reddit. Waiting 10 minutes before trying again...');
+        // Log the rate limit
+        await supabase.from('bot_logs').insert([
+          {
+            user_id: userId,
+            action: 'rate_limit',
+            status: 'warning',
+            subreddit: config.subreddit,
+            config_id: configId,
+            error_message: errorMsg,
+            created_at: new Date().toISOString(),
+          },
+        ]);
+      }
+      
+      throw messageError;
+    }
+    
+    // Only proceed with database entry if message was actually sent
+    if (!messageSent) {
+      throw new Error('Message not sent to Reddit');
+    }
+
+    // Record the sent message with timestamp
+    await supabase.from('sent_messages').insert([
+      {
+        user_id: userId,
+        account_id: config.reddit_account_id,
+        recipient: post.author.name,
+        subreddit: config.subreddit,
+        post_id: post.id, // Add post ID to track which post was responded to
+        message_template: config.message_templates.content,
+        analysis_data: analysisDataJson,
+        sent_at: new Date().toISOString(),
+      },
+    ]);
+
+    // Log the message with analysis data
+    await supabase.from('bot_logs').insert([
+      {
+        user_id: userId,
+        action: 'send_message',
+        status: 'success',
+        subreddit: config.subreddit,
+        recipient: post.author.name,
+        message_template: config.message_templates.content,
+        config_id: configId,
+        analysis_data: analysisDataJson,
+        created_at: new Date().toISOString(),
+      },
+    ]);
+
+    return post.author.name;
+  } catch (error: unknown) {
+    console.error('Error sending message:', error);
+    
+    // Log the error
+    await supabase.from('bot_logs').insert([
+      {
+        user_id: userId,
+        action: 'send_message',
+        status: 'error',
+        subreddit: config.subreddit,
+        recipient: post.author.name,
+        message_template: config.message_templates.content,
+        config_id: configId,
+        error_message: error instanceof Error ? error.message : String(error),
+        created_at: new Date().toISOString(),
+      },
+    ]);
+    
+    return null;
+  }
+};
