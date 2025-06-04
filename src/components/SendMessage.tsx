@@ -2,8 +2,21 @@ import { useState, useEffect } from 'react';
 import { createClientSupabaseClient } from '../utils/supabase';
 import { useUserPlan } from '../hooks/useUserPlan';
 import { Button3D } from './ui/Button';
+import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClientSupabaseClient();
+
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+);
 
 interface SendMessageProps {
   userId: string;

@@ -768,7 +768,7 @@ export default function SubredditScanner({
                   </p>
                   <p className="text-sm text-gray-400">
                     Scan interval:{' '}
-                    {config.scanInterval || config.scan_interval || 30} minutes
+                    {config.scanInterval || (config as any).scan_interval || 30} minutes
                   </p>
                   <p className="text-sm text-gray-400">
                     AI relevance check:{' '}
