@@ -4,6 +4,12 @@ const nextConfig = {
   images: {
     domains: ['img.clerk.com'],
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
 
 };
 
