@@ -1,0 +1,283 @@
+}
+User ID: user_2xFMxQyD7YOoaVfVCTg2Du0DzJY
+Request URL: http://localhost:3001/api/reddit/bot-logs?limit=50&offset=0&config_id=0273a893-bd79-4a44-aed8-98f26df8bf6d
+Config ID filter: 0273a893-bd79-4a44-aed8-98f26df8bf6d
+Filtering by config_id: 0273a893-bd79-4a44-aed8-98f26df8bf6d
+Applying pagination: offset=0, limit=50
+Query result: 50 logs found, total count: 492
+Grouped logs by action:
+  - ai_analysis: 10 logs
+  - keyword_match: 9 logs
+  - keyword_check: 13 logs
+  - process_post: 11 logs
+  - send_message: 6 logs
+  - skip_post: 1 logs
+ GET /api/reddit/bot-logs?limit=50&offset=0&config_id=0273a893-bd79-4a44-aed8-98f26df8bf6d 200 in 129ms
+Fetching logs with filters: {
+  config_id: '0273a893-bd79-4a44-aed8-98f26df8bf6d',
+  subreddit: undefined,
+  recipient: undefined,
+  from_date: undefined,
+  to_date: undefined,
+  limit: 50,
+  offset: 0
+}
+User ID: user_2xFMxQyD7YOoaVfVCTg2Du0DzJY
+Request URL: http://localhost:3001/api/reddit/bot-logs?limit=50&offset=0&config_id=0273a893-bd79-4a44-aed8-98f26df8bf6d
+Config ID filter: 0273a893-bd79-4a44-aed8-98f26df8bf6d
+Filtering by config_id: 0273a893-bd79-4a44-aed8-98f26df8bf6d
+Applying pagination: offset=0, limit=50
+Query result: 50 logs found, total count: 492
+Grouped logs by action:
+  - ai_analysis: 10 logs
+  - keyword_match: 9 logs
+  - keyword_check: 13 logs
+  - process_post: 11 logs
+  - send_message: 6 logs
+  - skip_post: 1 logs
+ GET /api/reddit/bot-logs?limit=50&offset=0&config_id=0273a893-bd79-4a44-aed8-98f26df8bf6d 200 in 138ms
+Fetching logs with filters: {
+  config_id: '0273a893-bd79-4a44-aed8-98f26df8bf6d',
+  subreddit: undefined,
+  recipient: undefined,
+  from_date: undefined,
+  to_date: undefined,
+  limit: 50,
+  offset: 0
+}
+User ID: user_2xFMxQyD7YOoaVfVCTg2Du0DzJY
+Request URL: http://localhost:3001/api/reddit/bot-logs?limit=50&offset=0&config_id=0273a893-bd79-4a44-aed8-98f26df8bf6d
+Config ID filter: 0273a893-bd79-4a44-aed8-98f26df8bf6d
+Filtering by config_id: 0273a893-bd79-4a44-aed8-98f26df8bf6d
+Applying pagination: offset=0, limit=50
+Query result: 50 logs found, total count: 492
+Grouped logs by action:
+  - ai_analysis: 10 logs
+  - keyword_match: 9 logs
+  - keyword_check: 13 logs
+  - process_post: 11 logs
+  - send_message: 6 logs
+  - skip_post: 1 logs
+ GET /api/reddit/bot-logs?limit=50&offset=0&config_id=0273a893-bd79-4a44-aed8-98f26df8bf6d 200 in 148ms
+Fetching logs with filters: {
+  config_id: '0273a893-bd79-4a44-aed8-98f26df8bf6d',
+  subreddit: undefined,
+  recipient: undefined,
+  from_date: undefined,
+  to_date: undefined,
+  limit: 50,
+  offset: 0
+}
+User ID: user_2xFMxQyD7YOoaVfVCTg2Du0DzJY
+Request URL: http://localhost:3001/api/reddit/bot-logs?limit=50&offset=0&config_id=0273a893-bd79-4a44-aed8-98f26df8bf6d
+Config ID filter: 0273a893-bd79-4a44-aed8-98f26df8bf6d
+Filtering by config_id: 0273a893-bd79-4a44-aed8-98f26df8bf6d
+Applying pagination: offset=0, limit=50
+Query result: 50 logs found, total count: 492
+Grouped logs by action:
+  - ai_analysis: 10 logs
+  - keyword_match: 9 logs
+  - keyword_check: 13 logs
+  - process_post: 11 logs
+  - send_message: 6 logs
+  - skip_post: 1 logs
+ GET /api/reddit/bot-logs?limit=50&offset=0&config_id=0273a893-bd79-4a44-aed8-98f26df8bf6d 200 in 155ms
+ ○ Compiling /messages ...
+ ✓ Compiled /messages in 1371ms (1637 modules)
+ GET /messages?_rsc=61n06 200 in 521ms
+ ○ Compiling /api/reddit/private-messages ...
+ ✓ Compiled /api/reddit/private-messages in 2.1s (1298 modules)
+Fetching messages for Reddit account: Litabot
+Fetching up to 100 messages for each category (inbox & sent)
+ GET /api/reddit/private-messages?accountId=af25ddda-f19a-4e44-9186-ec0addaf0811&limit=100 200 in 4350ms
+Attempting to send message to u/CowAppropriate8724 about their post in r/Saas...
+Using access token: eyJhb...
+Using Reddit API endpoint: https://oauth.reddit.com/api/compose
+Reddit API response status: 200 OK
+Reddit API response text: {"json": {"errors": []}}
+Successfully sent message to u/CowAppropriate8724
+Successfully recorded message to CowAppropriate8724 in database
+Sent message to CowAppropriate8724
+Processing post: SAAS by No-Cheesecake4114
+No keyword matches found for post: SAAS
+Updating last scan time in database...
+Updated last scan time for config 0273a893-bd79-4a44-aed8-98f26df8bf6d
+========== SCAN BATCH COMPLETED SUCCESSFULLY ==========
+Posts processed in this batch: 100
+Next pagination token: t3_1l2bep8
+Scan completion logged to database.
+Synchronizing message count with sent_messages table...
+Error synchronizing message count: TypeError: Failed to parse URL from your-app-url/api/user/update-message-count
+    at new Request (node:internal/deps/undici/undici:9278:19)
+    at E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:49260
+    ... 31 lines matching cause stack trace ...
+    at async Server.requestListener (E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\server\lib\start-server.js:141:13) {
+  [cause]: TypeError: Invalid URL
+      at new URL (node:internal/url:806:29)
+      at new Request (node:internal/deps/undici/undici:9276:25)
+      at E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:49260
+      at N (E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:54215)
+      at E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:56535
+      at E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\server\lib\trace\tracer.js:140:36
+      at NoopContextManager.with (E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:7062)
+      at ContextAPI.with (E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:518)
+      at NoopTracer.startActiveSpan (E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:18093)
+      at ProxyTracer.startActiveSpan (E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:18854)
+      at E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\server\lib\trace\tracer.js:122:103
+      at NoopContextManager.with (E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:7062)
+      at ContextAPI.with (E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:518)
+      at NextTracerImpl.trace (E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\server\lib\trace\tracer.js:122:28)
+      at n (E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:50330)
+      at POST (webpack-internal:///(rsc)/./src/app/api/reddit/scan/route.ts:1544:44)
+      at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+      at async E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:57228
+      at async eT.execute (E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:46851)
+      at async eT.handle (E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:58760)
+      at async doRender (E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\server\base-server.js:1366:42)
+      at async cacheEntry.responseCache.get.routeKind (E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\server\base-server.js:1588:28)
+      at async DevServer.renderToResponseWithComponentsImpl (E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\server\base-server.js:1496:28)
+      at async DevServer.renderPageComponent (E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\server\base-server.js:1924:24)
+      at async DevServer.renderToResponseImpl (E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\server\base-server.js:1962:32)
+      at async DevServer.pipeImpl (E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\server\base-server.js:922:25)
+      at async NextNodeServer.handleCatchallRenderRequest (E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\server\next-server.js:272:17)
+      at async DevServer.handleRequestImpl (E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\server\base-server.js:818:17)
+      at async E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\server\dev\next-dev-server.js:339:20
+      at async Span.traceAsyncFn (E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\trace\trace.js:154:20)
+      at async DevServer.handleRequest (E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\server\dev\next-dev-server.js:336:24)
+      at async invokeRender (E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\server\lib\router-server.js:178:21)
+      at async handleRequest (E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\server\lib\router-server.js:355:24)
+      at async requestHandlerImpl (E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\server\lib\router-server.js:379:13)
+      at async Server.requestListener (E:\Reddit message bot\reddit-bot-saas\node_modules\next\dist\server\lib\start-server.js:141:13) {
+    code: 'ERR_INVALID_URL',
+    input: 'your-app-url/api/user/update-message-count'
+  }
+}
+Checking if logs need to be archived...
+===== AUTO-ARCHIVE CHECK TRIGGERED =====
+Checking logs for user user_2xFMxQyD7YOoaVfVCTg2Du0DzJY, config 0273a893-bd79-4a44-aed8-98f26df8bf6d (r/Saas)
+Checking if logs need to be archived for config 0273a893-bd79-4a44-aed8-98f26df8bf6d...
+Querying Supabase for log count...
+Log count query result: 496, error: none
+Auto-archival triggered for config 0273a893-bd79-4a44-aed8-98f26df8bf6d with 496 logs
+Successfully archived logs for config 0273a893-bd79-4a44-aed8-98f26df8bf6d
+Scan duration: 144 minutes (8692532ms)
+Creating new Start Bot log entry (shouldContinue=true, scanInterval=15)...
+Created new Start Bot log entry successfully.
+Updated last_scan_time in scan_configs table.
+Scan completed successfully for r/Saas.
+Scan took 144.88 minutes of 15 minute interval.
+Scan used entire interval of 15 minutes. Will wait for next interval.
+ ✓ Compiled /api/reddit/scan-config in 153ms (1300 modules)
+ ✓ Compiled (1306 modules)
+GET scan-config request with userId: user_2xFMxQyD7YOoaVfVCTg2Du0DzJY, configId: null
+ GET /api/reddit/templates 200 in 614ms
+ GET /api/reddit/scan-config 200 in 616ms
+ GET /api/reddit/account 200 in 620ms
+ GET /api/reddit/account 200 in 638ms
+GET scan-config request with userId: user_2xFMxQyD7YOoaVfVCTg2Du0DzJY, configId: null
+ GET /api/user/stats 200 in 747ms
+ GET /api/user/stats 200 in 776ms
+ GET /api/reddit/account 200 in 143ms
+ GET /api/reddit/templates 200 in 169ms
+ GET /api/reddit/account 200 in 173ms
+ GET /api/reddit/scan-config 200 in 173ms
+ GET /api/reddit/templates 200 in 167ms
+GET scan-config request with userId: user_2xFMxQyD7YOoaVfVCTg2Du0DzJY, configId: null
+ GET /api/reddit/templates 200 in 173ms
+GET scan-config request with userId: user_2xFMxQyD7YOoaVfVCTg2Du0DzJY, configId: null
+ GET /api/reddit/scan-config 200 in 131ms
+ GET /api/reddit/scan-config 200 in 146ms
+Fetching logs with filters: {
+  config_id: undefined,
+  subreddit: undefined,
+  recipient: undefined,
+  from_date: undefined,
+  to_date: undefined,
+  limit: 25,
+  offset: 0,
+  action: [ 'start_bot' ]
+}
+User ID: user_2xFMxQyD7YOoaVfVCTg2Du0DzJY
+Request URL: http://localhost:3001/api/reddit/bot-logs?limit=25&offset=0&action=start_bot
+Config ID filter: none
+Applying pagination: offset=0, limit=25
+Fetching logs with filters: {
+  config_id: undefined,
+  subreddit: undefined,
+  recipient: undefined,
+  from_date: undefined,
+  to_date: undefined,
+  limit: 25,
+  offset: 0,
+  action: [ 'start_bot' ]
+}
+User ID: user_2xFMxQyD7YOoaVfVCTg2Du0DzJY
+Request URL: http://localhost:3001/api/reddit/bot-logs?limit=25&offset=0&action=start_bot
+Config ID filter: none
+Applying pagination: offset=0, limit=25
+Query result: 3 logs found, total count: 3
+Grouped logs by action:
+  - start_bot: 3 logs
+ GET /api/reddit/bot-logs?limit=25&offset=0&action=start_bot 200 in 145ms
+Query result: 3 logs found, total count: 3
+Grouped logs by action:
+  - start_bot: 3 logs
+ GET /api/reddit/bot-logs?limit=25&offset=0&action=start_bot 200 in 174ms
+ GET /api/user/stats 200 in 253ms
+Fetching logs with filters: {
+  config_id: undefined,
+  subreddit: undefined,
+  recipient: undefined,
+  from_date: undefined,
+  to_date: undefined,
+  limit: 50,
+  offset: 0,
+  action: [ 'start_bot' ]
+}
+User ID: user_2xFMxQyD7YOoaVfVCTg2Du0DzJY
+Request URL: http://localhost:3001/api/reddit/bot-logs?limit=50&offset=0&action=start_bot
+Config ID filter: none
+Applying pagination: offset=0, limit=50
+ GET /api/user/stats 200 in 273ms
+Query result: 3 logs found, total count: 3
+Grouped logs by action:
+  - start_bot: 3 logs
+ GET /api/reddit/bot-logs?limit=50&offset=0&action=start_bot 200 in 205ms
+Fetching logs with filters: {
+  config_id: '0273a893-bd79-4a44-aed8-98f26df8bf6d',
+  subreddit: undefined,
+  recipient: undefined,
+  from_date: undefined,
+  to_date: undefined,
+  limit: 50,
+  offset: 0
+}
+User ID: user_2xFMxQyD7YOoaVfVCTg2Du0DzJY
+Request URL: http://localhost:3001/api/reddit/bot-logs?limit=50&offset=0&config_id=0273a893-bd79-4a44-aed8-98f26df8bf6d
+Config ID filter: 0273a893-bd79-4a44-aed8-98f26df8bf6d
+Filtering by config_id: 0273a893-bd79-4a44-aed8-98f26df8bf6d
+Applying pagination: offset=0, limit=50
+Query result: 3 logs found, total count: 3
+Grouped logs by action:
+  - start_bot: 3 logs
+ GET /api/reddit/bot-logs?limit=50&offset=0&config_id=0273a893-bd79-4a44-aed8-98f26df8bf6d 200 in 228ms
+Fetching logs with filters: {
+  config_id: undefined,
+  subreddit: undefined,
+  recipient: undefined,
+  from_date: undefined,
+  to_date: undefined,
+  limit: 50,
+  offset: 0,
+  action: [ 'start_bot' ]
+}
+User ID: user_2xFMxQyD7YOoaVfVCTg2Du0DzJY
+Request URL: http://localhost:3001/api/reddit/bot-logs?limit=50&offset=0&action=start_bot
+Config ID filter: none
+Applying pagination: offset=0, limit=50
+Query result: 3 logs found, total count: 3
+Grouped logs by action:
+  - start_bot: 3 logs
+ GET /api/reddit/bot-logs?limit=50&offset=0&action=start_bot 200 in 155ms
+ ✓ Compiled /file-logs in 443ms (1930 modules)
+ GET /file-logs?_rsc=hkoa1 200 in 893ms

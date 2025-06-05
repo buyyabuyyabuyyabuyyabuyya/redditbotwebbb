@@ -1,49 +1,51 @@
-# Environment variables
-.env
-.env.*.local
-
 # Node dependencies
 node_modules/
 
 # Next.js build output
 .next/
 out/
+build/
 
-# Typescript build
-/dist/
+# TypeScript build info
+*.tsbuildinfo
 
 # Logs
-logs/
-*.log
-log.txt
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-api.txt
+pnpm-debug.log*
+*.log
 
-# OS files
+# Runtime data
+pids
+*.pid
+*.seed
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Supabase local project folder
+.supabase/
+
+# Vercel deployment config
+.vercel/
+
+# Misc
 .DS_Store
 Thumbs.db
 
-# Editor directories and files
+# Coverage reports
+coverage/
+
+# IDE / Editor folders
 .vscode/
 .idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
 
-# Supabase generated/temp
-supabase/.temp
-.supabase
+# Testing
+jest-html-reporters-*.html
 
-# Temporary or large files
-alreadysent.txt
-temp_lines.txt
-stripe.exe
-
-# misc
-*.local
-
-
-.sql
+# Output folders
+dist/
+build/

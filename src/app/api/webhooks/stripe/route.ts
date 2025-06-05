@@ -10,7 +10,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 const createSupabaseServerClient = () => {
   const cookieStore = cookies();
-
+  
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -53,14 +53,21 @@ export async function POST(req: Request) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
         // Prefer metadata.userId if available (for Payment Links) otherwise client_reference_id
-        const userId = session.metadata?.userId || session.client_reference_id;
+        let userId = session.metadata?.userId || session.client_reference_id;
+
+        // Fallback: resolve via customer email using clerk_emails directory
+        if (!userId && session.customer_details?.email) {
+          const { data: dir } = await supabase
+            .from('clerk_emails')
+            .select('user_id')
+            .eq('email', session.customer_details.email.toLowerCase())
+            .single();
+          userId = dir?.user_id || undefined;
+        }
 
         if (!userId) {
-          console.warn(
-            'No user ID in session for checkout.session.completed event:',
-            session.id
-          );
-          break; // Skip processing if userId is missing
+          console.warn('Unable to resolve user for checkout.session.completed event:', session.id);
+          break; // Skip processing if userId is still missing
         }
 
         // Default to 'pro', will update if advanced detected
@@ -69,9 +76,7 @@ export async function POST(req: Request) {
 
         if (session.mode === 'subscription' && session.subscription) {
           // Retrieve subscription items to extract price ID
-          const subscription = await stripe.subscriptions.retrieve(
-            session.subscription as string
-          );
+          const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
           if (subscription.items.data.length > 0) {
             priceId = subscription.items.data[0].price.id;
           }
@@ -99,14 +104,25 @@ export async function POST(req: Request) {
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription;
-        const userId = subscription.metadata?.userId;
+        let userId = subscription.metadata?.userId;
+
+        // Fallback via email stored on customer object
+        if (!userId && subscription.customer) {
+          // Retrieve customer to get email
+          const customer = await stripe.customers.retrieve(subscription.customer as string) as Stripe.Customer;
+          if (customer.email) {
+            const { data: dir } = await supabase
+              .from('clerk_emails')
+              .select('user_id')
+              .eq('email', customer.email.toLowerCase())
+              .single();
+            userId = dir?.user_id || undefined;
+          }
+        }
 
         if (!userId) {
-          console.warn(
-            'No user ID in subscription for customer.subscription.deleted event:',
-            subscription.id
-          );
-          break; // Skip processing if userId is missing
+          console.warn('Unable to resolve user for customer.subscription.deleted event:', subscription.id);
+          break;
         }
 
         // Update user's subscription status
