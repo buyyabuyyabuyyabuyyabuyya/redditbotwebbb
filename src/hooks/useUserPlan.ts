@@ -81,6 +81,7 @@ export function useUserPlan() {
     messageCount,
     loading,
     remaining: plan === 'free' ? Math.max(0, 15 - messageCount) : null,
-    isProUser: plan === 'pro',
+    isProUser: plan === 'pro' || 'advanced',
+    
   };
 }
