@@ -59,11 +59,13 @@ export async function POST(req: Request) {
         metadata: {
           email: customerEmail,
           plan: selectedPlan,
+          userId,
         },
         subscription_data: {
           metadata: {
             email: customerEmail,
             plan: selectedPlan,
+            userId,
           },
         },
       });
