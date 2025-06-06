@@ -10,6 +10,21 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  webpack: (config) => {
+    // Provide empty fallbacks for Node.js core modules that aren't available in the
+    // Cloudflare Workers / Edge runtime. This prevents build-time "module not found"
+    // errors when libraries like snoowrap try to require them.
+    config.resolve.fallback = {
+      ...(config.resolve.fallback || {}),
+      stream: false,
+      querystring: false,
+      fs: false,
+      path: false,
+      os: false,
+    };
+
+    return config;
+  },
 
 };
 
