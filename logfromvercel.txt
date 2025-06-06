@@ -1,0 +1,455 @@
+Jun 05 18:09:42.81
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:08:33.80
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:08:23.80
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:08:13.80
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:08:03.79
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:07:53.79
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:07:43.80
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:07:37.19
+GET200
+redditbotwebbb.vercel.app
+/pricing
+Jun 05 18:07:33.76
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:07:23.79
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:07:13.77
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:07:12.10
+GET200
+redditbotwebbb.vercel.app
+/dashboard
+Jun 05 18:07:11.38
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:06:43.05
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:05:42.81
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:05:23.79
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:05:13.78
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:05:03.79
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:04:53.79
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:04:43.79
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:04:33.79
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:04:23.79
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:04:13.78
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:04:07.32
+GET200
+redditbotwebbb.vercel.app
+/file-logs
+Jun 05 18:04:03.76
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:03:54.00
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:03:43.76
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:03:33.76
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:03:23.75
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:03:13.76
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:03:03.76
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:02:53.76
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:02:43.76
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:02:33.75
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:02:32.48
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+8
+- start_bot: 2 logs
+Jun 05 18:02:28.73
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:02:18.73
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:02:08.73
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:01:58.73
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:01:48.72
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:01:38.73
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:01:28.72
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:01:18.72
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:01:08.73
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:00:58.72
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:00:48.73
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:00:38.78
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:00:28.71
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:00:18.80
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 18:00:08.79
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 17:59:58.77
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 17:59:48.78
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 17:59:38.71
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 17:59:28.73
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 17:59:18.78
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 17:59:08.78
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+19
+- start_bot: 2 logs
+Jun 05 17:59:02.32
+POST200
+redditbotwebbb.vercel.app
+/api/gemini/analyze
+11
+Cleaned JSON text: { "isRelevant": true, "confidence": 0.9, "projectType": "API", "projectName": null, "keywo...
+Jun 05 17:59:00.16
+POST200
+redditbotwebbb.vercel.app
+/api/gemini/analyze
+13
+Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": null, "projectName": null, "keywo...
+Jun 05 17:58:58.78
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+14
+- start_bot: 2 logs
+Jun 05 17:58:50.28
+POST200
+redditbotwebbb.vercel.app
+/api/reddit/scan
+63
+Preparing to send message to u/TheCryptoBillionaire
+Jun 05 17:58:49.98
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+6
+{ "id": "2ba0cdce-142d-4851-bffd-1dc155c67705", "user_id": "user_2y6UVXppFJ96JzncPeOQ1M6zX23", "subreddit": "test", "keywords": [ "test", "this is a test" ], "message_template_id": "b09c0248-85af-4cbb-ac30-a46d2750f012", "reddit_account_id": "6ba490e7-63cc-44c6-ae41-db0364c1dace", "is_active": true, "scan_interval": 6, "last_scan_time": null, "created_at": "2025-06-05T20:17:18.32239+00:00", "updated_at": "2025-06-05T20:17:18.32239+00:00", "use_ai_check": true }
+Jun 05 17:58:48.71
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+9
+- start_bot: 1 logs
+Jun 05 17:58:48.69
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+6
+{ "id": "2ba0cdce-142d-4851-bffd-1dc155c67705", "user_id": "user_2y6UVXppFJ96JzncPeOQ1M6zX23", "subreddit": "test", "keywords": [ "test", "this is a test" ], "message_template_id": "b09c0248-85af-4cbb-ac30-a46d2750f012", "reddit_account_id": "6ba490e7-63cc-44c6-ae41-db0364c1dace", "is_active": true, "scan_interval": 6, "last_scan_time": null, "created_at": "2025-06-05T20:17:18.32239+00:00", "updated_at": "2025-06-05T20:17:18.32239+00:00", "use_ai_check": true }
+Jun 05 17:58:46.32
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+8
+- start_bot: 1 logs
+Jun 05 17:58:46.32
+GET200
+redditbotwebbb.vercel.app
+/api/user/stats
+Jun 05 17:58:43.55
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/messages
+Jun 05 17:58:43.37
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+GET scan-config request with userId: user_2y6UVXppFJ96JzncPeOQ1M6zX23, configId: null
+Jun 05 17:58:43.37
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+GET scan-config request with userId: user_2y6UVXppFJ96JzncPeOQ1M6zX23, configId: null
+Jun 05 17:58:43.37
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+8
+- start_bot: 1 logs
+Jun 05 17:58:43.09
+POST200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+Jun 05 17:58:42.72
+PATCH200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+Jun 05 17:58:39.87
+GET200
+redditbotwebbb.vercel.app
+/api/user/stats
+Jun 05 17:58:39.87
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+GET scan-config request with userId: user_2y6UVXppFJ96JzncPeOQ1M6zX23, configId: null
+Jun 05 17:58:39.87
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+7
+Grouped logs by action:
+Jun 05 17:58:39.87
+GET200
+redditbotwebbb.vercel.app
+/api/user/stats
+Jun 05 17:58:39.87
+GET200
+redditbotwebbb.vercel.app
+/api/user/stats
+Jun 05 17:58:38.37
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+GET scan-config request with userId: user_2y6UVXppFJ96JzncPeOQ1M6zX23, configId: null
+Jun 05 17:58:38.05
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/templates
+Jun 05 17:58:37.82
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+GET scan-config request with userId: user_2y6UVXppFJ96JzncPeOQ1M6zX23, configId: null
+Jun 05 17:58:37.82
+GET200
+redditbotwebbb.vercel.app
+/api/user/stats
+Jun 05 17:58:37.82
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/templates

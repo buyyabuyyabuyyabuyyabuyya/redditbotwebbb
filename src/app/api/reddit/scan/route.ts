@@ -1,3 +1,6 @@
+export const runtime = 'nodejs';
+export const maxDuration = 300; // up to 5 minutes to finish scan on Vercel
+
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
 import { createServerSupabaseClient } from '../../../../utils/supabase-server';

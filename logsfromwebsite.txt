@@ -1,0 +1,75 @@
+Showing 23 of 23 logs
+Time	Action	Subreddit	Recipient	Status	Details	Actions
+6/5/2025, 5:59:02 PM	Ai Analysis	r/test	—	
+Success
+Details
+6/5/2025, 5:59:00 PM	Keyword Match	r/test	—	
+Success
+Details
+6/5/2025, 5:59:00 PM	Keyword Check	r/test	—	
+Info
+Details
+6/5/2025, 5:58:59 PM	Process Post	r/test	—	
+Info
+Details
+6/5/2025, 5:58:59 PM	Fetch Posts	r/test	—	
+Success
+Details
+6/5/2025, 5:58:58 PM	Reddit Api Success	r/test	—	
+Success
+Details
+6/5/2025, 5:58:58 PM	Reddit Api Request	r/test	—	
+Info
+Details
+6/5/2025, 5:58:57 PM	Reddit Api Success	r/test	—	
+Success
+Details
+6/5/2025, 5:58:56 PM	Reddit Api Request	r/test	—	
+Info
+Details
+6/5/2025, 5:58:55 PM	Reddit Api Success	r/test	—	
+Success
+Details
+6/5/2025, 5:58:55 PM	Reddit Api Request	r/test	—	
+Info
+Details
+6/5/2025, 5:58:54 PM	Reddit Api Success	r/test	—	
+Success
+Details
+6/5/2025, 5:58:53 PM	Reddit Api Request	r/test	—	
+Info
+Details
+6/5/2025, 5:58:53 PM	Check Subreddit Access	r/test	—	
+Success
+Details
+6/5/2025, 5:58:53 PM	Reddit Api Success	r/test	—	
+Success
+Details
+6/5/2025, 5:58:53 PM	Reddit Api Request	r/test	—	
+Info
+Details
+6/5/2025, 5:58:52 PM	Check Subreddit Access	r/test	—	
+Info
+Details
+6/5/2025, 5:58:52 PM	Reddit Api Success	r/test	—	
+Success
+Details
+6/5/2025, 5:58:52 PM	Reddit Api Request	r/test	—	
+Info
+Details
+6/5/2025, 5:58:52 PM	Reddit Auth Success	r/test	—	
+Success
+Details
+6/5/2025, 5:58:51 PM	Reddit Auth Attempt	r/test	—	
+Info
+Details
+6/5/2025, 5:58:51 PM	Start Bot	r/test	—	
+Success
+Details
+Stop
+View Logs
+6/5/2025, 5:58:43 PM	Start Bot	r/test	—	
+Success
+Details
+Stop
+View Logs
