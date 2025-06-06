@@ -1,4 +1,4 @@
-export const runtime = 'nodejs';
+export const runtime = 'edge';
 export const maxDuration = 300; // up to 5 minutes to finish scan on Vercel
 
 import { NextResponse } from 'next/server';

@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { Webhook } from 'svix';

@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import { createServerSupabaseClient } from '../../utils/supabase-server';
