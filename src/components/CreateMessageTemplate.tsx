@@ -59,7 +59,7 @@ export default function CreateMessageTemplate({
         body: JSON.stringify(body),
       });
 
-      const data = await response.json();
+      const data = await response.json() as any;
 
       if (!response.ok) {
         console.error('Server response error:', data);
