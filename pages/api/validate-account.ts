@@ -1,12 +1,9 @@
-export const runtime = "nodejs"
-
-
 
 import { NextResponse } from 'next/server';
 
 import { auth } from '@clerk/nextjs/server';
 import snoowrap from 'snoowrap';
-import { createServerSupabaseClient } from '../../../utils/supabase-server';
+import { createServerSupabaseClient } from '@/utils/supabase-server';
 import { createClient } from '@supabase/supabase-js';
 
 // Initialize the Supabase Admin client
