@@ -1,0 +1,13 @@
+name = "reddit-playwright-worker"
+main = "src/index.ts"
+compatibility_date = "2025-06-06"
+compatibility_flags = [ "nodejs_compat" ]
+
+[build]
+command = "npm run build"
+
+[vars]
+# Add your environment variables here
+SUPABASE_URL = "https://wsjgbhigeisnoragwhxb.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndzamdiaGlnZWlzbm9yYWd3aHhiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzQ4ODAyOSwiZXhwIjoyMDYzMDY0MDI5fQ.WRXq2Wd5aIoKQs8_NLp5iwY50h8JY8B-4WcYzed4Zkc"
+BROWSERLESS_API_KEY = "2SS3zOi3CrGl24u36a73c6f5e58c8777cfdea5623729bf9cf"

@@ -35,7 +35,7 @@ export default function ScanConfig({ userId, onSuccess }: ScanConfigProps) {
       try {
         // Get message templates using API endpoint
         const templatesResponse = await fetch('/api/reddit/templates');
-        const templatesData = await templatesResponse.json();
+        const templatesData = await templatesResponse.json() as any;
 
         if (templatesResponse.ok && templatesData.templates) {
           console.log('Templates loaded:', templatesData.templates);
@@ -49,7 +49,7 @@ export default function ScanConfig({ userId, onSuccess }: ScanConfigProps) {
 
         // Get Reddit accounts using API endpoint
         const accountsResponse = await fetch('/api/reddit/account');
-        const accountsData = await accountsResponse.json();
+        const accountsData = await accountsResponse.json() as any;
 
         if (accountsResponse.ok && accountsData.accounts) {
           console.log('Accounts loaded:', accountsData.accounts);
@@ -123,7 +123,7 @@ export default function ScanConfig({ userId, onSuccess }: ScanConfigProps) {
         }),
       });
 
-      const data = await response.json();
+      const data = await response.json() as any;
 
       if (!response.ok) {
         console.error('Server response error:', data);

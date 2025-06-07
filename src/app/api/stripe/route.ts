@@ -21,7 +21,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { action, plan } = await req.json();
+    const { action, plan } = await req.json() as any;
 
     if (action === 'create-checkout-session') {
       // Determine which price ID to use based on requested plan

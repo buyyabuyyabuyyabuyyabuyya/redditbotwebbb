@@ -36,7 +36,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { recipientUsername, accountId, message } = await req.json();
+    const { recipientUsername, accountId, message } = await req.json() as any;
 
     if (!recipientUsername || !accountId || !message) {
       return NextResponse.json(

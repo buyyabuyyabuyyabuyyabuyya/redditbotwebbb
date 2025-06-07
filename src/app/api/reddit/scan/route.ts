@@ -173,7 +173,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { configId, forceDirectQuery, startTime } = requestBody;
+    const { configId, forceDirectQuery, startTime } = requestBody as any;
     // If startTime was provided, use it instead of the current time
     const effectiveScanStartTime = startTime
       ? new Date(startTime)
@@ -739,7 +739,7 @@ export async function POST(req: Request) {
             continue;
           }
 
-          const tokenData = await tokenResponse.json();
+          const tokenData = await tokenResponse.json() as any;
 
           if (!tokenData.access_token) {
             console.error('Token response data:', tokenData);
@@ -1037,10 +1037,10 @@ export async function POST(req: Request) {
           accessToken
         );
 
-        if (aboutData.error || !aboutData.data) {
+        if ((aboutData as any).error || !((aboutData as any).data)) {
           console.error(
             `Error accessing r/${subredditName}:`,
-            aboutData.error || 'No data returned'
+            (aboutData as any).error || 'No data returned'
           );
 
           // Log the subreddit access failure
@@ -1052,7 +1052,7 @@ export async function POST(req: Request) {
               subreddit: subredditName,
               config_id: configId,
               error_message:
-                aboutData.error || 'No data returned from subreddit',
+                (aboutData as any).error || 'No data returned from subreddit',
               created_at: new Date().toISOString(),
             },
           ]);
@@ -1062,11 +1062,11 @@ export async function POST(req: Request) {
 
         // Check if the subreddit is private or restricted
         if (
-          aboutData.data.subreddit_type === 'private' ||
-          aboutData.data.subreddit_type === 'restricted'
+          (aboutData as any).data.subreddit_type === 'private' ||
+          (aboutData as any).data.subreddit_type === 'restricted'
         ) {
           console.log(
-            `r/${subredditName} is ${aboutData.data.subreddit_type}, may have limited access`
+            `r/${subredditName} is ${aboutData as any}.data.subreddit_type}, may have limited access`
           );
 
           // Log the subreddit access warning
@@ -1077,7 +1077,7 @@ export async function POST(req: Request) {
               status: 'warning',
               subreddit: subredditName,
               config_id: configId,
-              error_message: `Subreddit is ${aboutData.data.subreddit_type}, may have limited access`,
+              error_message: `Subreddit is ${(aboutData as any).data.subreddit_type}, may have limited access`,
               created_at: new Date().toISOString(),
             },
           ]);
@@ -1093,7 +1093,7 @@ export async function POST(req: Request) {
             status: 'success',
             subreddit: subredditName,
             config_id: configId,
-            error_message: `Successfully accessed r/${subredditName} (type: ${aboutData.data.subreddit_type})`,
+            error_message: `Successfully accessed r/${subredditName} (type: ${(aboutData as any).data.subreddit_type})`,
             created_at: new Date().toISOString(),
           },
         ]);
@@ -1126,7 +1126,7 @@ export async function POST(req: Request) {
 
       // Test the connection by getting user info
       const meData = await redditApiRequest('/api/v1/me', accessToken);
-      console.log(`Successfully connected to Reddit as: ${meData.name}`);
+      console.log(`Successfully connected to Reddit as: ${(meData as any).name}`);
 
       // First check if we can access the subreddit
       const subredditAccessible = await checkSubredditAccess(
@@ -1168,7 +1168,7 @@ export async function POST(req: Request) {
       // Read the 'after' parameter from the request if provided for pagination
       // This allows us to continue fetching from where we left off
       try {
-        const requestData = await req.json();
+        const requestData = await req.json() as any;
         if (requestData.after) {
           after = requestData.after;
           console.log(`Continuing from pagination token: ${after}`);
@@ -1267,15 +1267,15 @@ export async function POST(req: Request) {
             // Process the posts
             if (
               postsData &&
-              postsData.data &&
-              postsData.data.children &&
-              postsData.data.children.length > 0
+              (postsData as any).data &&
+              (postsData as any).data.children &&
+              (postsData as any).data.children.length > 0
             ) {
               // Update the 'after' cursor for pagination
-              after = postsData.data.after;
+              after = (postsData as any).data.after;
 
               // Convert Reddit API response to our RedditPost type
-              const pagePosts = postsData.data.children.map((child: any) => ({
+              const pagePosts = (postsData as any).data.children.map((child: any) => ({
                 id: child.data.id,
                 name: child.data.name, // Important for pagination and message sending
                 title: child.data.title,
@@ -1610,7 +1610,7 @@ export async function POST(req: Request) {
 
                 try {
                   const errorData = await response.json();
-                  errorDetails = errorData.error || 'Unknown error';
+                  errorDetails = (errorData as any).error || 'Unknown error';
                   console.log(
                     `Gemini API error details: ${JSON.stringify(errorData)}`
                   );
@@ -1649,12 +1649,12 @@ export async function POST(req: Request) {
                 continue; // Skip this post and move on to the next one
               } else {
                 const data = await response.json();
-                aiAnalysisResult = data.analysis;
+                aiAnalysisResult = (data as any).analysis;
                 console.log(
-                  `Gemini analysis successful. Result: ${data.analysis.isRelevant ? 'RELEVANT' : 'NOT RELEVANT'}`
+                  `Gemini analysis successful. Result: ${(data as any).analysis.isRelevant ? 'RELEVANT' : 'NOT RELEVANT'}`
                 );
                 console.log(
-                  `Reason: ${data.analysis.reason || 'No reason provided'}`
+                  `Reason: ${(data as any).analysis.reason || 'No reason provided'}`
                 );
                 console.log(`========== END ANALYSIS: SUCCESS ==========`);
 
@@ -1669,8 +1669,8 @@ export async function POST(req: Request) {
                     details: JSON.stringify({
                       postId: post.id,
                       postTitle: post.title,
-                      isRelevant: data.analysis.isRelevant,
-                      reason: data.analysis.reason,
+                      isRelevant: (data as any).analysis.isRelevant,
+                      reason: (data as any).analysis.reason,
                     }),
                     created_at: new Date().toISOString(),
                   },
@@ -1814,8 +1814,9 @@ export async function POST(req: Request) {
 
               // Validate the analysis data
               if (
-                !data.analysis ||
-                typeof data.analysis.isRelevant !== 'boolean'
+                !data ||
+                !(data as any).analysis ||
+                typeof (data as any).analysis.isRelevant !== 'boolean'
               ) {
                 console.error('Invalid analysis data received:', data);
                 throw new Error(
@@ -1823,7 +1824,7 @@ export async function POST(req: Request) {
                 );
               }
 
-              return data.analysis;
+              return (data as any).analysis;
             } catch (error) {
               console.error('Error analyzing post content:', error);
 
@@ -2314,7 +2315,7 @@ export async function POST(req: Request) {
 
         if (syncResponse.ok) {
           const syncData = await syncResponse.json();
-          console.log(`Message count synchronized: ${syncData.message_count}`);
+          console.log(`Message count synchronized: ${(syncData as any).message_count}`);
         } else {
           console.error('Failed to synchronize message count');
         }
@@ -2525,7 +2526,7 @@ export async function POST(req: Request) {
     try {
       // Try to get configId from the request body
       const reqBody = await req.clone().json();
-      errorConfigId = reqBody.configId || 'unknown';
+      errorConfigId = (reqBody as any).configId || 'unknown';
     } catch (parseError) {
       console.error('Failed to parse request body:', parseError);
     }

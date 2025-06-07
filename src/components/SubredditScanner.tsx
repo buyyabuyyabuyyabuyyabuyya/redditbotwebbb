@@ -81,7 +81,7 @@ export default function SubredditScanner({
     try {
       // Use the API endpoint instead of direct Supabase calls
       const response = await fetch('/api/reddit/scan-config');
-      const data = await response.json();
+      const data = await response.json() as any;
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to load configurations');
@@ -171,7 +171,7 @@ export default function SubredditScanner({
           }),
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
 
         if (!response.ok) {
           throw new Error(data.error || 'Failed to update configuration');
@@ -196,7 +196,7 @@ export default function SubredditScanner({
           }),
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
 
         if (!response.ok) {
           console.error('Server response error:', data);
@@ -248,7 +248,7 @@ export default function SubredditScanner({
         }
       );
 
-      const data = await response.json();
+      const data = await response.json() as any;
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to delete configuration');
@@ -343,7 +343,7 @@ export default function SubredditScanner({
         }),
       });
 
-      const data = await response.json();
+      const data = await response.json() as any;
 
       if (!response.ok) {
         console.error('Server response error:', data);
@@ -481,7 +481,7 @@ export default function SubredditScanner({
 
           if (!scanResponse.ok) {
             const errorMessage =
-              responseData?.error || 'Unknown error occurred';
+              (responseData as { error?: string })?.error || 'Unknown error occurred';
             console.error(`Failed to scan subreddit: ${errorMessage}`);
 
             // Log the error to the bot logs

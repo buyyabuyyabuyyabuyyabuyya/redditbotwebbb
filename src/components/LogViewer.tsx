@@ -163,7 +163,7 @@ export default function LogViewer({
           throw new Error('Failed to fetch logs');
         }
 
-        const data = await response.json();
+        const data = await response.json() as any;
         setLogs(data.logs || []);
         setGroupedLogs(data.groupedLogs || {});
         setTotalCount(data.count || 0);
