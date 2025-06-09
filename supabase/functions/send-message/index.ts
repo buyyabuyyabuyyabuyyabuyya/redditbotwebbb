@@ -13,11 +13,15 @@ serve(async (req) => {
       recipientUsername,
       accountId,
       message,
+      subject,
+      delayMs,
     }: {
       userId: string;
       recipientUsername: string;
       accountId: string;
       message: string;
+      subject?: string;
+      delayMs?: number;
     } = await req.json();
 
     if (!userId || !recipientUsername || !accountId || !message) {
@@ -87,9 +91,14 @@ serve(async (req) => {
       password: account.password,
     });
 
+    // Optional delay before sending (rate-limit friendly)
+    if (delayMs && delayMs > 0) {
+      await new Promise((res) => setTimeout(res, delayMs));
+    }
+
     await reddit.composeMessage({
       to: recipientUsername,
-      subject: "Message from Reddit Bot SaaS",
+      subject: subject || "Message from Reddit Bot SaaS",
       text: message,
     });
 
@@ -121,4 +130,3 @@ serve(async (req) => {
     );
   }
 });
-

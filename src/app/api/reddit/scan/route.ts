@@ -1560,7 +1560,6 @@ export async function POST(req: Request) {
             console.log(
               `Analyzing post content for r/${config.subreddit} with ${matchingKeywords.length} keywords`
             );
-
             try {
               // Get the message template for the AI prompt
               let aiPrompt = '';
@@ -1953,6 +1952,18 @@ export async function POST(req: Request) {
                   ? JSON.stringify(analysisData)
                   : null;
 
+                // Prepare message content with template variables replaced
+                let messageContent = config.message_templates.content
+                  .replace(/\{username\}/g, post.author.name)
+                  .replace(/\{subreddit\}/g, config.subreddit)
+                  .replace(/\{post_title\}/g, post.title);
+
+                // Random delay between 2–3 minutes (in ms) – handled by Edge Function
+                const delayMinutes = 2 + Math.random();
+                const delayMs = Math.floor(delayMinutes * 60 * 1000);
+
+                const subject = `Regarding your post in r/${config.subreddit}`;
+
                 // Call Supabase Edge Function to send the message
                 const funcUrl =
                   process.env.NEXT_PUBLIC_SUPABASE_EDGE_FUNCTION_URL ||
@@ -1971,7 +1982,9 @@ export async function POST(req: Request) {
                     userId,
                     recipientUsername: post.author.name,
                     accountId: config.reddit_account_id,
-                    message: config.message_templates.content,
+                    message: messageContent,
+                    subject,
+                    delayMs,
                   }),
                 });
 
