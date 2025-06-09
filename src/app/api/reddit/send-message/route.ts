@@ -17,9 +17,13 @@ export async function POST(req: Request) {
       )
     }
 
-    // Build the Supabase Edge Function URL, e.g. https://xyz.functions.supabase.co/send-message
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const funcUrl = supabaseUrl.replace('.supabase.co', '.functions.supabase.co') + '/send-message'
+    // Use explicit Edge Function URL if provided, otherwise construct it from the main Supabase URL
+    const funcUrl =
+      process.env.NEXT_PUBLIC_SUPABASE_EDGE_FUNCTION_URL ||
+      process.env.NEXT_PUBLIC_SUPABASE_URL!.replace(
+        '.supabase.co',
+        '.functions.supabase.co'
+      ) + '/send-message'
 
     const edgeResp = await fetch(funcUrl, {
       method: 'POST',
