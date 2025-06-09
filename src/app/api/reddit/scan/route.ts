@@ -142,7 +142,7 @@ export async function POST(req: Request) {
   // Also create a direct admin client that bypasses RLS
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    process.env.SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY!,
     {
       auth: {
         autoRefreshToken: false,
@@ -1048,8 +1048,7 @@ export async function POST(req: Request) {
               status: 'error',
               subreddit: subredditName,
               config_id: configId,
-              error_message:
-                aboutData.error || 'No data returned from subreddit',
+              error_message: `Error accessing r/${subredditName}: ${aboutData.error || 'No data returned'}`,
               created_at: new Date().toISOString(),
             },
           ]);
@@ -1954,205 +1953,43 @@ export async function POST(req: Request) {
                   ? JSON.stringify(analysisData)
                   : null;
 
-                // Send the message using direct API call
-                let messageSent = false;
-                try {
-                  // Add a random delay between 2-3 minutes before sending message to avoid rate limiting
-                  const delayMinutes = 2 + Math.random(); // Random delay between 2-3 minutes
-                  const delayMs = Math.floor(delayMinutes * 60 * 1000);
-                  console.log(
-                    `Adding a delay of ${Math.round(delayMinutes * 100) / 100} minutes (${delayMs}ms) before sending message to avoid rate limiting...`
-                  );
+                // Call Supabase Edge Function to send the message
+                const funcUrl =
+                  process.env.NEXT_PUBLIC_SUPABASE_EDGE_FUNCTION_URL ||
+                  process.env.NEXT_PUBLIC_SUPABASE_URL!.replace(
+                    '.supabase.co',
+                    '.functions.supabase.co'
+                  ) + '/send-message';
 
-                  // Instead of one long delay, break it into smaller chunks and check if bot is still active
-                  const chunkSize = 10000; // Check every 10 seconds
-                  const chunks = Math.ceil(delayMs / chunkSize);
+                const edgeResp = await fetch(funcUrl, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+                  },
+                  body: JSON.stringify({
+                    userId,
+                    recipientUsername: post.author.name,
+                    accountId: config.reddit_account_id,
+                    message: config.message_templates.content,
+                  }),
+                });
 
-                  for (let i = 0; i < chunks; i++) {
-                    // Check if the bot is still active before continuing
-                    const { data: stillActive, error: activeError } =
-                      await supabaseAdmin
-                        .from('scan_configs')
-                        .select('is_active')
-                        .eq('id', configId)
-                        .single();
+                const edgeData = await edgeResp.json();
 
-                    if (activeError) {
-                      console.error(
-                        `Error checking if bot is still active during delay: ${JSON.stringify(activeError)}`
-                      );
-                      // Continue despite error
-                    } else if (!stillActive || !stillActive.is_active) {
-                      console.log(
-                        `Bot was deactivated during message delay, aborting send to ${post.author.name}`
-                      );
-                      return null; // Exit the function without sending the message
-                    }
-
-                    // Wait for the chunk duration or the remaining time, whichever is smaller
-                    const remainingTime = delayMs - i * chunkSize;
-                    const waitTime = Math.min(chunkSize, remainingTime);
-                    await new Promise((resolve) =>
-                      setTimeout(resolve, waitTime)
-                    );
-                  }
-
-                  // Log attempt to send message
-                  console.log(
-                    `Attempting to send message to u/${post.author.name} about their post in r/${config.subreddit}...`
-                  );
-
-                  // Prepare message content with template variables replaced
-                  let messageContent = config.message_templates.content;
-                  // Replace template variables
-                  messageContent = messageContent
-                    .replace(/{username}/g, post.author.name)
-                    .replace(/{subreddit}/g, config.subreddit)
-                    .replace(/{post_title}/g, post.title);
-
-                  // Add signature to the message
-                  messageContent =
-                    messageContent + '\n\nsent by redditoutreach.com';
-
-                  // Log debugging info
-                  console.log(
-                    `Using access token: ${accessToken ? accessToken.substring(0, 5) + '...' : 'undefined'}`
-                  );
-                  console.log(
-                    `Using Reddit API endpoint: https://oauth.reddit.com/api/compose`
-                  );
-
-                  // Reddit API endpoint for sending messages
-                  const messageResponse = await fetch(
-                    'https://oauth.reddit.com/api/compose',
-                    {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'User-Agent': userAgent,
-                        Authorization: `Bearer ${accessToken}`, // Using the accessToken from the outer scope
-                      },
-                      body: new URLSearchParams({
-                        api_type: 'json',
-                        to: post.author.name,
-                        subject: `Regarding your post in r/${config.subreddit}`,
-                        text: messageContent,
-                      }).toString(),
-                    }
-                  );
-
-                  // Capture full response for debugging
-                  const responseStatus = messageResponse.status;
-                  const responseStatusText = messageResponse.statusText;
-                  let responseText;
-                  let responseJson;
-
-                  try {
-                    responseText = await messageResponse.text();
-                    try {
-                      responseJson = JSON.parse(responseText);
-                    } catch (e) {
-                      console.log('Response is not valid JSON:', responseText);
-                    }
-                  } catch (e) {
-                    console.error('Failed to read response text:', e);
-                  }
-
-                  console.log(
-                    `Reddit API response status: ${responseStatus} ${responseStatusText}`
-                  );
-                  console.log(
-                    `Reddit API response text:`,
-                    responseText?.substring(0, 200)
-                  );
-
-                  // Handle non-ok response
-                  if (!messageResponse.ok) {
-                    console.error(
-                      `Error response from Reddit when messaging ${post.author.name}:`,
-                      responseText
-                    );
-                    throw new Error(
-                      `Reddit API error: ${responseStatus} ${responseStatusText}`
-                    );
-                  }
-
-                  // Parse the JSON response properly
-                  const messageResult = responseJson || {};
-
-                  // Check for errors in the response
-                  if (
-                    messageResult.json &&
-                    messageResult.json.errors &&
-                    messageResult.json.errors.length > 0
-                  ) {
-                    console.error(
-                      `Reddit API returned errors when messaging ${post.author.name}:`,
-                      messageResult.json.errors
-                    );
-                    throw new Error(
-                      `Reddit API error: ${JSON.stringify(messageResult.json.errors)}`
-                    );
-                  }
-
-                  // Check for rate limiting
-                  if (messageResult.json && messageResult.json.ratelimit) {
-                    console.warn(
-                      `Rate limited when messaging ${post.author.name}. Wait time: ${messageResult.json.ratelimit} seconds`
-                    );
-                    // Add a longer delay if we're being rate limited
-                    await new Promise((resolve) =>
-                      setTimeout(
-                        resolve,
-                        messageResult.json.ratelimit * 1000 + 5000
-                      )
-                    );
-                  }
-
-                  // Mark message as successfully sent
-                  messageSent = true;
-                  console.log(
-                    `Successfully sent message to u/${post.author.name}`
-                  );
-                } catch (messageError) {
+                if (!edgeResp.ok) {
                   console.error(
-                    `Error sending message to ${post.author.name}:`,
-                    messageError
+                    `Edge function error when messaging ${post.author.name}:`,
+                    edgeData
                   );
-
-                  // Check if it's a rate limit error
-                  const errorMsg =
-                    messageError instanceof Error
-                      ? messageError.message
-                      : String(messageError);
-                  if (
-                    errorMsg.includes('rate limit') ||
-                    errorMsg.includes('429')
-                  ) {
-                    console.warn(
-                      'Rate limited by Reddit. Waiting 10 minutes before trying again...'
-                    );
-                    // Log the rate limit
-                    await supabaseAdmin.from('bot_logs').insert([
-                      {
-                        user_id: userId,
-                        action: 'rate_limit',
-                        status: 'warning',
-                        subreddit: config.subreddit,
-                        config_id: configId,
-                        error_message: errorMsg,
-                        created_at: new Date().toISOString(),
-                      },
-                    ]);
-                  }
-
-                  throw messageError;
+                  throw new Error(
+                    `Edge function error: ${edgeResp.status} ${edgeResp.statusText}`
+                  );
                 }
 
-                // Only proceed with database entry if message was actually sent
-                if (!messageSent) {
-                  throw new Error('Message not sent to Reddit');
-                }
+                // Mark message as successfully sent
+                const messageSent = true;
+                console.log(`Successfully sent message to u/${post.author.name}`);
 
                 // Record the sent message with timestamp
                 const { data: sentMessageData, error: sentMessageError } =

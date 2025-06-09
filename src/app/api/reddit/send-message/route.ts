@@ -9,7 +9,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { recipientUsername, accountId, message } = await req.json()
+    const { recipientUsername, accountId, message, subject } = await req.json()
     if (!recipientUsername || !accountId || !message) {
       return NextResponse.json(
         { error: 'Missing required fields' },
@@ -31,7 +31,14 @@ export async function POST(req: Request) {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
       },
-      body: JSON.stringify({ userId, recipientUsername, accountId, message }),
+      body: JSON.stringify({
+        userId,
+        recipientUsername,
+        accountId,
+        message,
+        // Subject is optional; let the Edge Function default if not provided
+        subject,
+      }),
     })
 
     const data = await edgeResp.json()
