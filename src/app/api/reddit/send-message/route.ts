@@ -1,112 +1,42 @@
-import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
-import snoowrap from 'snoowrap';
+import { NextResponse } from 'next/server'
+import { auth } from '@clerk/nextjs'
 
-const createSupabaseServerClient = () => {
-  const cookieStore = cookies();
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-        set(name: string, value: string, options: any) {
-          cookieStore.set({ name, value, ...options });
-        },
-        remove(name: string, options: any) {
-          cookieStore.set({ name, value: '', ...options });
-        },
-      },
-    }
-  );
-};
-
+// This handler now just proxies the request to our Supabase Edge Function
 export async function POST(req: Request) {
-  const supabase = createSupabaseServerClient();
   try {
-    const { userId } = auth();
+    const { userId } = auth()
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { recipientUsername, accountId, message } = await req.json();
-
+    const { recipientUsername, accountId, message } = await req.json()
     if (!recipientUsername || !accountId || !message) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
-      );
+      )
     }
 
-    // Get the Reddit account credentials from Supabase
-    const { data: account, error: accountError } = await supabase
-      .from('reddit_accounts')
-      .select('*')
-      .eq('id', accountId)
-      .eq('user_id', userId)
-      .single();
+    // Build the Supabase Edge Function URL, e.g. https://xyz.functions.supabase.co/send-message
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const funcUrl = supabaseUrl.replace('.supabase.co', '.functions.supabase.co') + '/send-message'
 
-    if (accountError || !account) {
-      return NextResponse.json(
-        { error: 'Reddit account not found' },
-        { status: 404 }
-      );
-    }
+    const edgeResp = await fetch(funcUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({ userId, recipientUsername, accountId, message }),
+    })
 
-    // Check if the user has reached their message limit
-    const { data: user } = await supabase
-      .from('users')
-      .select('subscription_status, message_count')
-      .eq('id', userId)
-      .single();
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    // Check message limits
-    if (user.subscription_status === 'free' && user.message_count >= 100) {
-      return NextResponse.json(
-        {
-          error:
-            'Message limit reached. Please upgrade to Pro for unlimited messages.',
-        },
-        { status: 403 }
-      );
-    }
-
-    // Create a Reddit API client
-    const reddit = new snoowrap({
-      userAgent: 'Reddit Bot SaaS',
-      clientId: account.client_id,
-      clientSecret: account.client_secret,
-      username: account.username,
-      password: account.password,
-    });
-
-    // Send the message
-    await reddit.composeMessage({
-      to: recipientUsername,
-      subject: 'Message from Reddit Bot SaaS',
-      text: message,
-    });
-
-    // Update the user's message count
-    await supabase
-      .from('users')
-      .update({ message_count: user.message_count + 1 })
-      .eq('id', userId);
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Error sending Reddit message:', error);
+    const data = await edgeResp.json()
+    return NextResponse.json(data, { status: edgeResp.status })
+  } catch (err) {
+    console.error('Proxy error (send-message):', err)
     return NextResponse.json(
-      { error: 'Failed to send message' },
+      { error: 'Failed to call edge function' },
       { status: 500 }
-    );
+    )
   }
 }
