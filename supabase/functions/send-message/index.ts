@@ -82,46 +82,58 @@ serve(async (req) => {
       );
     }
 
-    // Send the Reddit PM using snoowrap
-    const reddit = new snoowrap({
-      userAgent: "Reddit Bot SaaS",
-      clientId: account.client_id,
-      clientSecret: account.client_secret,
-      username: account.username,
-      password: account.password,
-    });
+    // Helper that actually sends the PM and records it
+    const executeSend = async () => {
+      const reddit = new snoowrap({
+        userAgent: "Reddit Bot SaaS",
+        clientId: account.client_id,
+        clientSecret: account.client_secret,
+        username: account.username,
+        password: account.password,
+      });
 
-    // Optional delay before sending (rate-limit friendly)
+      await reddit.composeMessage({
+        to: recipientUsername,
+        subject: subject || "Message from Reddit Bot SaaS",
+        text: message,
+      });
+
+      // Update user's message count
+      await supabase
+        .from("users")
+        .update({ message_count: (user.message_count ?? 0) + 1 })
+        .eq("id", userId);
+
+      // Record the sent message
+      await supabase.from("sent_messages").insert([
+        {
+          user_id: userId,
+          recipient_username: recipientUsername,
+          content: message,
+          reddit_account_id: accountId,
+        },
+      ]);
+    };
+
+    // If a delay is requested, queue the send and return immediately
     if (delayMs && delayMs > 0) {
-      await new Promise((res) => setTimeout(res, delayMs));
+      console.log(`Queuing message to ${recipientUsername} in ${delayMs}ms`);
+      setTimeout(() => {
+        // Fire & forget – log errors but don't reject the original HTTP req
+        executeSend().catch((err) => {
+          console.error("Error in delayed send", err);
+        });
+      }, delayMs);
+
+      return new Response(
+        JSON.stringify({ queued: true, delayMs }),
+        { status: 202 }
+      );
     }
 
-    await reddit.composeMessage({
-      to: recipientUsername,
-      subject: subject || "Message from Reddit Bot SaaS",
-      text: message,
-    });
-
-    // Update user's message count
-    await supabase
-      .from("users")
-      .update({ message_count: (user.message_count ?? 0) + 1 })
-      .eq("id", userId);
-
-    // Record the sent message
-    await supabase.from("sent_messages").insert([
-      {
-        user_id: userId,
-        recipient_username: recipientUsername,
-        content: message,
-        reddit_account_id: accountId,
-      },
-    ]);
-
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    // Otherwise, send immediately and wait for completion
+    await executeSend();
+    return new Response(JSON.stringify({ success: true }), { status: 200 });
   } catch (err) {
     console.error("Edge function error:", err);
     return new Response(
