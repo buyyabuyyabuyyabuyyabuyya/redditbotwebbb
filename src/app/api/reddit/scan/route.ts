@@ -1158,7 +1158,7 @@ export async function POST(req: Request) {
       let newPosts: RedditPost[] = [];
       let after: string | null = null;
       const postsPerPage = 25;
-      const maxPages = 4; // Fetch 100 posts total (25 × 4) per batch
+      const maxPages = 1; // Fetch 100 posts total (25 × 4) per batch
       const postTypes = ['new']; // Can be expanded to ['new', 'hot', 'rising', 'top'] like in Python code
 
       // Read the 'after' parameter from the request if provided for pagination
