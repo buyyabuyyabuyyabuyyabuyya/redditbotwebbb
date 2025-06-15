@@ -115,18 +115,24 @@ serve(async (req) => {
       ]);
     };
 
-    // If a delay is requested, queue the send and return immediately
-    if (delayMs && delayMs > 0) {
-      console.log(`Queuing message to ${recipientUsername} in ${delayMs}ms`);
+    // If a delay is requested, clamp it to stay within Edge Function free limit (≤145 s)
+    const MAX_DELAY_MS = 145 * 1000; // 145 seconds leaves ~5 s before 150 s hard limit
+    const effectiveDelayMs =
+      delayMs && delayMs > 0 ? Math.min(delayMs, MAX_DELAY_MS) : 0;
+
+    if (effectiveDelayMs > 0) {
+      console.log(
+        `Queuing message to ${recipientUsername} in ${effectiveDelayMs}ms`
+      );
       setTimeout(() => {
         // Fire & forget – log errors but don't reject the original HTTP req
         executeSend().catch((err) => {
           console.error("Error in delayed send", err);
         });
-      }, delayMs);
+      }, effectiveDelayMs);
 
       return new Response(
-        JSON.stringify({ queued: true, delayMs }),
+        JSON.stringify({ queued: true, delayMs: effectiveDelayMs }),
         { status: 202 }
       );
     }

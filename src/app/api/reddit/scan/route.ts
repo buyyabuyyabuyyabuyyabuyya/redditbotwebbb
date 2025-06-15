@@ -1158,7 +1158,7 @@ export async function POST(req: Request) {
       let newPosts: RedditPost[] = [];
       let after: string | null = null;
       const postsPerPage = 25;
-      const maxPages = 1; // Fetch 100 posts total (25 × 4) per batch
+      const maxPages = 4; // Fetch 100 posts total (25 × 4) per batch
       const postTypes = ['new']; // Can be expanded to ['new', 'hot', 'rising', 'top'] like in Python code
 
       // Read the 'after' parameter from the request if provided for pagination
@@ -1958,9 +1958,12 @@ export async function POST(req: Request) {
                   .replace(/\{subreddit\}/g, config.subreddit)
                   .replace(/\{post_title\}/g, post.title);
 
-                // Random delay between 2–3 minutes (in ms) – handled by Edge Function
-                const delayMinutes = 2 + Math.random();
-                const delayMs = Math.floor(delayMinutes * 60 * 1000);
+                // Random delay between ~1–2.4 minutes (65–145 sec) – stay within Supabase Edge Function 150 sec limit
+                const MIN_DELAY_MS = 65 * 1000; // 65 seconds
+                const MAX_DELAY_MS = 145 * 1000; // 145 seconds, leaves ~5 sec buffer
+                const delayMs = Math.floor(
+                  MIN_DELAY_MS + Math.random() * (MAX_DELAY_MS - MIN_DELAY_MS)
+                );
 
                 const subject = `Regarding your post in r/${config.subreddit}`;
 
