@@ -90,7 +90,7 @@ export async function POST(req: Request) {
     if (candidatePosts.length === 0) {
       return NextResponse.json({ queued: false, reason: 'No new posts' });
     }
-
+//pous test
     // Publish one message per post with increasing delay
     // Determine base host for consumer endpoint (should not include protocol)
     let rawBase = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL || '';
