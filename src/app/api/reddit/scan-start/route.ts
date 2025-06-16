@@ -92,8 +92,17 @@ export async function POST(req: Request) {
     }
 
     // Publish one message per post with increasing delay
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL || '';
-    const consumerUrl = `https://${baseUrl}/api/reddit/scan-post`;
+    // Determine base host for consumer endpoint (should not include protocol)
+    const rawBase = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL || '';
+    // If the env var already contains a protocol, keep it; otherwise prepend https://
+    const normalizedBase = rawBase.startsWith('http://') || rawBase.startsWith('https://')
+      ? rawBase.replace(/\/$/, '')
+      : `https://${rawBase.replace(/\/$/, '')}`;
+
+    if (!normalizedBase || !/^https?:\/\//.test(normalizedBase)) {
+      throw new Error('Invalid or missing NEXT_PUBLIC_APP_URL / VERCEL_URL env var');
+    }
+    const consumerUrl = `${normalizedBase}/api/reddit/scan-post`;
 
     let i = 0;
     for (const post of candidatePosts) {
