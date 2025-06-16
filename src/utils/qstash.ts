@@ -32,7 +32,7 @@ export async function publishQStashMessage<T>(options: PublishOptions<T>) {
   const { destination, body, delayMs } = options;
 
   // Publish using path-parameter style: /v2/publish/<urlencoded-destination>
-  const url = `${QSTASH_URL}/v2/publish/${encodeURIComponent(destination)}`; // QStash REST endpoint
+  const url = `${QSTASH_URL}/v2/publish/${destination}`; // QStash REST endpoint
 
   const headers: Record<string, string> = {
     Authorization: `Bearer ${QSTASH_TOKEN}`,
