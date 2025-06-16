@@ -60,7 +60,7 @@ async function getValidApiKey() {
     if (currentKeyIndex >= availableKeys.length) {
       currentKeyIndex = 0;
     }
-
+//pus test
     // Get the current key
     const apiKey = availableKeys[currentKeyIndex];
     // Log key information - show first 6 and last 4 chars for debugging
