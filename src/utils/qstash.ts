@@ -31,7 +31,8 @@ export async function publishQStashMessage<T>(options: PublishOptions<T>) {
 
   const { destination, body, delayMs } = options;
 
-  const url = `${QSTASH_URL}/v2/publish`; // QStash REST endpoint
+  // Publish using path-parameter style: /v2/publish/<urlencoded-destination>
+  const url = `${QSTASH_URL}/v2/publish/${encodeURIComponent(destination)}`; // QStash REST endpoint
 
   const headers: Record<string, string> = {
     Authorization: `Bearer ${QSTASH_TOKEN}`,
@@ -39,13 +40,17 @@ export async function publishQStashMessage<T>(options: PublishOptions<T>) {
   };
 
   if (delayMs && delayMs > 0) {
-    headers['Upstash-Delay'] = `${delayMs}`; // documented header
+    if (delayMs && delayMs > 0) {
+    // Upstash expects a string ending with "s" or "m" etc; use seconds
+    const delaySeconds = Math.round(delayMs / 1000);
+    headers['Upstash-Delay'] = `${delaySeconds}s`;
+  }
   }
 
   const res = await fetch(url, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ destination, body }),
+    body: JSON.stringify(body),
   });
 
   if (!res.ok) {
