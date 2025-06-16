@@ -294,25 +294,18 @@ export async function POST(req: Request) {
       if (!response.ok) {
         // Get response status for better error handling
         const status = response.status;
-        let errorData;
-        let errorText = '';
-
+        // Read body ONCE to avoid "Body has already been read" errors
+        const errorTextRaw = await response.text();
+        let errorText = errorTextRaw;
+        let errorData: any = null;
         try {
-          errorData = await response.json();
-          // Try to get the detailed error message
-          const errorMessage =
+          errorData = JSON.parse(errorTextRaw);
+          errorText =
             errorData?.error?.message ||
             errorData?.error?.details ||
             JSON.stringify(errorData);
-          errorText = errorMessage;
-        } catch (e) {
-          // If we can't parse JSON, try to get text response
-          try {
-            errorText = await response.text();
-          } catch (textError) {
-            // If we can't get text either, use statusText
-            errorText = `HTTP error ${response.status}: ${response.statusText}`;
-          }
+        } catch {
+          // Not JSON – wrap in our own structure so downstream code still works
           errorData = { error: { message: errorText } };
         }
 

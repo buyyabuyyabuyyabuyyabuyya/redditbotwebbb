@@ -112,7 +112,7 @@ export default function AutoScanPoller({
         );
       }
 
-      const response = await fetch('/api/reddit/scan', {
+      const response = await fetch('/api/reddit/scan-start', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

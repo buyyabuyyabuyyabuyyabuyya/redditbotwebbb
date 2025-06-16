@@ -163,7 +163,7 @@ export async function GET() {
     const scanPromises = configs?.map(async (config) => {
       try {
         const response = await fetch(
-          process.env.NEXT_PUBLIC_APP_URL + '/api/reddit/scan',
+          process.env.NEXT_PUBLIC_APP_URL + '/api/reddit/scan-start',
           {
             method: 'POST',
             headers: {

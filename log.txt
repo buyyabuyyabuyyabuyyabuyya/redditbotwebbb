@@ -1,334 +1,603 @@
-Jun 16 12:24:10.05
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-15
-- gemini_api_error: 1 logs
-Jun 16 12:24:00.07
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-15
-- gemini_api_error: 1 logs
-Jun 16 12:23:50.54
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-11
-Cleaned JSON text: { "isRelevant": false, "confidence": 1, "projectType": null, "projectName": null, "keyword...
-Jun 16 12:23:50.07
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-15
-- ai_analysis: 10 logs
-Jun 16 12:23:49.40
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-11
-Cleaned JSON text: { "isRelevant": true, "confidence": 0.99, "projectType": null, "projectName": null, "keywo...
-Jun 16 12:23:48.10
-POST500
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-19
-Server error: TypeError: Body is unusable: Body has already been read at consumeBody (node:internal/deps/undici/undici:5712:15) at tt.json (node:internal/deps/undici/undici:5665:18) at m (/var/task/.next/server/app/api/gemini/analyze/route.js:1:3720) at m (/var/task/.next/server/app/api/gemini/analyze/route.js:26:600) at process.processTicksAndRejections (node:internal/process/task_queues:105:5) at async /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411 at async e_.execute (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880) at async e_.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943) at async en (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:25592) at async ea.responseCache.get.routeKind (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:1028)
-Jun 16 12:23:47.09
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-11
-Cleaned JSON text: { "isRelevant": true, "confidence": 0.99, "projectType": null, "projectName": null, "keywo...
-Jun 16 12:23:45.85
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-11
-Cleaned JSON text: { "isRelevant": false, "confidence": 1, "projectType": null, "projectName": null, "keyword...
-Jun 16 12:23:44.85
+Skip to content
+
+buyyasam's projects
+
+buyyasam's projects
+Hobby
+
+redditbotwebbb
+
+Filters
+
+​
+Warning
+
+0
+​
+Error
+
+0
+​
+Fatal
+
+0
+
+Search Logs
+14:22:0014:28:2014:34:2014:40:2014:46:40
+14:53:00
+Time
+Status
+Host
+Request
+Messages
+Jun 16 14:52:59.48
 POST200
 redditbotwebbb.vercel.app
 /api/gemini/analyze
 11
 Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": null, "projectName": null, "keywo...
-Jun 16 12:23:43.73
+Jun 16 14:52:58.18
 POST200
 redditbotwebbb.vercel.app
 /api/gemini/analyze
 11
-Cleaned JSON text: { "isRelevant": false, "confidence": 1, "projectType": null, "projectName": null, "keyword...
-Jun 16 12:23:42.87
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-11
-Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": null, "projectName": null, "keywo...
-Jun 16 12:23:41.67
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-11
-Cleaned JSON text: { "isRelevant": false, "confidence": 1, "projectType": null, "projectName": null, "keyword...
-Jun 16 12:23:40.78
+Cleaned JSON text: { "isRelevant": true, "confidence": 0.9, "projectType": null, "projectName": null, "keywor...
+Jun 16 14:52:57.19
 POST200
 redditbotwebbb.vercel.app
 /api/gemini/analyze
 11
 Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": null, "projectName": null, "keywo...
-Jun 16 12:23:40.06
+Jun 16 14:52:55.83
+POST200
+redditbotwebbb.vercel.app
+/api/gemini/analyze
+13
+Cleaned JSON text: { "isRelevant": false, "confidence": 1, "projectType": null, "projectName": null, "keyword...
+Jun 16 14:52:54.28
+POST200
+redditbotwebbb.vercel.app
+/api/gemini/analyze
+11
+Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": null, "projectName": null, "keywo...
+Jun 16 14:52:53.20
+POST200
+redditbotwebbb.vercel.app
+/api/gemini/analyze
+11
+Cleaned JSON text: { "isRelevant": false, "confidence": 1, "projectType": null, "projectName": null, "keyword...
+Jun 16 14:52:52.37
 GET200
 redditbotwebbb.vercel.app
 /api/reddit/bot-logs
 14
-- ai_analysis_error: 1 logs
-Jun 16 12:23:39.61
+- gemini_api_error: 1 logs
+Jun 16 14:52:52.33
+POST200
+redditbotwebbb.vercel.app
+/api/gemini/analyze
+11
+Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": null, "projectName": null, "keywo...
+Jun 16 14:52:51.23
 POST200
 redditbotwebbb.vercel.app
 /api/gemini/analyze
 11
 Cleaned JSON text: { "isRelevant": false, "confidence": 1, "projectType": null, "projectName": null, "keyword...
-Jun 16 12:23:38.59
+Jun 16 14:52:50.35
+POST200
+redditbotwebbb.vercel.app
+/api/gemini/analyze
+11
+Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": null, "projectName": null, "keywo...
+Jun 16 14:52:49.19
+POST200
+redditbotwebbb.vercel.app
+/api/gemini/analyze
+11
+Cleaned JSON text: { "isRelevant": false, "confidence": 1, "projectType": null, "projectName": null, "keyword...
+Jun 16 14:52:48.17
+POST200
+redditbotwebbb.vercel.app
+/api/gemini/analyze
+11
+Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": null, "projectName": null, "keywo...
+Jun 16 14:52:47.15
+POST200
+redditbotwebbb.vercel.app
+/api/gemini/analyze
+11
+Cleaned JSON text: { "isRelevant": false, "confidence": 1, "projectType": null, "projectName": null, "keyword...
+Jun 16 14:52:46.23
 POST200
 redditbotwebbb.vercel.app
 /api/gemini/analyze
 11
 Cleaned JSON text: { "isRelevant": true, "confidence": 0.99, "projectType": null, "projectName": null, "keywo...
-Jun 16 12:23:37.50
+Jun 16 14:52:45.04
 POST200
 redditbotwebbb.vercel.app
 /api/gemini/analyze
 11
 Cleaned JSON text: { "isRelevant": false, "confidence": 1, "projectType": null, "projectName": null, "keyword...
-Jun 16 12:23:36.49
+Jun 16 14:52:44.05
 POST200
 redditbotwebbb.vercel.app
 /api/gemini/analyze
 11
-Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": null, "projectName": null, "keywo...
-Jun 16 12:23:34.52
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-11
-Cleaned JSON text: { "isRelevant": true, "confidence": 0.9, "projectType": null, "projectName": null, "keywor...
-Jun 16 12:23:33.51
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-13
-Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": null, "projectName": null, "keywo...
-Jun 16 12:23:31.62
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-11
-Cleaned JSON text: { "isRelevant": true, "confidence": 0.9, "projectType": null, "projectName": null, "keywor...
-Jun 16 12:23:30.67
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-11
-Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": null, "projectName": null, "keywo...
-Jun 16 12:23:30.05
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-13
-- ai_analysis_error: 1 logs
-Jun 16 12:23:29.57
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-11
-Cleaned JSON text: { "isRelevant": false, "confidence": 1, "projectType": null, "projectName": null, "keyword...
-Jun 16 12:23:28.55
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-11
-Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": null, "projectName": null, "keywo...
-Jun 16 12:23:27.48
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-11
-Cleaned JSON text: { "isRelevant": false, "confidence": 1, "projectType": null, "projectName": null, "keyword...
-Jun 16 12:23:26.52
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-11
-Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": null, "projectName": null, "keywo...
-Jun 16 12:23:25.10
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-11
-Cleaned JSON text: { "isRelevant": false, "confidence": 1, "projectType": null, "projectName": null, "keyword...
-Jun 16 12:23:24.27
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-11
-Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": null, "projectName": null, "keywo...
-Jun 16 12:23:23.10
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-11
-Cleaned JSON text: { "isRelevant": false, "confidence": 1, "projectType": null, "projectName": null, "keyword...
-Jun 16 12:23:22.13
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-11
-Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": null, "projectName": null, "keywo...
-Jun 16 12:23:21.49
+Cleaned JSON text: { "isRelevant": true, "confidence": 0.99, "projectType": null, "projectName": null, "keywo...
+Jun 16 14:52:43.40
 POST500
 redditbotwebbb.vercel.app
 /api/gemini/analyze
 19
 Server error: TypeError: Body is unusable: Body has already been read at consumeBody (node:internal/deps/undici/undici:5712:15) at tt.json (node:internal/deps/undici/undici:5665:18) at m (/var/task/.next/server/app/api/gemini/analyze/route.js:1:3720) at m (/var/task/.next/server/app/api/gemini/analyze/route.js:26:600) at process.processTicksAndRejections (node:internal/process/task_queues:105:5) at async /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411 at async e_.execute (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880) at async e_.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943) at async en (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:25592) at async ea.responseCache.get.routeKind (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:1028)
-Jun 16 12:23:20.15
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-11
-Cleaned JSON text: { "isRelevant": false, "confidence": 1, "projectType": null, "projectName": null, "keyword...
-Jun 16 12:23:19.65
+Jun 16 14:52:42.37
 GET200
 redditbotwebbb.vercel.app
 /api/reddit/bot-logs
 12
-- ai_analysis: 5 logs
-Jun 16 12:23:19.27
+- ai_analysis: 4 logs
+Jun 16 14:52:42.32
+POST200
+redditbotwebbb.vercel.app
+/api/gemini/analyze
+11
+Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": null, "projectName": null, "keywo...
+Jun 16 14:52:41.18
+POST200
+redditbotwebbb.vercel.app
+/api/gemini/analyze
+11
+Cleaned JSON text: { "isRelevant": false, "confidence": 1, "projectType": null, "projectName": null, "keyword...
+Jun 16 14:52:40.21
+POST200
+redditbotwebbb.vercel.app
+/api/gemini/analyze
+11
+Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": null, "projectName": null, "keywo...
+Jun 16 14:52:38.87
+POST200
+redditbotwebbb.vercel.app
+/api/gemini/analyze
+11
+Cleaned JSON text: { "isRelevant": false, "confidence": 1, "projectType": null, "projectName": null, "keyword...
+Jun 16 14:52:37.97
+POST200
+redditbotwebbb.vercel.app
+/api/gemini/analyze
+11
+Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": null, "projectName": null, "keywo...
+Jun 16 14:52:36.82
+POST200
+redditbotwebbb.vercel.app
+/api/gemini/analyze
+11
+Cleaned JSON text: { "isRelevant": false, "confidence": 1, "projectType": null, "projectName": null, "keyword...
+Jun 16 14:52:35.86
 POST200
 redditbotwebbb.vercel.app
 /api/gemini/analyze
 11
 Cleaned JSON text: { "isRelevant": true, "confidence": 0.99, "projectType": null, "projectName": null, "keywo...
-Jun 16 12:23:17.94
+Jun 16 14:52:34.80
 POST200
 redditbotwebbb.vercel.app
 /api/gemini/analyze
 11
 Cleaned JSON text: { "isRelevant": false, "confidence": 1, "projectType": null, "projectName": null, "keyword...
-Jun 16 12:23:16.92
+Jun 16 14:52:33.79
 POST200
 redditbotwebbb.vercel.app
 /api/gemini/analyze
 11
 Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": null, "projectName": null, "keywo...
-Jun 16 12:23:15.75
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-11
-Cleaned JSON text: { "isRelevant": false, "confidence": 1, "projectType": null, "projectName": null, "keyword...
-Jun 16 12:23:14.70
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-11
-Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": null, "projectName": null, "keywo...
-Jun 16 12:23:13.33
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-11
-Cleaned JSON text: { "isRelevant": false, "confidence": 1, "projectType": null, "projectName": null, "keyword...
-Jun 16 12:23:12.45
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-11
-Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": null, "projectName": null, "keywo...
-Jun 16 12:23:11.23
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-11
-Cleaned JSON text: { "isRelevant": false, "confidence": 1, "projectType": null, "projectName": null, "keyword...
-Jun 16 12:23:10.14
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-11
-Cleaned JSON text: { "isRelevant": true, "confidence": 0.99, "projectType": null, "projectName": null, "keywo...
-Jun 16 12:23:10.07
+Jun 16 14:52:32.36
 GET200
 redditbotwebbb.vercel.app
 /api/reddit/bot-logs
-13
-- send_message: 1 logs
-Jun 16 12:23:09.05
+12
+- keyword_match: 1 logs
+Jun 16 14:52:29.09
 POST200
 redditbotwebbb.vercel.app
 /api/gemini/analyze
 11
-Cleaned JSON text: { "isRelevant": false, "confidence": 1, "projectType": null, "projectName": null, "keyword...
-Jun 16 12:23:08.10
+Cleaned JSON text: { "isRelevant": false, "confidence": 1.0, "projectType": null, "projectName": null, "keywo...
+Jun 16 14:52:27.94
 POST200
 redditbotwebbb.vercel.app
 /api/gemini/analyze
 11
 Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": null, "projectName": null, "keywo...
-Jun 16 12:23:03.20
+Jun 16 14:52:26.04
 POST200
 redditbotwebbb.vercel.app
 /api/gemini/analyze
-13
-Cleaned JSON text: { "isRelevant": true, "confidence": 0.8, "projectType": null, "projectName": null, "keywor...
-Jun 16 12:23:00.91
+11
+Cleaned JSON text: { "isRelevant": false, "confidence": 0.95, "projectType": null, "projectName": null, "keyw...
+Jun 16 14:52:24.75
 POST200
 redditbotwebbb.vercel.app
 /api/gemini/analyze
 13
 Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": null, "projectName": null, "keywo...
-Jun 16 12:23:00.06
+Jun 16 14:52:22.36
 GET200
 redditbotwebbb.vercel.app
 /api/reddit/bot-logs
-15
+14
 - start_bot: 2 logs
-Jun 16 12:22:57.87
-GET200
-redditbotwebbb-6k6dbyhpp-buyyasams-projects.vercel.app
-/settings
-Jun 16 12:22:57.75
-GET200
-redditbotwebbb-6k6dbyhpp-buyyasams-projects.vercel.app
-/tutorial
-Jun 16 12:22:57.75
-GET200
-redditbotwebbb-6k6dbyhpp-buyyasams-projects.vercel.app
-/file-logs
-Jun 16 12:22:57.75
-GET200
-redditbotwebbb-6k6dbyhpp-buyyasams-projects.vercel.app
-/pricing
-Jun 16 12:22:57.75
-GET200
-redditbotwebbb-6k6dbyhpp-buyyasams-projects.vercel.app
-/messages
-Jun 16 12:22:57.75
-GET200
-redditbotwebbb-6k6dbyhpp-buyyasams-projects.vercel.app
-/dashboard
-Jun 16 12:22:57.38
-GET200
-redditbotwebbb-6k6dbyhpp-buyyasams-projects.vercel.app
-/
-Jun 16 12:22:56.92
-GET200
-redditbotwebbb-6k6dbyhpp-buyyasams-projects.vercel.app
-/
-Jun 16 12:22:51.10
+Jun 16 14:52:15.90
 POST504
 redditbotwebbb.vercel.app
 /api/reddit/scan
 256
+Error analyzing post content: Error: Gemini API error (500): {"error":"Server error: Body is unusable: Body has already been read"} at f (/var/task/.next/server/app/api/reddit/scan/route.js:15:3287) at process.processTicksAndRejections (node:internal/process/task_queues:105:5) at async h (/var/task/.next/server/app/api/reddit/scan/route.js:17:22) at async /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411 at async e_.execute (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880) at async e_.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943) at async en (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:25592) at async ea.responseCache.get.routeKind (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:1028) at async r9.renderToResponseWithComponentsImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:508) at async r9.renderPageComponent (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5102)
+Jun 16 14:52:15.64
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+6
+{ "id": "2b9676f9-649e-4a6f-a15c-3f4923289576", "user_id": "user_2y3zgJHHx2TFUCQOI8kAzdoAG5o", "subreddit": "test", "keywords": [ "test", "this is a test", "this post is a test" ], "message_template_id": "dbeb7925-0f0d-4a26-b6d6-4a69f14fd303", "reddit_account_id": "2e150ee3-c673-4188-a443-0566af6275c5", "is_active": true, "scan_interval": 5, "last_scan_time": "2025-06-05T01:21:32.155+00:00", "created_at": "2025-06-05T00:30:48.845155+00:00", "updated_at": "2025-06-05T00:30:48.845155+00:00", "use_ai_check": true }
+Jun 16 14:52:14.33
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+6
+{ "id": "2b9676f9-649e-4a6f-a15c-3f4923289576", "user_id": "user_2y3zgJHHx2TFUCQOI8kAzdoAG5o", "subreddit": "test", "keywords": [ "test", "this is a test", "this post is a test" ], "message_template_id": "dbeb7925-0f0d-4a26-b6d6-4a69f14fd303", "reddit_account_id": "2e150ee3-c673-4188-a443-0566af6275c5", "is_active": true, "scan_interval": 5, "last_scan_time": "2025-06-05T01:21:32.155+00:00", "created_at": "2025-06-05T00:30:48.845155+00:00", "updated_at": "2025-06-05T00:30:48.845155+00:00", "use_ai_check": true }
+Jun 16 14:52:11.85
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+9
+- start_bot: 1 logs
+Jun 16 14:52:10.83
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+8
+- start_bot: 1 logs
+Jun 16 14:52:10.83
+GET200
+redditbotwebbb.vercel.app
+/api/user/stats
+Jun 16 14:52:09.11
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+GET scan-config request with userId: user_2y3zgJHHx2TFUCQOI8kAzdoAG5o, configId: null
+Jun 16 14:52:09.11
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+GET scan-config request with userId: user_2y3zgJHHx2TFUCQOI8kAzdoAG5o, configId: null
+Jun 16 14:52:09.11
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+8
+- start_bot: 1 logs
+Jun 16 14:52:08.90
+POST200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+Jun 16 14:52:08.41
+PATCH200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+Jun 16 14:52:02.03
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+GET scan-config request with userId: user_2y3zgJHHx2TFUCQOI8kAzdoAG5o, configId: null
+Jun 16 14:52:02.02
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+7
+Grouped logs by action:
+Jun 16 14:52:02.02
+GET200
+redditbotwebbb.vercel.app
+/api/user/stats
+Jun 16 14:52:02.02
+GET200
+redditbotwebbb.vercel.app
+/api/user/stats
+Jun 16 14:52:02.02
+GET200
+redditbotwebbb.vercel.app
+/api/user/stats
+Jun 16 14:51:59.25
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+GET scan-config request with userId: user_2y3zgJHHx2TFUCQOI8kAzdoAG5o, configId: null
+Jun 16 14:51:59.06
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/templates
+Jun 16 14:51:58.87
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+GET scan-config request with userId: user_2y3zgJHHx2TFUCQOI8kAzdoAG5o, configId: null
+Jun 16 14:51:58.87
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/account
+Jun 16 14:51:58.87
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/templates
+Jun 16 14:51:58.87
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/account
+Jun 16 14:51:58.87
+GET200
+redditbotwebbb.vercel.app
+/api/user/stats
+Jun 16 14:51:58.76
+GET200
+redditbotwebbb.vercel.app
+/settings
+Jun 16 14:51:58.63
+GET200
+redditbotwebbb.vercel.app
+/pricing
+Jun 16 14:51:58.63
+GET200
+redditbotwebbb.vercel.app
+/tutorial
+Jun 16 14:51:58.63
+GET200
+redditbotwebbb.vercel.app
+/file-logs
+Jun 16 14:51:58.62
+GET200
+redditbotwebbb.vercel.app
+/messages
+Jun 16 14:51:58.62
+GET200
+redditbotwebbb.vercel.app
+/
+Jun 16 14:51:57.88
+GET200
+redditbotwebbb.vercel.app
+/dashboard
+Jun 16 14:51:57.57
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+GET scan-config request with userId: user_2y3zgJHHx2TFUCQOI8kAzdoAG5o, configId: null
+Jun 16 14:51:57.31
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/templates
+Jun 16 14:51:56.95
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+7
+Grouped logs by action:
+Jun 16 14:51:56.94
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+GET scan-config request with userId: user_2y3zgJHHx2TFUCQOI8kAzdoAG5o, configId: null
+Jun 16 14:51:56.94
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/templates
+Jun 16 14:51:56.94
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/account
+Jun 16 14:51:56.94
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/account
+Jun 16 14:51:51.11
+POST200
+redditbotwebbb.vercel.app
+/api/reddit/stop-bot
+112
+Bot stop process completed
+Jun 16 14:51:48.85
+GET200
+redditbotwebbb.vercel.app
+/api/user/stats
+Jun 16 14:51:48.85
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+8
+- start_bot: 2 logs
+Jun 16 14:51:43.38
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+GET scan-config request with userId: user_2y3zgJHHx2TFUCQOI8kAzdoAG5o, configId: null
+Jun 16 14:51:43.06
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/templates
+Jun 16 14:51:41.93
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+GET scan-config request with userId: user_2y3zgJHHx2TFUCQOI8kAzdoAG5o, configId: null
+Jun 16 14:51:41.93
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/templates
+Jun 16 14:51:41.93
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/account
+Jun 16 14:51:41.93
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/account
+Jun 16 14:51:41.92
+GET200
+redditbotwebbb.vercel.app
+/api/user/stats
+Jun 16 14:51:40.94
+GET200
+redditbotwebbb.vercel.app
+/dashboard
+Jun 16 14:51:39.20
+GET200
+redditbotwebbb.vercel.app
+/settings
+Jun 16 14:51:39.07
+GET200
+redditbotwebbb.vercel.app
+/favicon.ico
+Jun 16 14:51:38.97
+GET200
+redditbotwebbb.vercel.app
+/tutorial
+Jun 16 14:51:38.96
+GET200
+redditbotwebbb.vercel.app
+/pricing
+Jun 16 14:51:38.96
+GET200
+redditbotwebbb.vercel.app
+/
+Jun 16 14:51:38.96
+GET200
+redditbotwebbb.vercel.app
+/file-logs
+Jun 16 14:51:38.96
+GET200
+redditbotwebbb.vercel.app
+/dashboard
+Jun 16 14:51:37.48
+GET200
+redditbotwebbb.vercel.app
+/messages
+Jun 16 14:51:22.18
+GET200
+redditbotwebbb-o7f3zwty9-buyyasams-projects.vercel.app
+/settings
+Jun 16 14:51:22.02
+GET200
+redditbotwebbb-o7f3zwty9-buyyasams-projects.vercel.app
+/tutorial
+Jun 16 14:51:22.01
+GET200
+redditbotwebbb-o7f3zwty9-buyyasams-projects.vercel.app
+/file-logs
+Jun 16 14:51:22.01
+GET200
+redditbotwebbb-o7f3zwty9-buyyasams-projects.vercel.app
+/pricing
+Jun 16 14:51:22.00
+GET200
+redditbotwebbb-o7f3zwty9-buyyasams-projects.vercel.app
+/messages
+Jun 16 14:51:22.00
+GET200
+redditbotwebbb-o7f3zwty9-buyyasams-projects.vercel.app
+/dashboard
+Jun 16 14:51:21.52
+GET200
+redditbotwebbb-o7f3zwty9-buyyasams-projects.vercel.app
+/settings
+Jun 16 14:51:21.42
+GET200
+redditbotwebbb-o7f3zwty9-buyyasams-projects.vercel.app
+/tutorial
+Jun 16 14:51:21.42
+GET200
+redditbotwebbb-o7f3zwty9-buyyasams-projects.vercel.app
+/file-logs
+Jun 16 14:51:21.42
+GET200
+redditbotwebbb-o7f3zwty9-buyyasams-projects.vercel.app
+/pricing
+Jun 16 14:51:21.41
+GET200
+redditbotwebbb-o7f3zwty9-buyyasams-projects.vercel.app
+/messages
+Jun 16 14:51:21.41
+GET200
+redditbotwebbb-o7f3zwty9-buyyasams-projects.vercel.app
+/dashboard
+Jun 16 14:51:21.14
+GET200
+redditbotwebbb-o7f3zwty9-buyyasams-projects.vercel.app
+/tutorial
+Jun 16 14:51:21.13
+GET200
+redditbotwebbb-o7f3zwty9-buyyasams-projects.vercel.app
+/dashboard
+Jun 16 14:51:21.13
+GET200
+redditbotwebbb-o7f3zwty9-buyyasams-projects.vercel.app
+/pricing
+Jun 16 14:51:21.13
+GET200
+redditbotwebbb-o7f3zwty9-buyyasams-projects.vercel.app
+/file-logs
+Jun 16 14:51:21.13
+GET200
+redditbotwebbb-o7f3zwty9-buyyasams-projects.vercel.app
+/messages
+Jun 16 14:51:21.05
+GET200
+redditbotwebbb-o7f3zwty9-buyyasams-projects.vercel.app
+/
+Jun 16 14:51:21.04
+GET200
+redditbotwebbb-o7f3zwty9-buyyasams-projects.vercel.app
+/favicon.ico
+Jun 16 14:51:21.00
+GET200
+redditbotwebbb-o7f3zwty9-buyyasams-projects.vercel.app
+/
+Jun 16 14:51:20.51
+GET200
+redditbotwebbb-o7f3zwty9-buyyasams-projects.vercel.app
+/
+Jun 16 14:51:20.00
+GET200
+redditbotwebbb-o7f3zwty9-buyyasams-projects.vercel.app
+/
+Jun 16 14:51:20.00
+GET200
+redditbotwebbb-o7f3zwty9-buyyasams-projects.vercel.app
+/
+Jun 16 14:51:19.77
+GET200
+redditbotwebbb-o7f3zwty9-buyyasams-projects.vercel.app
+/
+Jun 16 14:51:19.72
+GET200
+redditbotwebbb-o7f3zwty9-buyyasams-projects.vercel.app
+/
+Jun 16 14:51:19.58
+GET200
+redditbotwebbb-o7f3zwty9-buyyasams-projects.vercel.app
+/
+
+No more logs to show within selected timeline
+
+14:32:40
+
+
+
+
+
+
+
+
+
 ========== STARTING REDDIT BOT SCAN ==========
 User ID: user_2y3zgJHHx2TFUCQOI8kAzdoAG5o
 Config ID: 2b9676f9-649e-4a6f-a15c-3f4923289576, Force Direct Query: Yes
@@ -409,41 +678,61 @@ Fetching new posts from r/test...
 Making Reddit API request to: /r/test/new?limit=25
 Making Reddit API request to: /r/test/new?limit=25
 Fetched 25 valid posts (page 1)
-Making Reddit API request to: /r/test/new?limit=25&after=t3_1lczyib
-Making Reddit API request to: /r/test/new?limit=25&after=t3_1lczyib
+Making Reddit API request to: /r/test/new?limit=25&after=t3_1lczyk1
+Making Reddit API request to: /r/test/new?limit=25&after=t3_1lczyk1
 Fetched 25 valid posts (page 2)
-Making Reddit API request to: /r/test/new?limit=25&after=t3_1lcy407
-Making Reddit API request to: /r/test/new?limit=25&after=t3_1lcy407
-Fetched 24 valid posts (page 3)
-Making Reddit API request to: /r/test/new?limit=25&after=t3_1lcuwey
-Making Reddit API request to: /r/test/new?limit=25&after=t3_1lcuwey
-Fetched 25 valid posts (page 4)
+Making Reddit API request to: /r/test/new?limit=25&after=t3_1lczcmb
+Making Reddit API request to: /r/test/new?limit=25&after=t3_1lczcmb
+Fetched 25 valid posts (page 3)
+Making Reddit API request to: /r/test/new?limit=25&after=t3_1lcvhsp
+Making Reddit API request to: /r/test/new?limit=25&after=t3_1lcvhsp
+Fetched 24 valid posts (page 4)
 Total posts fetched: 99
 Found 99 new posts in r/test
-Processing post: What dou you think? by franchuu7777
-No keyword matches found for post: What dou you think?
-Processing post: 18F i want your opinions by No-Country-124
-No keyword matches found for post: 18F i want your opinions
-Processing post: test post! how's your side of testing going? i'm 30 ✌🏻 by kimngyn
+Processing post: TEST POST by OfficialBestBuy
 Found matching keywords: test
 ========== ANALYZING POST WITH GEMINI ==========
 Analyzing post content for r/test with 1 keywords
 Gemini analysis successful. Result: RELEVANT
 Reason: No reason provided
 ========== END ANALYSIS: SUCCESS ==========
-Analysis for post by kimngyn: isRelevant=true, confidence=0.95
+Analysis for post by OfficialBestBuy: isRelevant=true, confidence=0.95
 ========== ANALYZING POST WITH GEMINI ==========
 Analyzing post content for r/test with 3 keywords
-Analysis for post by kimngyn: isRelevant=true, confidence=0.8
-========== SENDING MESSAGE ==========
-Preparing to send message to u/kimngyn
-Successfully sent message to u/kimngyn
-Successfully recorded message to kimngyn in database
-Sent message to kimngyn
-Processing post: 42F, rate this boobs by franchuu7777
-No keyword matches found for post: 42F, rate this boobs
-Processing post: Bored dm me for pics but I won't pay ill do trades by bloodkin21
-No keyword matches found for post: Bored dm me for pics but I won't pay ill do trades
+Analysis for post by OfficialBestBuy: isRelevant=false, confidence=0.95
+Processing post: 23f just a girl procrastinating laundry 💭 by Cecelia-Cox
+No keyword matches found for post: 23f just a girl procrastinating laundry 💭
+Processing post: 42F, what dou u think? by franchuu7777
+No keyword matches found for post: 42F, what dou u think?
+Processing post: are the workouts paying off? by MotorChemist7816
+No keyword matches found for post: are the workouts paying off?
+Processing post: Test by OkPain13
+Found matching keywords: test
+========== ANALYZING POST WITH GEMINI ==========
+Analyzing post content for r/test with 1 keywords
+Gemini analysis successful. Result: RELEVANT
+Reason: No reason provided
+========== END ANALYSIS: SUCCESS ==========
+Analysis for post by OkPain13: isRelevant=true, confidence=0.95
+========== ANALYZING POST WITH GEMINI ==========
+Analyzing post content for r/test with 3 keywords
+Analysis for post by OkPain13: isRelevant=false, confidence=1
+Processing post: Fucking hell! by bloodkin21
+No keyword matches found for post: Fucking hell!
+Processing post: Left or right? by franchuu7777
+No keyword matches found for post: Left or right?
+Processing post: I hope my goth boots make you so weak ~ by SophiiTheCuTea
+No keyword matches found for post: I hope my goth boots make you so weak ~
+Processing post: watcha think? by Green_Oasis-
+No keyword matches found for post: watcha think?
+Processing post: 36M4F by Kind_Service4205
+No keyword matches found for post: 36M4F
+Processing post: 25m hmu by PreferenceWhole3776
+No keyword matches found for post: 25m hmu
+Processing post: M32 - What's this sub for? It seems to be full of pretty ladies and I want in by TheMrK92
+No keyword matches found for post: M32 - What's this sub for? It seems to be full of pretty ladies and I want in
+Processing post: 18F i want your opinions by No-Country-124
+No keyword matches found for post: 18F i want your opinions
 Processing post: 31F. Do you like this colored shirt on me? by Middle_Sleep_4096
 No keyword matches found for post: 31F. Do you like this colored shirt on me?
 Processing post: Looking for slaves... Gender? Age? I don't care. Just want you to be submissive, hit the upvote and the write me in the chat that you are willing to do anything. by ProhibitedBang
@@ -518,7 +807,23 @@ Reason: No reason provided
 Analysis for post by Healthy_Bid5226: isRelevant=true, confidence=0.95
 ========== ANALYZING POST WITH GEMINI ==========
 Analyzing post content for r/test with 3 keywords
-Analysis for post by Healthy_Bid5226: isRelevant=false, confidence=1
+Failed to analyze post content (500): {"error":"Server error: Body is unusable: Body has already been read"}
+Error analyzing post content: Error: Gemini API error (500): {"error":"Server error: Body is unusable: Body has already been read"}
+    at f (/var/task/.next/server/app/api/reddit/scan/route.js:15:3287)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async h (/var/task/.next/server/app/api/reddit/scan/route.js:17:22)
+    at async /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411
+    at async e_.execute (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880)
+    at async e_.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943)
+    at async en (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:25592)
+    at async ea.responseCache.get.routeKind (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:1028)
+    at async r9.renderToResponseWithComponentsImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:508)
+    at async r9.renderPageComponent (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5102)
+Analysis for post by Healthy_Bid5226: isRelevant=true, confidence=0.7
+========== SENDING MESSAGE ==========
+Preparing to send message to u/Healthy_Bid5226
+User Healthy_Bid5226 has been messaged before about a different post with this config
+Already messaged Healthy_Bid5226 about a different post, skipping
 Processing post: [TEST FAKE] Cops Probe If Captured MAGA Assassin Is Part of ‘Broader Network’ by Healthy_Bid5226
 Found matching keywords: test
 ========== ANALYZING POST WITH GEMINI ==========
@@ -534,11 +839,13 @@ Processing post: [TEST FAKE] Trump Erupts in Crazed Hard-Right Rant as MAGA Fury
 Found matching keywords: test
 ========== ANALYZING POST WITH GEMINI ==========
 Analyzing post content for r/test with 1 keywords
-Gemini API error status: 500
-Gemini API error details: {"error":"Server error: Body is unusable: Body has already been read"}
-Failed to analyze post content (500): Server error: Body is unusable: Body has already been read
-========== END ANALYSIS: FAILURE (500) ==========
-Setting post relevance to FALSE due to AI analysis failure - 500 status code
+Gemini analysis successful. Result: RELEVANT
+Reason: No reason provided
+========== END ANALYSIS: SUCCESS ==========
+Analysis for post by Healthy_Bid5226: isRelevant=true, confidence=0.99
+========== ANALYZING POST WITH GEMINI ==========
+Analyzing post content for r/test with 3 keywords
+Analysis for post by Healthy_Bid5226: isRelevant=false, confidence=1
 Processing post: [TEST FAKE] ICE Is Already $1 Billion Overbudget And Could Run Out Of Cash Next Month by Healthy_Bid5226
 Found matching keywords: test
 ========== ANALYZING POST WITH GEMINI ==========
@@ -596,47 +903,5 @@ Analyzing post content for r/test with 3 keywords
 Analysis for post by TheOfficialNizmo: isRelevant=true, confidence=0.9
 ========== SENDING MESSAGE ==========
 Preparing to send message to u/TheOfficialNizmo
-Successfully sent message to u/TheOfficialNizmo
-Successfully recorded message to TheOfficialNizmo in database
-Sent message to TheOfficialNizmo
+Already messaged TheOfficialNizmo about this specific post in r/test
 Processing post: how’s testing going for you guys? i’m 34 btw 😊 by Apprehensive_Cat6257
-Found matching keywords: test
-========== ANALYZING POST WITH GEMINI ==========
-Analyzing post content for r/test with 1 keywords
-Gemini analysis successful. Result: RELEVANT
-Reason: No reason provided
-========== END ANALYSIS: SUCCESS ==========
-Analysis for post by Apprehensive_Cat6257: isRelevant=true, confidence=0.95
-========== ANALYZING POST WITH GEMINI ==========
-Analyzing post content for r/test with 3 keywords
-Analysis for post by Apprehensive_Cat6257: isRelevant=true, confidence=0.9
-========== SENDING MESSAGE ==========
-Preparing to send message to u/Apprehensive_Cat6257
-Successfully sent message to u/Apprehensive_Cat6257
-Successfully recorded message to Apprehensive_Cat6257 in database
-Sent message to Apprehensive_Cat6257
-Processing post: Hey 👋 How are you? F37 by MartaPeonly
-No keyword matches found for post: Hey 👋 How are you? F37
-Processing post: 💉 Un homme guérit du cancer en mangeant uniquement du gingembre pendant 30 jours by Healthy_Bid5226
-Found matching keywords: test
-========== ANALYZING POST WITH GEMINI ==========
-Analyzing post content for r/test with 1 keywords
-Gemini analysis successful. Result: RELEVANT
-Reason: No reason provided
-========== END ANALYSIS: SUCCESS ==========
-Analysis for post by Healthy_Bid5226: isRelevant=true, confidence=0.95
-========== ANALYZING POST WITH GEMINI ==========
-
-========== ANALYZING POST WITH GEMINI ==========
-Jun 16 12:22:50.85
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/scan-config
-6
-{ "id": "2b9676f9-649e-4a6f-a15c-3f4923289576", "user_id": "user_2y3zgJHHx2TFUCQOI8kAzdoAG5o", "subreddit": "test", "keywords": [ "test", "this is a test", "this post is a test" ], "message_template_id": "dbeb7925-0f0d-4a26-b6d6-4a69f14fd303", "reddit_account_id": "2e150ee3-c673-4188-a443-0566af6275c5", "is_active": true, "scan_interval": 5, "last_scan_time": "2025-06-05T01:21:32.155+00:00", "created_at": "2025-06-05T00:30:48.845155+00:00", "updated_at": "2025-06-05T00:30:48.845155+00:00", "use_ai_check": true }
-Jun 16 12:22:49.63
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-9
-- start_bot: 1 logs

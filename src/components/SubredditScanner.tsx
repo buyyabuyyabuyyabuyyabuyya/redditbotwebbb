@@ -452,7 +452,7 @@ export default function SubredditScanner({
           );
 
           // Call the scan API endpoint directly with the exact same ID and force direct query
-          const scanResponse = await fetch('/api/reddit/scan', {
+          const scanResponse = await fetch('/api/reddit/scan-start', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
