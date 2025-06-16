@@ -93,7 +93,11 @@ export async function POST(req: Request) {
 
     // Publish one message per post with increasing delay
     // Determine base host for consumer endpoint (should not include protocol)
-    const rawBase = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL || '';
+    let rawBase = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL || '';
+    // Fallback to request host if env vars are missing (e.g., preview deployments)
+    if (!rawBase) {
+      rawBase = new URL(req.url).host; // host comes without protocol
+    }
     // If the env var already contains a protocol, keep it; otherwise prepend https://
     const normalizedBase = rawBase.startsWith('http://') || rawBase.startsWith('https://')
       ? rawBase.replace(/\/$/, '')
