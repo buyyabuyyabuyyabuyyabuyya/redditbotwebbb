@@ -17,6 +17,7 @@
     "@supabase/functions-js": "^2.4.4",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.50.0",
+    "@upstash/qstash": "^2.8.1",
     "auth": "^1.2.3",
     "bufferutil": "^4.0.9",
     "clerk": "^0.8.3",
