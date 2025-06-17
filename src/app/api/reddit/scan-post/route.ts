@@ -86,6 +86,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       : `https://${rawBase.replace(/\/$/, '')}`;
     const funcUrl = `${normalizedBase}/api/reddit/send-message`;
 
+    console.log('scan-post: calling send-message', funcUrl);
     const edgeRes = await fetch(funcUrl, {
       method: 'POST',
       headers: {
@@ -102,6 +103,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       }),
     });
 
+    console.log('scan-post: send-message status', edgeRes.status);
     if (!edgeRes.ok) {
       const errText = await edgeRes.text();
       console.error('send-message edge function failed', edgeRes.status, errText);
