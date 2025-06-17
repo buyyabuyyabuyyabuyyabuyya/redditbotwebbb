@@ -83,11 +83,12 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
         '.functions.supabase.co'
       ) + '/send-message';
 
-    await fetch(funcUrl, {
+    const edgeRes = await fetch(funcUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+        'X-Internal-API': 'true',
       },
       body: JSON.stringify({
         userId: config.user_id,
@@ -97,6 +98,15 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
         subject: `Regarding your post in r/${config.subreddit}`,
       }),
     });
+
+    if (!edgeRes.ok) {
+      const errText = await edgeRes.text();
+      console.error('send-message edge function failed', edgeRes.status, errText);
+      return NextResponse.json(
+        { error: 'Message send failed', details: errText },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ success: true });
   } catch (err) {
