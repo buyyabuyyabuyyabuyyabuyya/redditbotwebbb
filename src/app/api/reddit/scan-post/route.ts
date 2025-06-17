@@ -76,12 +76,22 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       .replace(/\{post_title\}/g, post.title);
 
     // Call Edge Function to send message (no extra delay)
-    const funcUrl =
-      process.env.NEXT_PUBLIC_SUPABASE_EDGE_FUNCTION_URL ||
-      process.env.NEXT_PUBLIC_SUPABASE_URL!.replace(
-        '.supabase.co',
-        '.functions.supabase.co'
-      ) + '/send-message';
+    // Build absolute URL to Supabase Edge Function
+    let funcUrl = process.env.NEXT_PUBLIC_SUPABASE_EDGE_FUNCTION_URL;
+    if (!funcUrl) {
+      const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+      if (!baseUrl) {
+        throw new Error('NEXT_PUBLIC_SUPABASE_URL env var missing');
+      }
+      if (baseUrl.includes('.supabase.co/functions')) {
+        // new default domain style – just append path
+        funcUrl = `${baseUrl.replace(/\/$/, '')}/send-message`;
+      } else {
+        // legacy apex functions domain style
+        const apex = baseUrl.replace('.supabase.co', '.functions.supabase.co');
+        funcUrl = `${apex.replace(/\/$/, '')}/send-message`;
+      }
+    }
 
     const edgeRes = await fetch(funcUrl, {
       method: 'POST',

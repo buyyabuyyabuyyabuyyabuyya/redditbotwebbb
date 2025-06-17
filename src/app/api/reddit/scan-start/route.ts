@@ -7,7 +7,8 @@ import snoowrap from 'snoowrap';
 
 // Inter-message delay (ms)
 const DELAY_INTERVAL_MS = 100_000; // 100 s ≈ 1.7 min – safe for Reddit
-const MAX_POSTS = 10; // process at most N posts per scan-start to stay fast
+const BATCH_SIZE = 10; // number of posts to queue per batch
+const MAX_TOTAL_POSTS = 100; // upper-bound for a single scan session
 
 export async function POST(req: Request) {
   try {
@@ -15,7 +16,11 @@ export async function POST(req: Request) {
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const { configId } = await req.json();
+    const { configId, remaining: remainingInput } = (await req.json()) as {
+      configId: string;
+      remaining?: number;
+    };
+    const remaining = remainingInput ?? MAX_TOTAL_POSTS;
     if (!configId) {
       return NextResponse.json(
         { error: 'configId is required' },
@@ -65,12 +70,15 @@ export async function POST(req: Request) {
       password: account.password,
     });
 
-    // Fetch latest posts (subreddit new, limit MAX_POSTS)
-    const rawPosts = await reddit.getSubreddit(config.subreddit).getNew({ limit: MAX_POSTS });
+    // Fetch latest posts (subreddit new, limit up to MAX_TOTAL_POSTS so we have enough)
+    const rawPosts = await reddit
+      .getSubreddit(config.subreddit)
+      .getNew({ limit: MAX_TOTAL_POSTS });
 
     // Determine which posts need a message (keyword match & not already messaged)
     const candidatePosts = [] as any[];
     const keywords = (config.keywords || []) as string[];
+    let scheduledCount = 0;
 
     for (const post of rawPosts) {
       const titleLower = (post.title || '').toLowerCase();
@@ -110,16 +118,38 @@ export async function POST(req: Request) {
 
     let i = 0;
     for (const post of candidatePosts) {
+      if (scheduledCount >= BATCH_SIZE || scheduledCount >= remaining) break;
       const delayMs = i * DELAY_INTERVAL_MS;
       await publishQStashMessage({
         destination: consumerUrl,
         body: { configId, postId: post.id },
         delayMs,
       });
+      scheduledCount += 1;
       i += 1;
     }
 
-    return NextResponse.json({ queued: true, count: candidatePosts.length });
+    const newRemaining = remaining - scheduledCount;
+
+    // If we still have more to process, queue another batch of scan-start after the last message + small buffer
+    if (newRemaining > 0) {
+      const nextDelayMs = i * DELAY_INTERVAL_MS + 5_000; // buffer 5 s
+      await publishQStashMessage({
+        destination: `${normalizedBase}/api/reddit/scan-start`,
+        body: { configId, remaining: newRemaining },
+        delayMs: nextDelayMs,
+      });
+    } else {
+      // Mark finished in bot_logs
+      await supabaseAdmin.from('bot_logs').insert({
+        user_id: userId,
+        config_id: configId,
+        action: 'finished_scan',
+        message: `Processed ${MAX_TOTAL_POSTS} posts`,
+      });
+    }
+
+    return NextResponse.json({ queued: true, batch: scheduledCount, remaining: newRemaining });
   } catch (err) {
     console.error('scan-start error', err);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
