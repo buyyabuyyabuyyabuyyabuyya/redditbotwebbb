@@ -5,17 +5,33 @@ import { auth } from '@clerk/nextjs'
 export async function POST(req: Request) {
   try {
     const internal = req.headers.get('X-Internal-API') === 'true';
-    const { userId: internal ? undefined : userId, } = auth();
+    const { userId } = auth();
+
+    // If not an internal call, ensure the user is authenticated
     if (!internal && !userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { recipientUsername, accountId, message, subject } = await req.json()
+    // Parse body
+    const body = (await req.json()) as {
+      userId?: string;
+      recipientUsername: string;
+      accountId: string;
+      message: string;
+      subject?: string;
+    };
+
+    // For client-side calls attach the authenticated user ID
+    if (!internal) {
+      body.userId = userId!;
+    }
+
+    const { recipientUsername, accountId, message } = body;
     if (!recipientUsername || !accountId || !message) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
-      )
+      );
     }
 
     // Use explicit Edge Function URL if provided, otherwise construct it from the main Supabase URL
@@ -32,14 +48,7 @@ export async function POST(req: Request) {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
       },
-      body: JSON.stringify({
-        userId,
-        recipientUsername,
-        accountId,
-        message,
-        // Subject is optional; let the Edge Function default if not provided
-        subject,
-      }),
+      body: JSON.stringify(body),
     })
 
     const text = await edgeResp.text();
