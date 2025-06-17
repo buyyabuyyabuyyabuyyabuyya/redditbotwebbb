@@ -12,8 +12,9 @@ const MAX_TOTAL_POSTS = 100; // upper-bound for a single scan session
 
 export async function POST(req: Request) {
   try {
+    const internal = req.headers.get('X-Internal-API') === 'true';
     const { userId } = auth();
-    if (!userId) {
+    if (!internal && !userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     const { configId, remaining: remainingInput } = (await req.json()) as {
@@ -124,6 +125,9 @@ export async function POST(req: Request) {
         destination: consumerUrl,
         body: { configId, postId: post.id },
         delayMs,
+        headers: {
+          'X-Internal-API': 'true',
+        },
       });
       scheduledCount += 1;
       i += 1;
@@ -138,6 +142,9 @@ export async function POST(req: Request) {
         destination: `${normalizedBase}/api/reddit/scan-start`,
         body: { configId, remaining: newRemaining },
         delayMs: nextDelayMs,
+        headers: {
+          'X-Internal-API': 'true',
+        },
       });
     } else {
       // Mark finished in bot_logs

@@ -18,6 +18,8 @@ export interface PublishOptions<T> {
   body: T;
   /** Delay in milliseconds before the message is delivered. */
   delayMs?: number;
+  /** Additional request headers to include when QStash forwards the message. */
+  headers?: Record<string, string>;
 }
 
 /**
@@ -29,7 +31,7 @@ export async function publishQStashMessage<T>(options: PublishOptions<T>) {
     throw new Error('QStash env vars not configured');
   }
 
-  const { destination, body, delayMs } = options;
+  const { destination, body, delayMs, headers: extraHeaders } = options;
 
   // Publish using path-parameter style: /v2/publish/<urlencoded-destination>
   const url = `${QSTASH_URL}/v2/publish/${destination}`; // QStash REST endpoint
@@ -37,14 +39,14 @@ export async function publishQStashMessage<T>(options: PublishOptions<T>) {
   const headers: Record<string, string> = {
     Authorization: `Bearer ${QSTASH_TOKEN}`,
     'Content-Type': 'application/json',
+    'X-Internal-API': 'true',
+    ...(extraHeaders || {}),
   };
 
   if (delayMs && delayMs > 0) {
-    if (delayMs && delayMs > 0) {
     // Upstash expects a string ending with "s" or "m" etc; use seconds
     const delaySeconds = Math.round(delayMs / 1000);
     headers['Upstash-Delay'] = `${delaySeconds}s`;
-  }
   }
 
   const res = await fetch(url, {
