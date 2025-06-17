@@ -31,7 +31,7 @@ export async function publishQStashMessage<T>(options: PublishOptions<T>) {
     throw new Error('QStash env vars not configured');
   }
 
-  const { destination, body, delayMs, headers: extraHeaders } = options;
+  const { destination, body: bodyData, delayMs, headers: extraHeaders } = options;
 
   // Publish using path-parameter style: /v2/publish/<urlencoded-destination>
   const url = `${QSTASH_URL}/v2/publish`; // JSON publish endpoint
@@ -51,7 +51,7 @@ export async function publishQStashMessage<T>(options: PublishOptions<T>) {
   const payload: Record<string, any> = {
     url: destination,
     method: 'POST',
-    body,
+    body: JSON.stringify(bodyData), // Stringify body for QStash payload
   };
   if (extraHeaders && Object.keys(extraHeaders).length) {
     payload.headers = extraHeaders;
