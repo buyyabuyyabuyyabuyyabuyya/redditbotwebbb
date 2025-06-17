@@ -53,9 +53,10 @@ export async function callGemini(prompt: string): Promise<GeminiResponse | null>
         );
       }
 
+      const analysis = json?.analysis ?? json;
       return {
-        isRelevant: json?.isRelevant ?? false,
-        confidence: json?.confidence ?? 0,
+        isRelevant: analysis?.isRelevant ?? false,
+        confidence: analysis?.confidence ?? 0,
       };
     } catch (err) {
       lastErr = err;
