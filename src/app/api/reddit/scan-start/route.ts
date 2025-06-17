@@ -91,8 +91,8 @@ export async function POST(req: Request) {
         .from('sent_messages')
         .select('id')
         .eq('user_id', userId)
-        .eq('config_id', configId)
-        .eq('post_id', post.id)
+        .eq('reddit_account_id', config.reddit_account_id)
+        .eq('recipient_username', post.author.name)
         .maybeSingle();
       if (existingMsg) continue; // already messaged
       candidatePosts.push(post);

@@ -68,6 +68,19 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       return NextResponse.json({ skipped: true });
     }
 
+    // Duplicate check – ensure we haven’t already messaged this Redditor from this account
+    const { data: existingMsg } = await supabase
+      .from('sent_messages')
+      .select('id')
+      .eq('user_id', config.user_id)
+      .eq('reddit_account_id', config.reddit_account_id)
+      .eq('recipient_username', post.author.name)
+      .maybeSingle();
+    if (existingMsg) {
+      console.log('scan-post: already messaged', post.author.name);
+      return NextResponse.json({ skipped: true, reason: 'already_messaged' });
+    }
+
     // Build message content
     const { data: template } = await supabase
       .from('message_templates')
