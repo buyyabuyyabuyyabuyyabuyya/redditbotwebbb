@@ -34,13 +34,11 @@ export async function publishQStashMessage<T>(options: PublishOptions<T>) {
   const { destination, body, delayMs, headers: extraHeaders } = options;
 
   // Publish using path-parameter style: /v2/publish/<urlencoded-destination>
-  const url = `${QSTASH_URL}/v2/publish/${destination}`; // QStash REST endpoint
+  const url = `${QSTASH_URL}/v2/publish`; // JSON publish endpoint
 
   const headers: Record<string, string> = {
     Authorization: `Bearer ${QSTASH_TOKEN}`,
     'Content-Type': 'application/json',
-    'X-Internal-API': 'true',
-    ...(extraHeaders || {}),
   };
 
   if (delayMs && delayMs > 0) {
@@ -49,10 +47,20 @@ export async function publishQStashMessage<T>(options: PublishOptions<T>) {
     headers['Upstash-Delay'] = `${delaySeconds}s`;
   }
 
+  // Construct payload for QStash JSON publish
+  const payload: Record<string, any> = {
+    url: destination,
+    method: 'POST',
+    body,
+  };
+  if (extraHeaders && Object.keys(extraHeaders).length) {
+    payload.headers = extraHeaders;
+  }
+
   const res = await fetch(url, {
     method: 'POST',
     headers,
-    body: JSON.stringify(body),
+    body: JSON.stringify(payload),
   });
 
   if (!res.ok) {
