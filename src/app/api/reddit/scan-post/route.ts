@@ -58,6 +58,12 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
     const geminiResult = await callGemini(post.title + '\n' + post.selftext);
     const isRelevant = geminiResult?.isRelevant ?? false;
 
+    console.log('scan-post: analysis result', {
+      postId,
+      isRelevant,
+      confidence: geminiResult?.confidence,
+    });
+
     if (!isRelevant) {
       return NextResponse.json({ skipped: true });
     }
@@ -77,14 +83,12 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
 
     // Call Edge Function to send message (no extra delay)
     // Call our internal proxy route so Vercel logs the request
-    let rawBase = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL || '';
-    if (!rawBase) {
-      rawBase = new URL(req.url).host;
+    // Prefer same-origin relative URL to avoid DNS lookup / egress if we are already inside the Vercel deployment
+    let funcUrl = '/api/reddit/send-message';
+    // Fallback to absolute URL for local dev or edge cases where relative won’t work (e.g. invoked from Edge Function)
+    if (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_APP_URL) {
+      funcUrl = `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')}/api/reddit/send-message`;
     }
-    const normalizedBase = rawBase.startsWith('http://') || rawBase.startsWith('https://')
-      ? rawBase.replace(/\/$/, '')
-      : `https://${rawBase.replace(/\/$/, '')}`;
-    const funcUrl = `${normalizedBase}/api/reddit/send-message`;
 
     console.log('scan-post: calling send-message', funcUrl);
     const edgeRes = await fetch(funcUrl, {
