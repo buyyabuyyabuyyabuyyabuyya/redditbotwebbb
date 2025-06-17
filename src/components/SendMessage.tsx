@@ -104,9 +104,9 @@ export default function SendMessage({ userId, onSuccess }: SendMessageProps) {
         .insert([
           {
             user_id: userId,
-            recipient_username: recipientUsername,
+            recipient: recipientUsername,
             content: messageContent,
-            reddit_account_id: selectedAccount,
+            account_id: selectedAccount,
           },
         ]);
 

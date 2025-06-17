@@ -70,7 +70,7 @@ export default async function DashboardPage() {
                 <div className="flex items-center space-x-4">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">
-                      To: {message.recipient_username}
+                      To: {message.recipient}
                     </p>
                     <p className="text-sm text-gray-500 truncate">
                       {message.content}

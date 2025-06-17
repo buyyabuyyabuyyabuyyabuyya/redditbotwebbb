@@ -108,9 +108,11 @@ serve(async (req) => {
       await supabase.from("sent_messages").insert([
         {
           user_id: userId,
-          recipient_username: recipientUsername,
+          account_id: accountId,
+          recipient: recipientUsername,
           content: message,
-          reddit_account_id: accountId,
+          post_id: postId ?? null,
+          config_id: configId ?? null,
         },
       ]);
     };

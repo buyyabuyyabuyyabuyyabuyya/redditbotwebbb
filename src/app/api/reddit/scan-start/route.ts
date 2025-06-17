@@ -79,7 +79,8 @@ export async function POST(req: Request) {
       .getNew({ limit: MAX_TOTAL_POSTS });
 
     // Determine which posts need a message (keyword match & not already messaged)
-    const candidatePosts = [] as any[];
+    const candidatePosts: any[] = [];
+    const seenAuthors = new Set<string>();
     const keywords = (config.keywords || []) as string[];
     let scheduledCount = 0;
 
@@ -87,21 +88,27 @@ export async function POST(req: Request) {
       const titleLower = (post.title || '').toLowerCase();
       if (!keywords.some((kw) => titleLower.includes(kw.toLowerCase()))) continue;
 
+      // Skip if we have already queued a message for this author in this batch
+      if (seenAuthors.has(post.author.name)) continue;
+
       const { data: existingMsg } = await supabaseAdmin
         .from('sent_messages')
         .select('id')
         .eq('user_id', userId)
-        .eq('reddit_account_id', config.reddit_account_id)
-        .eq('recipient_username', post.author.name)
+        .eq('account_id', config.reddit_account_id)
+        .eq('recipient', post.author.name)
         .maybeSingle();
-      if (existingMsg) continue; // already messaged
+      if (existingMsg) continue; // already messaged historically
+
       candidatePosts.push(post);
+      seenAuthors.add(post.author.name);
     }
 
     if (candidatePosts.length === 0) {
       return NextResponse.json({ queued: false, reason: 'No new posts' });
     }
-//pous test
+    //pous test
+
     // Publish one message per post with increasing delay
     // Determine base host for consumer endpoint (should not include protocol)
     let rawBase = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL || '';

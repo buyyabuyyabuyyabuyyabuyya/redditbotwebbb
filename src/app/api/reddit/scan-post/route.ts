@@ -68,17 +68,33 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       return NextResponse.json({ skipped: true });
     }
 
-    // Duplicate check – ensure we haven’t already messaged this Redditor from this account
-    const { data: existingMsg } = await supabase
+    // Enhanced duplicate checks (post-specific & config-level)
+    // 1️⃣ Has this exact post already been messaged?
+    const { data: existingMessage } = await supabase
       .from('sent_messages')
       .select('id')
       .eq('user_id', config.user_id)
-      .eq('reddit_account_id', config.reddit_account_id)
-      .eq('recipient_username', post.author.name)
+      .eq('account_id', config.reddit_account_id)
+      .eq('recipient', post.author.name)
+      .eq('post_id', postId)
       .maybeSingle();
-    if (existingMsg) {
-      console.log('scan-post: already messaged', post.author.name);
-      return NextResponse.json({ skipped: true, reason: 'already_messaged' });
+
+    // 2️⃣ Has this user been messaged by this config before (different post)?
+    const { data: previousMessages } = await supabase
+      .from('sent_messages')
+      .select('id')
+      .eq('user_id', config.user_id)
+      .eq('recipient', post.author.name)
+      .eq('config_id', configId)
+      .limit(1);
+
+    if (existingMessage) {
+      console.log('scan-post: already messaged user about this post', post.author.name);
+      return NextResponse.json({ skipped: true, reason: 'already_messaged_post' });
+    }
+    if (previousMessages && previousMessages.length > 0) {
+      console.log('scan-post: already messaged user via this config', post.author.name);
+      return NextResponse.json({ skipped: true, reason: 'already_messaged_config' });
     }
 
     // Build message content
