@@ -40,7 +40,7 @@ export async function callGemini(prompt: string): Promise<GeminiResponse | null>
           // Hint to the analyze route that this is an internal server-to-server request
           'X-Internal-API': 'true',
         },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ content: prompt }),
       });
 
       const text = await res.text();
