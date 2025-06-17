@@ -1,100 +1,417 @@
-Jun 16 16:56:16.56
+Jun 16 20:33:42.75
 GET200
 redditbotwebbb.vercel.app
 /api/reddit/bot-logs
 10
 - start_bot: 1 logs
-Jun 16 16:56:05.86
+Jun 16 20:33:32.52
 GET200
 redditbotwebbb.vercel.app
 /api/reddit/bot-logs
 10
 - start_bot: 1 logs
-Jun 16 16:55:55.77
+Jun 16 20:33:22.28
 GET200
 redditbotwebbb.vercel.app
 /api/reddit/bot-logs
 10
 - start_bot: 1 logs
-Jun 16 16:55:55.45
+Jun 16 20:33:12.23
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:33:02.08
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:32:52.06
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:32:41.81
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:32:40.67
 POST200
 redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-Jun 16 16:55:54.87
+/api/gemini/analyze
+13
+Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": "web app", "projectName": "BigIdeas...
+Jun 16 20:32:39.36
 POST200
 redditbotwebbb.vercel.app
 /api/reddit/scan-post
-Gemini failed: TypeError: Failed to parse URL from /api/gemini/analyze at new Request (node:internal/deps/undici/undici:9588:19) at /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:30289 ... 24 lines matching cause stack trace ... at async r9.runImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17452) at async r9.handleRequestImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:16541) { [cause]: TypeError: Invalid URL at new URL (node:internal/url:818:25) at new Request (node:internal/deps/undici/undici:9586:25) at /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:30289 at N (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:35398) at /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37718 at /var/task/node_modules/next/dist/server/lib/trace/tracer.js:140:36 at NoopContextManager.with (/var/task/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7124) at ContextAPI.with (/var/task/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:580) at NoopTracer.startActiveSpan (/var/task/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18155) at ProxyTracer.startActiveSpan (/var/task/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18916) at /var/task/node_modules/next/dist/server/lib/trace/tracer.js:122:103 at NoopContextManager.with (/var/task/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7124) at ContextAPI.with (/var/task/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:580) at NextTracerImpl.trace (/var/task/node_modules/next/dist/server/lib/trace/tracer.js:122:28) at n (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:31359) at td (/var/task/.next/server/app/api/reddit/scan-post/route.js:5:2970) at async /var/task/.next/server/app/api/reddit/scan-post/route.js:5:5036 at async /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411 at async e_.execute (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880) at async e_.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943) at async en (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:25592) at async ea.responseCache.get.routeKind (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:1028) at async r9.renderToResponseWithComponentsImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:508) at async r9.renderPageComponent (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5102) at async r9.renderToResponseImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5680) at async r9.pipeImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17727) at async r9.handleCatchallRenderRequest (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:38485) at async r9.runImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17452) { code: 'ERR_INVALID_URL', input: '/api/gemini/analyze' } }
-Jun 16 16:55:52.53
-POST200
-redditbotwebbb.vercel.app
-/api/reddit/scan-start
-Jun 16 16:55:52.31
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/scan-config
-6
-{ "id": "68badaaf-b720-435b-b0bb-225450921eeb", "user_id": "user_2xFMxQyD7YOoaVfVCTg2Du0DzJY", "subreddit": "test", "keywords": [ "test", "this is a test" ], "message_template_id": "308556d5-377b-4eb9-b20a-0c21f456632a", "reddit_account_id": "ceecaf0a-8d59-4afa-af30-0c5bac3699d9", "is_active": true, "scan_interval": 7, "last_scan_time": "2025-06-09T17:29:33.026+00:00", "created_at": "2025-05-27T00:35:01.246608+00:00", "updated_at": "2025-06-09T23:13:36.381+00:00", "use_ai_check": true }
-Jun 16 16:55:50.94
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/scan-config
-6
-{ "id": "68badaaf-b720-435b-b0bb-225450921eeb", "user_id": "user_2xFMxQyD7YOoaVfVCTg2Du0DzJY", "subreddit": "test", "keywords": [ "test", "this is a test" ], "message_template_id": "308556d5-377b-4eb9-b20a-0c21f456632a", "reddit_account_id": "ceecaf0a-8d59-4afa-af30-0c5bac3699d9", "is_active": true, "scan_interval": 7, "last_scan_time": "2025-06-09T17:29:33.026+00:00", "created_at": "2025-05-27T00:35:01.246608+00:00", "updated_at": "2025-06-09T23:13:36.381+00:00", "use_ai_check": true }
-Jun 16 16:55:48.46
+Jun 16 20:32:31.61
 GET200
 redditbotwebbb.vercel.app
 /api/reddit/bot-logs
-9
+10
 - start_bot: 1 logs
-Jun 16 16:55:47.26
+Jun 16 20:32:21.35
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:32:11.11
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:32:00.90
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:31:50.02
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:31:39.75
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:31:29.49
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:31:19.31
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:31:09.30
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:31:00.08
+POST200
+redditbotwebbb.vercel.app
+/api/gemini/analyze
+13
+Cleaned JSON text: { "isRelevant": true, "confidence": 0.9, "projectType": "SaaS", "projectName": null, "keyw...
+Jun 16 20:30:59.06
+POST200
+redditbotwebbb.vercel.app
+/api/reddit/scan-post
+Jun 16 20:30:59.03
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:30:48.71
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:30:38.51
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:30:28.48
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:30:17.19
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:30:10.27
+POST401
+redditbotwebbb.vercel.app
+/api/reddit/scan-start
+Jun 16 20:30:07.09
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:29:56.85
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:29:46.80
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:29:36.39
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:29:26.21
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:29:20.57
+POST200
+redditbotwebbb.vercel.app
+/api/gemini/analyze
+13
+Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": "web app", "projectName": "Peel", ...
+Jun 16 20:29:19.61
+POST200
+redditbotwebbb.vercel.app
+/api/reddit/scan-post
+Jun 16 20:29:16.01
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:29:05.77
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:28:55.64
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:28:44.68
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:28:34.43
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:28:24.23
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:28:13.92
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:28:03.50
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:27:53.42
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:27:45.82
+POST401
+redditbotwebbb.vercel.app
+/api/reddit/scan-start
+Jun 16 20:27:42.58
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+10
+- start_bot: 1 logs
+Jun 16 20:27:41.34
 GET200
 redditbotwebbb.vercel.app
 /api/reddit/bot-logs
 8
 - start_bot: 1 logs
-Jun 16 16:55:47.02
+Jun 16 20:27:41.07
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+8
+- start_bot: 1 logs
+Jun 16 20:27:41.07
 GET200
 redditbotwebbb.vercel.app
 /api/user/stats
-
-
-Gemini failed: TypeError: Failed to parse URL from /api/gemini/analyze
-    at new Request (node:internal/deps/undici/undici:9588:19)
-    at /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:30289
-    ... 24 lines matching cause stack trace ...
-    at async r9.runImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17452)
-    at async r9.handleRequestImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:16541) {
-  [cause]: TypeError: Invalid URL
-      at new URL (node:internal/url:818:25)
-      at new Request (node:internal/deps/undici/undici:9586:25)
-      at /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:30289
-      at N (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:35398)
-      at /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37718
-      at /var/task/node_modules/next/dist/server/lib/trace/tracer.js:140:36
-      at NoopContextManager.with (/var/task/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7124)
-      at ContextAPI.with (/var/task/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:580)
-      at NoopTracer.startActiveSpan (/var/task/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18155)
-      at ProxyTracer.startActiveSpan (/var/task/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18916)
-      at /var/task/node_modules/next/dist/server/lib/trace/tracer.js:122:103
-      at NoopContextManager.with (/var/task/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7124)
-      at ContextAPI.with (/var/task/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:580)
-      at NextTracerImpl.trace (/var/task/node_modules/next/dist/server/lib/trace/tracer.js:122:28)
-      at n (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:31359)
-      at td (/var/task/.next/server/app/api/reddit/scan-post/route.js:5:2970)
-      at async /var/task/.next/server/app/api/reddit/scan-post/route.js:5:5036
-      at async /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411
-      at async e_.execute (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880)
-      at async e_.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943)
-      at async en (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:25592)
-      at async ea.responseCache.get.routeKind (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:1028)
-      at async r9.renderToResponseWithComponentsImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:508)
-      at async r9.renderPageComponent (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5102)
-      at async r9.renderToResponseImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5680)
-      at async r9.pipeImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17727)
-      at async r9.handleCatchallRenderRequest (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:38485)
-      at async r9.runImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17452) {
-    code: 'ERR_INVALID_URL',
-    input: '/api/gemini/analyze'
-  }
-}
+Jun 16 20:27:40.31
+POST200
+redditbotwebbb.vercel.app
+/api/gemini/analyze
+13
+Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": "developer tools", "projectName": n...
+Jun 16 20:27:40.11
+POST200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+Jun 16 20:27:39.39
+POST200
+redditbotwebbb.vercel.app
+/api/reddit/scan-post
+Jun 16 20:27:37.31
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+8
+- start_bot: 1 logs
+Jun 16 20:27:34.59
+POST200
+redditbotwebbb.vercel.app
+/api/reddit/scan-start
+Jun 16 20:27:34.27
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+6
+{ "id": "0273a893-bd79-4a44-aed8-98f26df8bf6d", "user_id": "user_2xFMxQyD7YOoaVfVCTg2Du0DzJY", "subreddit": "Saas", "keywords": [ "project", "app", "application", "website", "webapp", "web app", "mobile app", "portfolio", "showcase", "demo", "launch", "deploy", "deployment", "released", "just launched", "just finished", "just completed", "just built", "side project", "personal project" ], "message_template_id": "ca64fdd4-c0b1-4f84-9b64-a6c171727725", "reddit_account_id": "af25ddda-f19a-4e44-9186-ec0addaf0811", "is_active": true, "scan_interval": 15, "last_scan_time": "2025-06-10T00:13:14.98+00:00", "created_at": "2025-05-24T22:17:16.701327+00:00", "updated_at": "2025-06-03T22:44:06.448+00:00", "use_ai_check": true }
+Jun 16 20:27:32.93
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+6
+{ "id": "0273a893-bd79-4a44-aed8-98f26df8bf6d", "user_id": "user_2xFMxQyD7YOoaVfVCTg2Du0DzJY", "subreddit": "Saas", "keywords": [ "project", "app", "application", "website", "webapp", "web app", "mobile app", "portfolio", "showcase", "demo", "launch", "deploy", "deployment", "released", "just launched", "just finished", "just completed", "just built", "side project", "personal project" ], "message_template_id": "ca64fdd4-c0b1-4f84-9b64-a6c171727725", "reddit_account_id": "af25ddda-f19a-4e44-9186-ec0addaf0811", "is_active": true, "scan_interval": 15, "last_scan_time": "2025-06-10T00:13:14.98+00:00", "created_at": "2025-05-24T22:17:16.701327+00:00", "updated_at": "2025-06-03T22:44:06.448+00:00", "use_ai_check": true }
+Jun 16 20:27:32.15
+POST401
+redditbotwebbb.vercel.app
+/api/reddit/scan-start
+Jun 16 20:27:27.87
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+GET scan-config request with userId: user_2xFMxQyD7YOoaVfVCTg2Du0DzJY, configId: null
+Jun 16 20:27:27.30
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+GET scan-config request with userId: user_2xFMxQyD7YOoaVfVCTg2Du0DzJY, configId: null
+Jun 16 20:27:27.30
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+8
+- start_bot: 1 logs
+Jun 16 20:27:27.12
+POST200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+Jun 16 20:27:26.82
+PATCH200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+Jun 16 20:27:23.74
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+7
+Grouped logs by action:
+Jun 16 20:27:23.32
+GET200
+redditbotwebbb.vercel.app
+/api/user/stats
+Jun 16 20:27:23.32
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+GET scan-config request with userId: user_2xFMxQyD7YOoaVfVCTg2Du0DzJY, configId: null
+Jun 16 20:27:23.32
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/bot-logs
+7
+Grouped logs by action:
+Jun 16 20:27:23.32
+GET200
+redditbotwebbb.vercel.app
+/api/user/stats
+Jun 16 20:27:23.30
+GET200
+redditbotwebbb.vercel.app
+/api/user/stats
+Jun 16 20:27:15.67
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+GET scan-config request with userId: user_2xFMxQyD7YOoaVfVCTg2Du0DzJY, configId: null
+Jun 16 20:27:15.43
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/templates
+Jun 16 20:27:15.18
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/account
+Jun 16 20:27:15.13
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/templates
+Jun 16 20:27:15.13
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/account
+Jun 16 20:27:15.13
+GET200
+redditbotwebbb.vercel.app
+/api/reddit/scan-config
+GET scan-config request with userId: user_2xFMxQyD7YOoaVfVCTg2Du0DzJY, configId: null
+Jun 16 20:27:15.13
+GET200
+redditbotwebbb.vercel.app
+/api/user/stats
+Jun 16 20:27:15.06
+GET200
+redditbotwebbb.vercel.app
+/settings
+Jun 16 20:27:14.91
+GET200
+redditbotwebbb.vercel.app
+/file-logs
+Jun 16 20:27:14.91
+GET200
+redditbotwebbb.vercel.app
+/tutorial
+Jun 16 20:27:14.90
+GET200
+redditbotwebbb.vercel.app
+/
+Jun 16 20:27:14.90
+GET200
+redditbotwebbb.vercel.app
+/pricing
+Jun 16 20:27:14.90
+GET200
+redditbotwebbb.vercel.app
+/messages

@@ -12,7 +12,9 @@ const MAX_TOTAL_POSTS = 100; // upper-bound for a single scan session
 
 export async function POST(req: Request) {
   try {
-    const internal = req.headers.get('X-Internal-API') === 'true';
+    const internal =
+      req.headers.get('X-Internal-API') === 'true' ||
+      req.headers.has('Upstash-Signature');
     const { userId } = auth();
     if (!internal && !userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
