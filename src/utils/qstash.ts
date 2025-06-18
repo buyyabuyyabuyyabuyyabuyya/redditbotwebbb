@@ -63,3 +63,55 @@ export async function publishQStashMessage<T>(options: PublishOptions<T>) {
   const json = (await res.json()) as { messageId: string };
   return json.messageId;
 }
+
+/**
+ * Create a one-off schedule instead of immediate publish.
+ * Schedules let us chain messages with a fixed spacing
+ * (eg. next message 160 s after the previous one).
+ * Provide either delaySeconds (relative) OR notBefore (absolute UNIX timestamp seconds).
+ */
+export interface ScheduleOptions<T> extends PublishOptions<T> {
+  /** Relative delay in seconds */
+  delaySeconds?: number;
+  /** Absolute unix timestamp (seconds) */
+  notBefore?: number;
+}
+
+export async function scheduleQStashMessage<T>(options: ScheduleOptions<T>) {
+  if (!QSTASH_URL || !QSTASH_TOKEN) {
+    throw new Error('QStash env vars not configured');
+  }
+
+  const { destination, body, delaySeconds, notBefore, headers: extraHeaders } = options;
+  if (!delaySeconds && !notBefore) {
+    throw new Error('Either delaySeconds or notBefore must be provided');
+  }
+
+  const schedulePayload: Record<string, any> = {
+    destination,
+    body,
+  };
+  if (delaySeconds) schedulePayload.delay = `${delaySeconds}s`;
+  if (notBefore) schedulePayload.notBefore = notBefore;
+  if (extraHeaders && Object.keys(extraHeaders).length > 0) {
+    schedulePayload.headers = { ...extraHeaders, 'X-Internal-API': 'true' };
+  }
+
+  const res = await fetch(`${QSTASH_URL}/v2/schedules`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${QSTASH_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(schedulePayload),
+  });
+
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`QStash schedule failed: ${res.status} – ${txt}`);
+  }
+
+  const json = (await res.json()) as { scheduleId: string };
+  return json.scheduleId;
+}
+}

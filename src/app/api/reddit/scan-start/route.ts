@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
 import { createServerSupabaseClient } from '../../../../utils/supabase-server';
 import { createClient } from '@supabase/supabase-js';
-import { publishQStashMessage } from '../../../../utils/qstash';
+import { publishQStashMessage, scheduleQStashMessage } from '../../../../utils/qstash';
 import snoowrap from 'snoowrap';
 
 // Inter-message delay (ms)
@@ -131,14 +131,16 @@ export async function POST(req: Request) {
     }
     const consumerUrl = `${normalizedBase}/api/reddit/scan-post`;
 
+    const SPACING_SECONDS = 160; // 2 min 40 s between messages
+    const nowSec = Math.floor(Date.now() / 1000);
     let i = 0;
     for (const post of candidatePosts) {
       if (scheduledCount >= BATCH_SIZE || scheduledCount >= remaining) break;
-      const delayMs = i * DELAY_INTERVAL_MS;
-      await publishQStashMessage({
+      const notBefore = nowSec + i * SPACING_SECONDS;
+      await scheduleQStashMessage({
         destination: consumerUrl,
         body: { configId, postId: post.id },
-        delayMs,
+        notBefore,
         headers: {
           'X-Internal-API': 'true',
         },
@@ -149,13 +151,13 @@ export async function POST(req: Request) {
 
     const newRemaining = remaining - scheduledCount;
 
-    // If we still have more to process, queue another batch of scan-start after the last message + small buffer
+    // If more posts remain, schedule next scan-start after last scheduled item + buffer
     if (newRemaining > 0) {
-      const nextDelayMs = i * DELAY_INTERVAL_MS + 100_000; // buffer 100 s
-      await publishQStashMessage({
+      const nextNotBefore = nowSec + i * SPACING_SECONDS + 10; // 10-second buffer
+      await scheduleQStashMessage({
         destination: `${normalizedBase}/api/reddit/scan-start`,
         body: { configId, remaining: newRemaining },
-        delayMs: nextDelayMs,
+        notBefore: nextNotBefore,
         headers: {
           'X-Internal-API': 'true',
         },
