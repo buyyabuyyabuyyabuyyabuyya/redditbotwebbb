@@ -19,9 +19,10 @@ export async function POST(req: Request) {
     if (!internal && !userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const { configId, remaining: remainingInput } = (await req.json()) as {
+    const { configId, remaining: remainingInput, after: afterCursor } = (await req.json()) as {
       configId: string;
       remaining?: number;
+      after?: string;
     };
     const remaining = remainingInput ?? MAX_TOTAL_POSTS;
     if (!configId) {
@@ -81,7 +82,7 @@ export async function POST(req: Request) {
     // Fetch latest posts (subreddit new, limit up to MAX_TOTAL_POSTS so we have enough)
     const rawPosts = await reddit
       .getSubreddit(config.subreddit)
-      .getNew({ limit: MAX_TOTAL_POSTS });
+      .getNew({ limit: MAX_TOTAL_POSTS, after: afterCursor });
 
     // Determine which posts need a message (keyword match & not already messaged)
     const candidatePosts: any[] = [];
@@ -101,7 +102,7 @@ export async function POST(req: Request) {
         .select('id')
         .eq('user_id', userId)
         .eq('account_id', config.reddit_account_id)
-        .eq('recipient', post.author.name)
+        .eq('post_id', post.id)
         .maybeSingle();
       if (existingMsg) continue; // already messaged historically
 
@@ -156,7 +157,7 @@ export async function POST(req: Request) {
       const nextNotBefore = nowSec + i * SPACING_SECONDS + 10; // 10-second buffer
       await scheduleQStashMessage({
         destination: `${normalizedBase}/api/reddit/scan-start`,
-        body: { configId, remaining: newRemaining },
+        body: { configId, remaining: newRemaining, after: rawPosts[rawPosts.length - 1]?.name },
         notBefore: nextNotBefore,
         headers: {
           'X-Internal-API': 'true',
