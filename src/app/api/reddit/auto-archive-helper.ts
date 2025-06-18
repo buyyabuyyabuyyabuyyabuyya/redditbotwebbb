@@ -2,7 +2,14 @@ import { SupabaseClient } from '@supabase/supabase-js';
 
 /**
  * Checks if a configuration has more than 100 logs and triggers archival if needed
- * This function is called from the scan route after a scan completes
+ * This helper now archives all logs (except the essential lifecycle markers)
+ * when the log count reaches 100. Essential logs are:
+ *   - start_bot (marks when the bot was enabled)
+ *   - start_scan (marks when a particular scan cycle began)
+ *
+ * When archiveAll === true we archive regardless of count. In all cases we
+ * persist those essential logs in the table so a user can still see when the
+ * bot was started and when a scan cycle kicked off.
  */
 export async function checkAndArchiveLogs(
   supabaseAdmin: SupabaseClient,
@@ -46,11 +53,11 @@ export async function checkAndArchiveLogs(
       return;
     }
 
-    // If archiveAll is false, we only archive if we have more than 50 logs
+    // If archiveAll is false, we only archive if we have at least 100 logs
     // If archiveAll is true, we archive regardless of count, as long as there are logs
-    if (!archiveAll && count < 50) {
+    if (!archiveAll && count < 100) {
       console.log(
-        `Only ${count} logs found for config ${configId} - skipping archival (minimum 50 required)`
+        `Only ${count} logs found for config ${configId} - skipping archival (minimum 100 required)`
       );
       return;
     }
@@ -76,21 +83,23 @@ export async function checkAndArchiveLogs(
         config_id: configId,
         message: archiveAll
           ? `Automatically archiving all logs (${count}) after scan completion`
-          : `Automatically archiving logs as count (${count}) exceeded threshold`,
+          : `Automatically archiving logs because count (${count}) reached threshold of 100`,
         created_at: new Date().toISOString(),
       },
     ]);
 
     try {
-      // Get the logs to archive (all logs if archiveAll is true, otherwise 100 oldest logs)
+      // Build the query for logs to archive.
+      // We ALWAYS exclude the essential lifecycle logs so they remain in the table.
       let query = supabaseAdmin
         .from('bot_logs')
         .select('*')
         .eq('user_id', userId)
         .eq('config_id', configId)
+        .not('action', 'in', '(start_bot,start_scan)')
         .order('created_at', { ascending: true });
 
-      // Only limit if we're not archiving all logs
+      // If archiveAll === false, limit to 100 oldest; otherwise fetch everything except the two essentials
       if (!archiveAll) {
         query = query.limit(100);
       }
@@ -181,8 +190,10 @@ export async function checkAndArchiveLogs(
         throw new Error(`Failed to record archive: ${archiveError.message}`);
       }
 
-      // Filter logs to exclude those with action type 'start_bot' from deletion
-      const logsToDelete = logs.filter((log) => log.action !== 'start_bot');
+      // Filter logs to exclude those with action type 'start_bot' or 'start_scan' from deletion
+      const logsToDelete = logs.filter(
+        (log) => log.action !== 'start_bot' && log.action !== 'start_scan'
+      );
 
       // Get the IDs of logs we're deleting (excluding start_bot logs)
       const logIds = logsToDelete.map((log) => log.id);
@@ -210,7 +221,7 @@ export async function checkAndArchiveLogs(
           status: 'success',
           subreddit: subreddit,
           config_id: configId,
-          message: `Successfully archived ${logs.length} logs, deleted ${logIds.length} (kept ${logs.length - logIds.length} start_bot logs)`,
+          message: `Successfully archived ${logs.length} logs, deleted ${logIds.length} (kept ${logs.length - logIds.length} essential lifecycle logs)`,
           created_at: new Date().toISOString(),
         },
       ]);
