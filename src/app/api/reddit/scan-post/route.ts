@@ -97,6 +97,26 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       return NextResponse.json({ skipped: true, reason: 'already_messaged_config' });
     }
 
+    // Reserve a row immediately so concurrent scans skip this user
+    const reservation = await supabase
+      .from('sent_messages')
+      .insert([
+        {
+          user_id: config.user_id,
+          account_id: config.reddit_account_id,
+          recipient: post.author.name,
+          post_id: postId,
+          config_id: configId,
+          subreddit: config.subreddit,
+          message_template: null,
+          sent_at: new Date().toISOString(),
+        },
+      ], { ignoreDuplicates: true });
+
+    if (reservation.error) {
+      console.error('scan-post: reservation insert error', reservation.error);
+    }
+
     // Build message content
     const { data: template } = await supabase
       .from('message_templates')
