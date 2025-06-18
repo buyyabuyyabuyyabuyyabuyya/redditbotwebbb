@@ -97,6 +97,15 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       return NextResponse.json({ skipped: true, reason: 'already_messaged_config' });
     }
 
+    // Fetch template first (needed for reservation)
+    const { data: template } = await supabase
+      .from('message_templates')
+      .select('content')
+      .eq('id', config.message_template_id)
+      .single();
+
+    const contentRaw = template?.content || 'Hello {username}!';
+
     // Reserve a row immediately so concurrent scans skip this user
     const reservation = await supabase
       .from('sent_messages')
@@ -108,7 +117,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
           post_id: postId,
           config_id: configId,
           subreddit: config.subreddit,
-          message_template: null,
+          message_template: contentRaw, // non-null
           sent_at: new Date().toISOString(),
         },
       ], { ignoreDuplicates: true });
@@ -117,14 +126,8 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       console.error('scan-post: reservation insert error', reservation.error);
     }
 
-    // Build message content
-    const { data: template } = await supabase
-      .from('message_templates')
-      .select('*')
-      .eq('id', config.message_template_id)
-      .single();
+    // Build message content based on template
 
-    const contentRaw = template?.content || 'Hello {username}!';
     const messageContent = contentRaw
       .replace(/\{username\}/g, post.author.name)
       .replace(/\{subreddit\}/g, config.subreddit)
