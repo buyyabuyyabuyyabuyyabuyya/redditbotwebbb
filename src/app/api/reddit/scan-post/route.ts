@@ -31,6 +31,10 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
     if (!config) {
       return NextResponse.json({ error: 'Config not found' }, { status: 404 });
     }
+    if (config.is_active === false) {
+      console.log('scan-post: config inactive, skipping');
+      return NextResponse.json({ skipped: true, reason: 'config_inactive' });
+    }
 
     const { data: account } = await supabase
       .from('reddit_accounts')

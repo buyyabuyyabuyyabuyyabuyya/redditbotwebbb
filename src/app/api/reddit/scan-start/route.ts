@@ -51,6 +51,11 @@ export async function POST(req: Request) {
       );
     }
 
+    // If bot stopped, abort processing
+    if (config.is_active === false) {
+      return NextResponse.json({ skipped: true, reason: 'config_inactive' });
+    }
+
     // Fetch Reddit account creds
     const { data: account } = await supabaseAdmin
       .from('reddit_accounts')
