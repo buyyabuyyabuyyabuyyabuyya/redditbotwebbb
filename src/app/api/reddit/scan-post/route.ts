@@ -146,7 +146,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       funcUrl = `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')}/api/reddit/send-message`;
     }
 
-    const EDGE_DELAY_MS = 5_000; // 5-second buffer after AI check
+    const EDGE_DELAY_MS = 100_000; // 100 second buffer after AI check
 
     console.log('scan-post: calling send-message', funcUrl);
     const edgeRes = await fetch(funcUrl, {

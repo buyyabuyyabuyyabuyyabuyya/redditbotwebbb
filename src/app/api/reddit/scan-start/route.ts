@@ -151,7 +151,7 @@ export async function POST(req: Request) {
 
     // If we still have more to process, queue another batch of scan-start after the last message + small buffer
     if (newRemaining > 0) {
-      const nextDelayMs = i * DELAY_INTERVAL_MS + 5_000; // buffer 5 s
+      const nextDelayMs = i * DELAY_INTERVAL_MS + 100_000; // buffer 100 s
       await publishQStashMessage({
         destination: `${normalizedBase}/api/reddit/scan-start`,
         body: { configId, remaining: newRemaining },
