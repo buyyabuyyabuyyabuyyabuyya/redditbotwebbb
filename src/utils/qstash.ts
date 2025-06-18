@@ -83,35 +83,24 @@ export async function scheduleQStashMessage<T>(options: ScheduleOptions<T>) {
   }
 
   const { destination, body, delaySeconds, notBefore, headers: extraHeaders } = options;
+
   if (!delaySeconds && !notBefore) {
     throw new Error('Either delaySeconds or notBefore must be provided');
   }
 
-  const schedulePayload: Record<string, any> = {
+  // Build headers
+  const headers: Record<string, string> = {
+    ...(extraHeaders || {}),
+    'X-Internal-API': 'true',
+  };
+  if (delaySeconds) headers['Upstash-Delay'] = `${delaySeconds}s`;
+  if (notBefore) headers['Upstash-Not-Before'] = `${notBefore}`;
+
+  // Reuse publish path-param style endpoint
+  return publishQStashMessage({
     destination,
     body,
-  };
-  if (delaySeconds) schedulePayload.delay = `${delaySeconds}s`;
-  if (notBefore) schedulePayload.notBefore = notBefore;
-  if (extraHeaders && Object.keys(extraHeaders).length > 0) {
-    schedulePayload.headers = { ...extraHeaders, 'X-Internal-API': 'true' };
-  }
-
-  const res = await fetch(`${QSTASH_URL}/v2/schedules`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${QSTASH_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(schedulePayload),
+    headers,
   });
-
-  if (!res.ok) {
-    const txt = await res.text();
-    throw new Error(`QStash schedule failed: ${res.status} – ${txt}`);
-  }
-
-  const json = (await res.json()) as { scheduleId: string };
-  return json.scheduleId;
 }
 
