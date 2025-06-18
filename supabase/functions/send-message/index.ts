@@ -15,6 +15,8 @@ serve(async (req) => {
       message,
       subject,
       delayMs,
+      postId,
+      configId,
     }: {
       userId: string;
       recipientUsername: string;
@@ -22,6 +24,8 @@ serve(async (req) => {
       message: string;
       subject?: string;
       delayMs?: number;
+      postId?: string;
+      configId?: string;
     } = await req.json();
 
     if (!userId || !recipientUsername || !accountId || !message) {

@@ -119,6 +119,8 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       funcUrl = `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')}/api/reddit/send-message`;
     }
 
+    const EDGE_DELAY_MS = 5_000; // 5-second buffer after AI check
+
     console.log('scan-post: calling send-message', funcUrl);
     const edgeRes = await fetch(funcUrl, {
       method: 'POST',
@@ -133,6 +135,9 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
         accountId: config.reddit_account_id,
         message: messageContent,
         subject: `Regarding your post in r/${config.subreddit}`,
+        delayMs: EDGE_DELAY_MS,
+        postId,
+        configId,
       }),
     });
 
