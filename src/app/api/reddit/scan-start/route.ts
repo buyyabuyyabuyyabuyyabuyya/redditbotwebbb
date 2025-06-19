@@ -4,6 +4,7 @@ import { createServerSupabaseClient } from '../../../../utils/supabase-server';
 import { createClient } from '@supabase/supabase-js';
 import { publishQStashMessage, scheduleQStashMessage } from '../../../../utils/qstash';
 import snoowrap from 'snoowrap';
+import { checkAndArchiveLogs } from '../auto-archive-helper';
 
 // Inter-message delay (ms)
 const DELAY_INTERVAL_MS = 100_000; // 100 s ≈ 1.7 min – safe for Reddit
@@ -262,6 +263,14 @@ export async function POST(req: Request) {
         subreddit: config.subreddit,
         message: `Processed ${scheduledCount} posts`,
       });
+
+      // Trigger auto-archive if log count >= 100
+      await checkAndArchiveLogs(
+        supabaseAdmin,
+        userId as string,
+        configId,
+        config.subreddit
+      );
     }
 
     return NextResponse.json({ queued: true, batch: scheduledCount, remaining: newRemaining });
