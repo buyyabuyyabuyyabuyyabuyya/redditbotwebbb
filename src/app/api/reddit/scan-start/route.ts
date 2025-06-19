@@ -15,7 +15,8 @@ export async function POST(req: Request) {
     const internal =
       req.headers.get('X-Internal-API') === 'true' ||
       req.headers.has('Upstash-Signature');
-    const { userId } = auth();
+    const authRes = await auth();
+    let userId = authRes?.userId || null;
     if (!internal && !userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -52,10 +53,35 @@ export async function POST(req: Request) {
       );
     }
 
+    // Ensure we have a userId (fallback to config owner for internal calls)
+    if (!userId) {
+      userId = config.user_id;
+    }
     // If bot stopped, abort processing
     if (config.is_active === false) {
       return NextResponse.json({ skipped: true, reason: 'config_inactive' });
     }
+
+    // Log start_bot action (only on first invocation)
+    if (!afterCursor) {
+      await supabaseAdmin.from('bot_logs').insert({
+        user_id: userId,
+        config_id: configId,
+        action: 'start_bot',
+        status: 'success',
+        subreddit: config.subreddit,
+      });
+    }
+
+    // Log start_scan action
+    await supabaseAdmin.from('bot_logs').insert({
+      user_id: userId,
+      config_id: configId,
+      action: 'start_scan',
+      status: 'info',
+      subreddit: config.subreddit,
+      message: `Scan started; remaining ${remaining}, after ${afterCursor || 'none'}`,
+    });
 
     // Fetch Reddit account creds
     const { data: account } = await supabaseAdmin
@@ -79,10 +105,69 @@ export async function POST(req: Request) {
       password: account.password,
     });
 
-    // Fetch latest posts (subreddit new, limit up to MAX_TOTAL_POSTS so we have enough)
-    const rawPosts = await reddit
-      .getSubreddit(config.subreddit)
-      .getNew({ limit: MAX_TOTAL_POSTS, after: afterCursor });
+    // ----- Reddit auth + fetch with detailed logs -----
+    await supabaseAdmin.from('bot_logs').insert({
+      user_id: userId,
+      config_id: configId,
+      action: 'reddit_auth_attempt',
+      status: 'info',
+      subreddit: config.subreddit,
+    });
+
+    let rawPosts: any[] = [];
+    try {
+      // Log API request
+      await supabaseAdmin.from('bot_logs').insert({
+        user_id: userId,
+        config_id: configId,
+        action: 'reddit_api_request',
+        status: 'info',
+        subreddit: config.subreddit,
+        message: 'getNew posts',
+      });
+
+      rawPosts = await reddit
+        .getSubreddit(config.subreddit)
+        .getNew({ limit: MAX_TOTAL_POSTS, after: afterCursor });
+
+      await supabaseAdmin.from('bot_logs').insert([
+        {
+          user_id: userId,
+          config_id: configId,
+          action: 'reddit_api_success',
+          status: 'success',
+          subreddit: config.subreddit,
+        },
+        {
+          user_id: userId,
+          config_id: configId,
+          action: 'reddit_auth_success',
+          status: 'success',
+          subreddit: config.subreddit,
+        },
+      ]);
+    } catch (err: any) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      await supabaseAdmin.from('bot_logs').insert([
+        {
+          user_id: userId,
+          config_id: configId,
+          action: 'reddit_api_error',
+          status: 'error',
+          subreddit: config.subreddit,
+          error_message: errMsg,
+        },
+        {
+          user_id: userId,
+          config_id: configId,
+          action: 'reddit_auth_error',
+          status: 'error',
+          subreddit: config.subreddit,
+          error_message: errMsg,
+        },
+      ]);
+      throw err;
+    }
 
     // Determine which posts need a message (keyword match & not already messaged)
     const candidatePosts: any[] = [];
@@ -152,24 +237,30 @@ export async function POST(req: Request) {
 
     const newRemaining = remaining - scheduledCount;
 
-    // If more posts remain, schedule next scan-start after last scheduled item + buffer
+    // If more posts remain, schedule the next scan-start job after the last scheduled item + buffer
     if (newRemaining > 0) {
       const nextNotBefore = nowSec + i * SPACING_SECONDS + 10; // 10-second buffer
       await scheduleQStashMessage({
         destination: `${normalizedBase}/api/reddit/scan-start`,
-        body: { configId, remaining: newRemaining, after: rawPosts[rawPosts.length - 1]?.name },
+        body: {
+          configId,
+          remaining: newRemaining,
+          after: rawPosts[rawPosts.length - 1]?.name,
+        },
         notBefore: nextNotBefore,
         headers: {
           'X-Internal-API': 'true',
         },
       });
     } else {
-      // Mark finished in bot_logs
+      // All required posts processed in this run – mark completion
       await supabaseAdmin.from('bot_logs').insert({
         user_id: userId,
         config_id: configId,
-        action: 'finished_scan',
-        message: `Processed ${MAX_TOTAL_POSTS} posts`,
+        action: 'scan_complete',
+        status: 'success',
+        subreddit: config.subreddit,
+        message: `Processed ${scheduledCount} posts`,
       });
     }
 

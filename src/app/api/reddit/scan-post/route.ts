@@ -48,7 +48,15 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       );
     }
 
-    // Fetch post via Reddit API
+    // ----- Reddit auth + fetch with detailed logs -----
+    await supabase.from('bot_logs').insert({
+      user_id: config.user_id,
+      config_id: configId,
+      action: 'reddit_auth_attempt',
+      status: 'info',
+      subreddit: config.subreddit,
+    });
+
     const reddit = new snoowrap({
       userAgent: 'Reddit Bot SaaS',
       clientId: account.client_id,
@@ -56,7 +64,61 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       username: account.username,
       password: account.password,
     });
-    const post = await reddit.getSubmission(postId).fetch();
+
+    let post;
+    try {
+      await supabase.from('bot_logs').insert({
+        user_id: config.user_id,
+        config_id: configId,
+        action: 'reddit_api_request',
+        status: 'info',
+        subreddit: config.subreddit,
+        post_id: postId,
+        message: 'fetchSubmission',
+      });
+
+      post = await reddit.getSubmission(postId).fetch();
+
+      await supabase.from('bot_logs').insert([
+        {
+          user_id: config.user_id,
+          config_id: configId,
+          action: 'reddit_api_success',
+          status: 'success',
+          subreddit: config.subreddit,
+          post_id: postId,
+        },
+        {
+          user_id: config.user_id,
+          config_id: configId,
+          action: 'reddit_auth_success',
+          status: 'success',
+          subreddit: config.subreddit,
+        },
+      ]);
+    } catch (err: any) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      await supabase.from('bot_logs').insert([
+        {
+          user_id: config.user_id,
+          config_id: configId,
+          action: 'reddit_api_error',
+          status: 'error',
+          subreddit: config.subreddit,
+          post_id: postId,
+          error_message: errMsg,
+        },
+        {
+          user_id: config.user_id,
+          config_id: configId,
+          action: 'reddit_auth_error',
+          status: 'error',
+          subreddit: config.subreddit,
+          error_message: errMsg,
+        },
+      ]);
+      throw err;
+    }
 
     // AI analysis
     const geminiResult = await callGemini(post.title + '\n' + post.selftext);
@@ -69,6 +131,16 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
     });
 
     if (!isRelevant) {
+      await supabase.from('bot_logs').insert({
+        user_id: config.user_id,
+        config_id: configId,
+        action: 'post_irrelevant',
+        status: 'skip',
+        subreddit: config.subreddit,
+        post_id: postId,
+        recipient: post.author.name,
+        message: 'Post deemed not relevant by AI',
+      });
       return NextResponse.json({ skipped: true });
     }
 
@@ -94,10 +166,28 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
 
     if (existingMessage) {
       console.log('scan-post: already messaged user about this post', post.author.name);
+      await supabase.from('bot_logs').insert({
+        user_id: config.user_id,
+        config_id: configId,
+        action: 'already_messaged_post',
+        status: 'skip',
+        subreddit: config.subreddit,
+        post_id: postId,
+        recipient: post.author.name,
+      });
       return NextResponse.json({ skipped: true, reason: 'already_messaged_post' });
     }
     if (previousMessages && previousMessages.length > 0) {
       console.log('scan-post: already messaged user via this config', post.author.name);
+      await supabase.from('bot_logs').insert({
+        user_id: config.user_id,
+        config_id: configId,
+        action: 'already_messaged_config',
+        status: 'skip',
+        subreddit: config.subreddit,
+        post_id: postId,
+        recipient: post.author.name,
+      });
       return NextResponse.json({ skipped: true, reason: 'already_messaged_config' });
     }
 
@@ -145,6 +235,17 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
     if (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_APP_URL) {
       funcUrl = `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')}/api/reddit/send-message`;
     }
+
+    await supabase.from('bot_logs').insert({
+      user_id: config.user_id,
+      config_id: configId,
+      action: 'message_scheduled',
+      status: 'queue',
+      subreddit: config.subreddit,
+      post_id: postId,
+      recipient: post.author.name,
+      message: `Message queued with ${100}s spacing`,
+    });
 
     const EDGE_DELAY_MS = 100_000; // 100 second buffer after AI check
 

@@ -152,9 +152,13 @@ export async function POST(req: Request) {
   );
 
   try {
-    const { userId } = auth();
-    console.log(`User ID: ${userId}`);
-    if (!userId) {
+    const internal =
+      req.headers.get('X-Internal-API') === 'true' ||
+      req.headers.has('Upstash-Signature');
+    const authRes = await auth();
+    let userId = authRes?.userId || null;
+    console.log(`User ID (initial): ${userId}`);
+    if (!internal && !userId) {
       console.log('ERROR: Unauthorized - No user ID found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -492,6 +496,11 @@ export async function POST(req: Request) {
         scanned: 0,
         matched: 0,
       });
+    }
+
+    // Ensure we have userId (fallback to config owner)
+    if (!userId) {
+      userId = config.user_id;
     }
 
     // Log the start of the scan process
