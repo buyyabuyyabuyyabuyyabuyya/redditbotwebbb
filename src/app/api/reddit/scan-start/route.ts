@@ -63,6 +63,48 @@ export async function POST(req: Request) {
       return NextResponse.json({ skipped: true, reason: 'config_inactive' });
     }
 
+    // --- Enforce runtime limit based on scan_interval ---
+    const MIN_INTERVAL_MIN = 5;
+    const MAX_INTERVAL_MIN = 300; // 5 hours
+    const effectiveInterval = Math.max(
+      MIN_INTERVAL_MIN,
+      Math.min(config.scan_interval ?? MIN_INTERVAL_MIN, MAX_INTERVAL_MIN)
+    );
+
+    // Fetch the timestamp when this bot was first started (from earliest start_bot log)
+    const { data: firstStart } = await supabaseAdmin
+      .from('bot_logs')
+      .select('created_at')
+      .eq('config_id', configId)
+      .eq('action', 'start_bot')
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (firstStart) {
+      const elapsedMinutes =
+        (Date.now() - new Date(firstStart.created_at).getTime()) / 60000;
+      if (elapsedMinutes >= effectiveInterval) {
+        // Deactivate bot
+        await supabaseAdmin
+          .from('scan_configs')
+          .update({ is_active: false })
+          .eq('id', configId);
+
+        await supabaseAdmin.from('bot_logs').insert({
+          user_id: userId,
+          config_id: configId,
+          action: 'stop_bot',
+          status: 'success',
+          subreddit: config.subreddit,
+          message: `Runtime limit of ${effectiveInterval} minutes reached`,
+        });
+
+        return NextResponse.json({ stopped: true, reason: 'interval_reached' });
+      }
+    }
+
+
     // Log start_bot action (only on first invocation)
     if (!afterCursor) {
       await supabaseAdmin.from('bot_logs').insert({
