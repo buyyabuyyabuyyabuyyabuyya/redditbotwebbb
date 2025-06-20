@@ -96,10 +96,21 @@ export async function POST(req: Request) {
       }
     }
 
-    // If still no userId, reject
+    // If still no userId, attempt to derive from database, otherwise proceed as system action
     if (!userId) {
-      console.log('ERROR: Unauthorized - No user ID found');
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      const { data: cfg2 } = await supabaseAdmin
+        .from('scan_configs')
+        .select('user_id, subreddit')
+        .eq('id', configId)
+        .maybeSingle();
+      if (cfg2) {
+        userId = cfg2.user_id;
+        if (!subreddit) subreddit = cfg2.subreddit;
+        console.log(`Derived userId ${userId} from scan_configs`);
+      } else {
+        userId = 'system';
+        console.log('Proceeding with system user');
+      }
     }
 
     console.log(`Stopping bot for config ID: ${configId}, subreddit: ${subreddit}`);
