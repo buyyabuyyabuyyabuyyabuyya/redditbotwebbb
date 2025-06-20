@@ -488,7 +488,7 @@ export default function LogViewer({
         <td className="whitespace-nowrap py-3 px-4 text-sm">
           {/* show badge only for message_* logs */}
           {log.action.startsWith('message_') && (
-            <span className="text-xs text-yellow-300">Delay&nbsp;~2m</span>
+            <span className="text-xs text-yellow-300">Delay&nbsp;~3m</span>
           )}
           <button
             onClick={() => toggleExpandLog(log.id)}
