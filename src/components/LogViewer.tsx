@@ -177,6 +177,9 @@ export default function LogViewer({
 
     fetchLogs();
 
+    //make it only fetch new logs when Press on "View Logs" button
+    
+
     // Set up polling to refresh logs every 10 seconds for more responsive updates
     // Only if we're on the first page to avoid too many requests
     const interval = currentPage === 1 ? setInterval(fetchLogs, 10000) : null;
@@ -483,6 +486,10 @@ export default function LogViewer({
           {getStatusIcon(log.status)}
         </td>
         <td className="whitespace-nowrap py-3 px-4 text-sm">
+          {/* show badge only for message_* logs */}
+          {log.action.startsWith('message_') && (
+            <span className="text-xs text-yellow-300">Delay&nbsp;~2m</span>
+          )}
           <button
             onClick={() => toggleExpandLog(log.id)}
             className="px-2 py-1 text-xs rounded bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors duration-200 flex items-center"
@@ -963,7 +970,10 @@ export default function LogViewer({
                         <td className="whitespace-nowrap py-2 px-4 text-xs">
                           {getStatusIcon(log.status)}
                         </td>
-                        <td className="whitespace-nowrap py-2 px-4 text-xs">
+                        <td className="whitespace-nowrap py-2 px-4 text-xs flex items-center space-x-2">
+                          {log.action.startsWith('message_') && (
+                            <span className="text-xs text-yellow-300">Delay&nbsp;~2m</span>
+                          )} 
                           <button
                             onClick={() => toggleExpandLog(log.id)}
                             className="px-2 py-1 text-xs rounded bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors duration-200 flex items-center"

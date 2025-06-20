@@ -55,9 +55,9 @@ export async function checkAndArchiveLogs(
 
     // If archiveAll is false, we only archive if we have at least 100 logs
     // If archiveAll is true, we archive regardless of count, as long as there are logs
-    if (!archiveAll && count < 30) {
+    if (!archiveAll && count < 100) {
       console.log(
-        `Only ${count} logs found for config ${configId} - skipping archival (minimum 30 required)`
+        `Only ${count} logs found for config ${configId} - skipping archival (minimum 100 required)`
       );
       return;
     }
@@ -83,7 +83,7 @@ export async function checkAndArchiveLogs(
         config_id: configId,
         message: archiveAll
           ? `Automatically archiving all logs (${count}) after scan completion`
-          : `Automatically archiving logs because count (${count}) reached threshold of 30`,
+          : `Automatically archiving logs because count (${count}) reached threshold of 100`,
         created_at: new Date().toISOString(),
       },
     ]);
@@ -101,7 +101,7 @@ export async function checkAndArchiveLogs(
 
       // If archiveAll === false, limit to 100 oldest; otherwise fetch everything except the two essentials
       if (!archiveAll) {
-        query = query.limit(30);
+        query = query.limit(100);
       }
 
       const { data: logs, error: logsError } = await query;

@@ -158,7 +158,7 @@ export async function POST(req: Request) {
         .from('bot_logs')
         .select('id')
         .eq('config_id', configId)
-        .limit(30); // Get all logs for this config
+        .limit(100); // Get all logs for this config
 
       if (logFetchError) {
         console.log(`WARNING: Error fetching logs: ${logFetchError.message}`);
