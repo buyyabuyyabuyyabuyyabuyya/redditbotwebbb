@@ -69,17 +69,40 @@ export async function POST(req: Request) {
   const supabase = createServerSupabaseClient();
 
   try {
-    // Verify authentication
-    const { userId } = auth();
-    console.log(`User ID: ${userId}`);
+    const internalCall = req.headers.get('x-internal-api') === 'true';
 
+    // Parse body early to have configId available for fallbacks
+    const { configId, subreddit: bodySubreddit } = await req.json();
+
+    let subreddit = bodySubreddit as string | undefined;
+
+    // Determine userId via Clerk auth first
+    let { userId } = auth();
+
+    console.log(`User ID from Clerk: ${userId || 'null'} | internal: ${internalCall}`);
+
+    // If unauthenticated but internal, fetch the owning user from the config
+    if (!userId && internalCall) {
+      const { data: cfg } = await supabaseAdmin
+        .from('scan_configs')
+        .select('user_id, subreddit')
+        .eq('id', configId)
+        .maybeSingle();
+
+      if (cfg) {
+        userId = cfg.user_id;
+        if (!subreddit) subreddit = cfg.subreddit;
+        console.log(`Derived userId ${userId} and subreddit ${subreddit} from config`);
+      }
+    }
+
+    // If still no userId, reject
     if (!userId) {
       console.log('ERROR: Unauthorized - No user ID found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get the config ID and subreddit from the request
-    const { configId, subreddit } = await req.json();
+    console.log(`Stopping bot for config ID: ${configId}, subreddit: ${subreddit}`);
     console.log(
       `Stopping bot for config ID: ${configId}, subreddit: ${subreddit}`
     );
