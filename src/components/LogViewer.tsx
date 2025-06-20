@@ -177,12 +177,11 @@ export default function LogViewer({
 
     fetchLogs();
 
-    //make it only fetch new logs when Press on "View Logs" button
+    
     
 
-    // Set up polling to refresh logs every 10 seconds for more responsive updates
-    // Only if we're on the first page to avoid too many requests
-    const interval = currentPage === 1 ? setInterval(fetchLogs, 10000) : null;
+    // Poll every 10 s but only while the user is in the detailed "View Logs" view (to avoid excess requests)
+    const interval = viewingDetailedLogs && currentPage === 1 ? setInterval(fetchLogs, 10_000) : null;
 
     return () => {
       if (interval) clearInterval(interval);
