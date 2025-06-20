@@ -76,19 +76,19 @@ export async function GET(req: Request) {
           continue;
         }
 
-        if (!count || count < 100) {
-          // Skip if there are fewer than 100 logs
+        if (!count || count < 30) {
+          // Skip if there are fewer than 30 logs
           continue;
         }
 
-        // Get the logs in batches of 100
+        // Get the logs in batches of 30
         const { data: logs, error: logsError } = await supabaseAdmin
           .from('bot_logs')
           .select('*')
           .eq('user_id', config.user_id)
           .eq('config_id', config.id)
           .order('created_at', { ascending: true })
-          .limit(100);
+          .limit(30);
 
         if (logsError || !logs || logs.length === 0) {
           console.error(

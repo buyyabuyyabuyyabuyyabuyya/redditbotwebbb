@@ -84,6 +84,14 @@ export async function POST(req: Request) {
       message: `Scan started; remaining ${remaining}, after ${afterCursor || 'none'}`,
     });
 
+    // Run auto-archive check on every invocation so we don’t wait for final batch
+    await checkAndArchiveLogs(
+      supabaseAdmin,
+      userId as string,
+      configId,
+      config.subreddit
+    );
+
     // Fetch Reddit account creds
     const { data: account } = await supabaseAdmin
       .from('reddit_accounts')

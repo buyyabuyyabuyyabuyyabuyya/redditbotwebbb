@@ -77,25 +77,25 @@ export async function POST(req: Request) {
         continue;
       }
 
-      if (!count || count < 100) {
-        // Skip if there are fewer than 100 logs
+      if (!count || count < 30) {
+        // Skip if there are fewer than 30 logs
         results.push({
           configId: config.id,
           subreddit: config.subreddit,
           status: 'skipped',
-          reason: `Only ${count} logs found (minimum 100 required)`,
+          reason: `Only ${count} logs found (minimum 30 required)`,
         });
         continue;
       }
 
-      // Get the logs in batches of 100
+      // Get the logs in batches of 30
       const { data: logs, error: logsError } = await supabaseAdmin
         .from('bot_logs')
         .select('*')
         .eq('user_id', userId)
         .eq('config_id', config.id)
         .order('created_at', { ascending: true })
-        .limit(100);
+        .limit(30);
 
       if (logsError || !logs || logs.length === 0) {
         console.error(
