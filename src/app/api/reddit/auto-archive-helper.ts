@@ -96,7 +96,7 @@ export async function checkAndArchiveLogs(
         .select('*')
         .eq('user_id', userId)
         .eq('config_id', configId)
-        .not('action', 'in', '(start_bot,start_scan)')
+        .not('action', 'in', '(start_bot,scan_complete)')
         .order('created_at', { ascending: true });
 
       // If archiveAll === false, limit to 100 oldest; otherwise fetch everything except the two essentials
@@ -120,7 +120,8 @@ export async function checkAndArchiveLogs(
       logContent += `Configuration ID: ${configId}\n`;
       logContent += `Subreddit: r/${subreddit}\n`;
       logContent += `Date Range: ${dateRangeStart.toISOString()} to ${dateRangeEnd.toISOString()}\n`;
-      logContent += `Total Logs: ${logs.length}\n\n`;
+      logContent += `Total Logs: ${logs.length}\n`;
+      logContent += `Kept in DB: start_bot + scan_complete logs\n\n`;
 
       logs.forEach((log, index) => {
         logContent += `--- LOG ENTRY #${index + 1} ---\n`;
@@ -192,7 +193,7 @@ export async function checkAndArchiveLogs(
 
       // Filter logs to exclude those with action type 'start_bot' or 'start_scan' from deletion
       const logsToDelete = logs.filter(
-        (log) => log.action !== 'start_bot' && log.action !== 'start_scan'
+        (log) => log.action !== 'start_bot' && log.action !== 'scan_complete'
       );
 
       // Get the IDs of logs we're deleting (excluding start_bot logs)

@@ -114,6 +114,24 @@ export async function POST(req: Request) {
         status: 'success',
         subreddit: config.subreddit,
       });
+
+      // Schedule an automatic stop after the configured scan_interval (clamped)
+      try {
+        let rawBase = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL || '';
+        if (!rawBase) rawBase = new URL(req.url).host;
+        const normalizedBase = rawBase.startsWith('http://') || rawBase.startsWith('https://')
+          ? rawBase.replace(/\/$/, '')
+          : `https://${rawBase.replace(/\/$/, '')}`;
+
+        await scheduleQStashMessage({
+          destination: `${normalizedBase}/api/reddit/stop-bot`,
+          body: { configId },
+          delaySeconds: effectiveInterval * 60, // seconds
+          headers: { 'X-Internal-API': 'true' },
+        });
+      } catch (e) {
+        console.error('Failed to schedule auto stop-bot message', e);
+      }
     }
 
     // Log start_scan action
@@ -314,12 +332,13 @@ export async function POST(req: Request) {
         message: `Processed ${scheduledCount} posts`,
       });
 
-      // Trigger auto-archive if log count >= 100
+      // Archive all logs at the end of a scan cycle (keep start_bot & scan_complete)
       await checkAndArchiveLogs(
         supabaseAdmin,
         userId as string,
         configId,
-        config.subreddit
+        config.subreddit,
+        true // archiveAll
       );
     }
 
