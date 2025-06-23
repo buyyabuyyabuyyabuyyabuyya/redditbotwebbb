@@ -30,8 +30,10 @@ export default function Navigation() {
     { name: 'Settings', href: '/settings' },
   ];
 
+  const showNavItems = pathname !== '/' && pathname !== '/sign-in' && pathname !== '/sign-up';
+
   return (
-    <nav className="bg-gray-900 shadow-lg border-b border-gray-700/50">
+    <nav className="bg-gray-900 shadow-lg border-b border-gray-700/50 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
@@ -43,6 +45,7 @@ export default function Navigation() {
                 Reddit Bot
               </Link>
             </div>
+            {showNavItems && (
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               {navItems.map((item) => (
                 <Link
@@ -110,6 +113,7 @@ export default function Navigation() {
 
       {/* Mobile menu, show/hide based on menu state */}
       <div className="sm:hidden" id="mobile-menu">
+        {showNavItems && (
         <div className="pt-2 pb-3 space-y-1">
           {navItems.map((item) => (
             <Link
@@ -121,6 +125,7 @@ export default function Navigation() {
             </Link>
           ))}
         </div>
+        )}
         {!user && (
           <div className="pt-4 pb-3 border-t border-gray-700">
             <div className="flex items-center justify-around">
