@@ -33,7 +33,7 @@ export default function Navigation() {
   const showNavItems = pathname !== '/' && pathname !== '/sign-in' && pathname !== '/sign-up';
 
   return (
-    <nav className="bg-gray-900 shadow-lg border-b border-gray-700/50 z-50">
+    <nav className="relative z-50 bg-gray-900 shadow-lg border-b border-gray-700/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
