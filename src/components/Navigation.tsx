@@ -45,17 +45,21 @@ export default function Navigation() {
               </Link>
             </div>
             {showNavItems && (
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`${pathname === item.href ? 'border-purple-400 text-purple-300' : 'border-transparent text-gray-300 hover:border-purple-400 hover:text-purple-300'} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors duration-200`}
-                >
-                  {item.name}
-                </Link>
-              ))}
-            </div>
+              <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`${pathname === item.href
+                      ? 'border-purple-400 text-purple-300'
+                      : 'border-transparent text-gray-300 hover:border-purple-400 hover:text-purple-300'
+                    } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors duration-200`}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+              </div>          {/* end nav items */}
+            )}
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
             {user ? (
