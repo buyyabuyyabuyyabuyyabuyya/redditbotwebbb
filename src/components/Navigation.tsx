@@ -65,12 +65,12 @@ export default function Navigation() {
               </div>
             ) : (
               <div className="flex items-center space-x-4">
-                <SignInButton mode="modal" redirectUrl="/dashboard">
+                <SignInButton mode="modal" afterSignInUrl="/dashboard">
                   <button className="text-gray-300 hover:text-purple-300 transition-colors duration-200 text-sm font-medium cursor-pointer">
                     Sign In
                   </button>
                 </SignInButton>
-                <SignUpButton mode="modal" redirectUrl="/dashboard">
+                <SignUpButton mode="modal" afterSignUpUrl="/dashboard">
                   <button className="bg-gradient-to-r from-purple-500 to-red-500 hover:from-purple-600 hover:to-red-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 cursor-pointer">
                     Sign Up
                   </button>
@@ -124,12 +124,12 @@ export default function Navigation() {
         {!user && (
           <div className="pt-4 pb-3 border-t border-gray-700">
             <div className="flex items-center justify-around">
-              <SignInButton mode="modal" redirectUrl="/dashboard">
+              <SignInButton mode="modal" afterSignInUrl="/dashboard">
                 <button className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium w-full text-left cursor-pointer">
                   Sign In
                 </button>
               </SignInButton>
-              <SignUpButton mode="modal" redirectUrl="/dashboard">
+              <SignUpButton mode="modal" afterSignUpUrl="/dashboard">
                 <button className="bg-gradient-to-r from-purple-500 to-red-500 hover:from-purple-600 hover:to-red-600 text-white px-4 py-2 rounded-md text-base font-medium w-full text-center cursor-pointer">
                   Sign Up
                 </button>
