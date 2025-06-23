@@ -58,8 +58,8 @@ export default function Navigation() {
                     {item.name}
                   </Link>
                 ))}
-              </div>          {/* end nav items */}
-            )}
+              </div>
+            )}   {/* end nav items */}
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
             {user ? (
