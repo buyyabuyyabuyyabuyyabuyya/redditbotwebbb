@@ -34,7 +34,8 @@ export default function Navigation() {
 
   return (
     <nav className="bg-gray-900 shadow-lg border-b border-gray-700/50 z-50">
-      <div className="flex justify-between h-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
               <Link
@@ -113,13 +114,20 @@ export default function Navigation() {
           </div>
         </div>
 
-      {/* Mobile menu, show/hide based on menu state */}
-      <div className="sm:hidden" id="mobile-menu">
-        {showNavItems && (
-        <div className="pt-2 pb-3 space-y-1">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
+        <div className="flex justify-center">
+          {/* Mobile menu, show/hide based on menu state */}
+          <div className="sm:hidden" id="mobile-menu">
+            {showNavItems && (
+            <div className="pt-2 pb-3 space-y-1">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`${pathname === item.href ? 'bg-gray-800 text-purple-300' : 'text-gray-300 hover:bg-gray-700 hover:text-white'} block px-3 py-2 rounded-md text-base font-medium`}
+                >
+                  {item.name}
+                </Link>
+              ))}
               href={item.href}
               className={`${pathname === item.href ? 'bg-gray-800 text-purple-300' : 'text-gray-300 hover:bg-gray-700 hover:text-white'} block px-3 py-2 rounded-md text-base font-medium`}
             >
