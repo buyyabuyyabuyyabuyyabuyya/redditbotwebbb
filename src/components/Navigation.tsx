@@ -115,44 +115,42 @@ export default function Navigation() {
         </div>
 
         <div className="flex justify-center">
-          {/* Mobile menu, show/hide based on menu state */}
           <div className="sm:hidden" id="mobile-menu">
             {showNavItems && (
-            <div className="pt-2 pb-3 space-y-1">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`${pathname === item.href ? 'bg-gray-800 text-purple-300' : 'text-gray-300 hover:bg-gray-700 hover:text-white'} block px-3 py-2 rounded-md text-base font-medium`}
-                >
-                  {item.name}
-                </Link>
-              ))}
-              href={item.href}
-              className={`${pathname === item.href ? 'bg-gray-800 text-purple-300' : 'text-gray-300 hover:bg-gray-700 hover:text-white'} block px-3 py-2 rounded-md text-base font-medium`}
-            >
-              {item.name}
-            </Link>
-          ))}
-        </div>
-        )}
-        {!user && (
-          <div className="pt-4 pb-3 border-t border-gray-700">
-            <div className="flex items-center justify-around">
-              <SignInButton mode="modal" afterSignInUrl="/dashboard">
-                <button className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium w-full text-left cursor-pointer">
-                  Sign In
-                </button>
-              </SignInButton>
-              <SignUpButton mode="modal" afterSignUpUrl="/dashboard">
-                <button className="bg-gradient-to-r from-purple-500 to-red-500 hover:from-purple-600 hover:to-red-600 text-white px-4 py-2 rounded-md text-base font-medium w-full text-center cursor-pointer">
-                  Sign Up
-                </button>
-              </SignUpButton>
-            </div>
+              <div className="pt-2 pb-3 space-y-1">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`${pathname === item.href ? 'bg-gray-800 text-purple-300' : 'text-gray-300 hover:bg-gray-700 hover:text-white'} block px-3 py-2 rounded-md text-base font-medium`}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+              </div>
+            )}
+            {user ? (
+              <div className="pt-2 pb-3 space-y-1">
+                <UserButton afterSignOutUrl="/" />
+              </div>
+            ) : (
+              <div className="pt-2 pb-3 space-y-1">
+                <SignInButton mode="modal" afterSignInUrl="/dashboard">
+                  <button className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium w-full text-left cursor-pointer">
+                    Sign In
+                  </button>
+                </SignInButton>
+                <SignUpButton mode="modal" afterSignUpUrl="/dashboard">
+                  <button className="bg-gradient-to-r from-purple-500 to-red-500 hover:from-purple-600 hover:to-red-600 text-white px-4 py-2 rounded-md text-base font-medium w-full text-center cursor-pointer">
+                    Sign Up
+                  </button>
+                </SignUpButton>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </nav>
   );
 }
+
