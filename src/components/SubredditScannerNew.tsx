@@ -110,6 +110,13 @@ export default function SubredditScanner({
     setIsLoading(true);
     setError(null);
 
+    // Enforce scan interval limits (10–300 minutes)
+    if (newConfig.scanInterval < 10 || newConfig.scanInterval > 300) {
+      setIsLoading(false);
+      setError('Scan interval must be between 10 and 300 minutes (5 hours).');
+      return;
+    }
+
     try {
       const { error: dbError } = await supabaseAdmin
         .from('scan_configs')
@@ -258,11 +265,12 @@ export default function SubredditScanner({
         <div>
           <label className="block text-sm font-medium text-gray-200">
             Scan Interval (minutes)
+            <span className="block text-xs text-gray-400">Minimum 10 minutes, maximum 300 minutes (5 hours).</span>
           </label>
           <input
             type="number"
-            min="5"
-            max="1440"
+            min="10"
+            max="300"
             value={newConfig.scanInterval}
             onChange={(e) =>
               setNewConfig({

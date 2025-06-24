@@ -64,7 +64,7 @@ export async function POST(req: Request) {
     }
 
     // --- Enforce runtime limit based on scan_interval ---
-    const MIN_INTERVAL_MIN = 5;
+    const MIN_INTERVAL_MIN = 10;
     const MAX_INTERVAL_MIN = 300; // 5 hours
     const effectiveInterval = Math.max(
       MIN_INTERVAL_MIN,
