@@ -16,7 +16,7 @@ interface ScanConfigProps {
 export default function ScanConfig({ userId, onSuccess }: ScanConfigProps) {
   const [subreddits, setSubreddits] = useState('');
   const [keywords, setKeywords] = useState('');
-  const [scanInterval, setScanInterval] = useState(30);
+  const [scanInterval, setScanInterval] = useState(10);
   const [messageTemplateId, setMessageTemplateId] = useState('');
   const [redditAccountId, setRedditAccountId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -142,7 +142,7 @@ export default function ScanConfig({ userId, onSuccess }: ScanConfigProps) {
       // Reset form
       setSubreddits('');
       setKeywords('');
-      setScanInterval(30);
+      setScanInterval(10);
       setMessageTemplateId('');
       setRedditAccountId('');
     } catch (err) {
@@ -259,7 +259,7 @@ export default function ScanConfig({ userId, onSuccess }: ScanConfigProps) {
               type="number"
               name="scanInterval"
               id="scanInterval"
-              min="30"
+              min="10"
               value={scanInterval}
               onChange={(e) => setScanInterval(parseInt(e.target.value))}
               className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 shadow-sm text-white sm:text-sm"

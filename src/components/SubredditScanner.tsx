@@ -48,7 +48,7 @@ export default function SubredditScanner({
     messageTemplateId: '',
     redditAccountId: '',
     isActive: false,
-    scanInterval: 30,
+    scanInterval: 10,
     useAiCheck: true, // Default to using AI check
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -144,6 +144,13 @@ export default function SubredditScanner({
       return;
     }
 
+    // Validate scan interval range
+    if (newConfig.scanInterval < 10 || newConfig.scanInterval > 300) {
+      setError('Scan interval must be between 10 and 300 minutes');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const isEditing = !!editingConfig;
 
@@ -216,7 +223,7 @@ export default function SubredditScanner({
         messageTemplateId: '',
         redditAccountId: '',
         isActive: false,
-        scanInterval: 30,
+        scanInterval: 10,
         useAiCheck: true,
       });
       setEditingConfig(null);
@@ -278,7 +285,7 @@ export default function SubredditScanner({
       redditAccountId:
         config.redditAccountId || (config as any).reddit_account_id || '',
       isActive: config.isActive || false,
-      scanInterval: config.scanInterval || (config as any).scan_interval || 30,
+      scanInterval: config.scanInterval || (config as any).scan_interval || 10,
       useAiCheck:
         config.useAiCheck !== undefined
           ? config.useAiCheck
@@ -679,18 +686,21 @@ export default function SubredditScanner({
           </label>
           <input
             type="number"
-            min="1"
-            max="1440"
+            min="10"
+            max="300"
             value={newConfig.scanInterval}
             onChange={(e) =>
               setNewConfig({
                 ...newConfig,
-                scanInterval: parseInt(e.target.value) || 30,
+                scanInterval: parseInt(e.target.value) || 10,
               })
             }
             className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 placeholder-gray-400"
             required
           />
+          <p className="mt-1 text-xs text-gray-400">
+            Minimum 10 minutes, maximum 300 minutes (5 hours).
+          </p>
         </div>
 
         <div className="flex items-center">
@@ -768,7 +778,7 @@ export default function SubredditScanner({
                   </p>
                   <p className="text-sm text-gray-400">
                     Scan interval:{' '}
-                    {config.scanInterval || (config as any).scan_interval || 30} minutes
+                    {config.scanInterval || (config as any).scan_interval || 10} minutes
                   </p>
                   <p className="text-sm text-gray-400">
                     AI relevance check:{' '}

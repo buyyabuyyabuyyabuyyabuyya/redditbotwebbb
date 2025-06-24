@@ -189,7 +189,7 @@ export default function Dashboard() {
         .filter((config: any) => config.is_active)
         .map((config: any) => ({
           configId: config.id,
-          scanInterval: config.scan_interval || 30, // Default to 30 minutes if not specified
+          scanInterval: config.scan_interval || 10, // Default to 30 minutes if not specified
         }));
 
       setActiveBots(activeConfigs);

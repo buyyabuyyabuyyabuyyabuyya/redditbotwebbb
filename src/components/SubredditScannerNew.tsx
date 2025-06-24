@@ -44,7 +44,7 @@ export default function SubredditScanner({
     messageTemplateId: '',
     redditAccountId: '',
     isActive: false,
-    scanInterval: 30,
+    scanInterval: 10,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -136,7 +136,7 @@ export default function SubredditScanner({
         messageTemplateId: '',
         redditAccountId: '',
         isActive: false,
-        scanInterval: 30,
+        scanInterval: 10,
       });
     } catch (err) {
       setError(
@@ -265,19 +265,19 @@ export default function SubredditScanner({
         <div>
           <label className="block text-sm font-medium text-gray-200">
             Scan Interval (minutes)
-            <span className="block text-xs text-gray-400">Minimum 10 minutes, maximum 300 minutes (5 hours).</span>
           </label>
           <input
             type="number"
             min="10"
             max="300"
             value={newConfig.scanInterval}
-            onChange={(e) =>
+            onChange={(e) => {
+              const val = parseInt(e.target.value) || 0;
               setNewConfig({
                 ...newConfig,
-                scanInterval: parseInt(e.target.value) || 30,
-              })
-            }
+                scanInterval: val,
+              });
+            }}
             className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 placeholder-gray-400"
             required
           />

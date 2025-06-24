@@ -80,6 +80,13 @@ export async function PUT(req: Request) {
         { status: 400 }
       );
     }
+    // Enforce scan-interval limits
+    if (scanInterval < 10 || scanInterval > 300) {
+      return NextResponse.json(
+        { error: 'Scan interval must be between 10 and 300 minutes' },
+        { status: 400 }
+      );
+    }
 
     // Update the config
     const { data, error } = await supabaseAdmin

@@ -43,7 +43,14 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-
+    
+    // Enforce scan-interval limits
+    if (scanInterval < 10 || scanInterval > 300) {
+      return NextResponse.json(
+        { error: 'Scan interval must be between 10 and 300 minutes' },
+        { status: 400 }
+      );
+    }
     // First, check if the user exists in the users table
     const { data: existingUser, error: userCheckError } = await supabaseAdmin
       .from('users')
