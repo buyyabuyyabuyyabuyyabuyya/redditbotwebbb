@@ -595,6 +595,11 @@ export default function SubredditScanner({
             className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 placeholder-gray-400"
             required
           />
+          <p className="mt-1 text-xs text-gray-400">
+            Correct format: <code>test | webdev | Saas | Flipping</code>
+            <br />
+            Wrong format: <code>/test | /webdev | /Saas | /Flipping</code>
+          </p>
         </div>
 
         <div>
