@@ -1670,17 +1670,10 @@ export async function POST(req: Request) {
                     status: 'info',
                     subreddit: config.subreddit,
                     config_id: configId,
-                    details: JSON.stringify({
-                      postId: post.id,
-                      postTitle: post.title,
-                      isRelevant: data.analysis.isRelevant,
-                      reason: data.analysis.reason,
-                    }),
+                    analysis_data: JSON.stringify(data.analysis),
                     created_at: new Date().toISOString(),
                   },
                 ]);
-
-                // Use the AI analysis to determine relevance
                 isRelevant = aiAnalysisResult.isRelevant;
 
                 // Log the analysis result
@@ -1695,7 +1688,8 @@ export async function POST(req: Request) {
                     status: isRelevant ? 'success' : 'info',
                     subreddit: config.subreddit,
                     config_id: configId,
-                    error_message: `AI analysis: ${aiAnalysisResult.reasoning}`,
+                    analysis_data: JSON.stringify(aiAnalysisResult),
+                     error_message: `AI analysis: ${aiAnalysisResult.reasoning}`,
                     created_at: new Date().toISOString(),
                   },
                 ]);

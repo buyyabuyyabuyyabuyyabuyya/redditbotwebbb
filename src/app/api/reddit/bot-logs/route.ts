@@ -24,6 +24,9 @@ type LogAction =
   | 'keyword_check'
   | 'keyword_match'
   | 'gemini_api_error'
+  | 'ai_analysis'
+  | 'ai_analysis_success'
+  | 'ai_analysis_error'
   | 'fallback_keyword_matching'
   | 'send_message'
   | 'rate_limit';

@@ -120,15 +120,55 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       throw err;
     }
 
-    // AI analysis
-    const geminiResult = await callGemini(post.title + '\n' + post.selftext);
-    const isRelevant = geminiResult?.isRelevant ?? false;
+    // AI analysis with detailed logging
+    let geminiResult: any = null;
+    let isRelevant = false;
+    try {
+      geminiResult = await callGemini(post.title + '\n' + post.selftext);
 
-    console.log('scan-post: analysis result', {
-      postId,
-      isRelevant,
-      confidence: geminiResult?.confidence,
-    });
+      // Log successful analysis
+      await supabase.from('bot_logs').insert([
+        {
+          user_id: config.user_id,
+          config_id: configId,
+          action: 'ai_analysis_success',
+          status: 'info',
+          subreddit: config.subreddit,
+          post_id: postId,
+          analysis_data: JSON.stringify(geminiResult),
+        },
+        {
+          user_id: config.user_id,
+          config_id: configId,
+          action: 'ai_analysis',
+          status: geminiResult?.isRelevant ? 'success' : 'info',
+          subreddit: config.subreddit,
+          post_id: postId,
+          analysis_data: JSON.stringify(geminiResult),
+        },
+      ]);
+
+      isRelevant = geminiResult?.isRelevant ?? false;
+
+      console.log('scan-post: analysis result', {
+        postId,
+        isRelevant,
+        confidence: geminiResult?.confidence,
+      });
+    } catch (err: any) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      await supabase.from('bot_logs').insert({
+        user_id: config.user_id,
+        config_id: configId,
+        action: 'ai_analysis_error',
+        status: 'warning',
+        subreddit: config.subreddit,
+        post_id: postId,
+        error_message: errMsg,
+      });
+      console.error('scan-post: AI analysis error', errMsg);
+      // leave isRelevant = false to treat post as not relevant
+    }
 
     if (!isRelevant) {
       await supabase.from('bot_logs').insert({

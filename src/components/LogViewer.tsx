@@ -27,6 +27,9 @@ type LogAction =
   | 'send_message'
   | 'rate_limit'
   | 'gemini_api_error'
+  | 'ai_analysis'
+  | 'ai_analysis_success'
+  | 'ai_analysis_error'
   | 'fallback_keyword_matching';
 
 // Define log status types
@@ -217,6 +220,11 @@ export default function LogViewer({
         return 'text-yellow-400';
       case 'rate_limit':
         return 'text-orange-400';
+      case 'ai_analysis_success':
+      case 'ai_analysis':
+        return 'text-teal-400';
+      case 'ai_analysis_error':
+        return 'text-red-400';
       default:
         return 'text-gray-400';
     }
