@@ -5,7 +5,6 @@ import { useUser } from '@clerk/nextjs';
 import { createClientSupabaseClient } from '../utils/supabase';
 import { useUserPlan } from '../hooks/useUserPlan';
 import Button, { RippleButton, Button3D } from './ui/Button';
-import LogViewer from './LogViewer';
 import BotStatusDisplay from './BotStatusDisplay';
 import UpgradePrompt from './UpgradePrompt';
 
@@ -817,29 +816,6 @@ export default function SubredditScanner({
         </div>
       </div>
 
-      {/* Bot Logs Section */}
-      <div className="mt-12">
-        <h3 className="text-lg font-medium text-white mb-4">
-          Bot Activity Logs
-        </h3>
-        {userId && (
-          <LogViewer
-            userId={userId}
-            refreshTrigger={refreshTrigger}
-            onStopBot={(subreddit) => {
-              // Find the active config for this subreddit
-              const activeConfig = configs.find(
-                (config) => config.subreddit === subreddit && config.isActive
-              );
-
-              // Toggle the bot off if found
-              if (activeConfig?.id) {
-                toggleConfig(activeConfig.id, false);
-              }
-            }}
-          />
-        )}
-      </div>
     </div>
   );
 }
