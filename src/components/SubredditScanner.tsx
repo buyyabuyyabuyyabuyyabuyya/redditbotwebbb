@@ -606,6 +606,12 @@ export default function SubredditScanner({
               type="text"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddKeyword();
+                }
+              }}
               className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 placeholder-gray-400"
             />
             <Button
@@ -617,6 +623,9 @@ export default function SubredditScanner({
               Add
             </Button>
           </div>
+          <p className="mt-1 text-xs text-gray-400">
+            Press Enter or click “Add” to insert keywords (comma-separated supported).
+          </p>
           <div className="mt-2 flex flex-wrap gap-2">
             {newConfig.keywords.map((kw, index) => (
               <span
