@@ -717,46 +717,7 @@ export default function SubredditScanner({
           </p>
         </div>
 
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="useAiCheck"
-            checked={newConfig.useAiCheck}
-            onChange={(e) =>
-              setNewConfig({
-                ...newConfig,
-                useAiCheck: e.target.checked,
-              })
-            }
-            className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500"
-          />
-          <label
-            htmlFor="useAiCheck"
-            className="ml-2 block text-sm font-medium text-gray-200"
-          >
-            Use AI to check post relevance (recommended)
-          </label>
-          <div className="ml-2 group relative">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              className="h-4 w-4 text-gray-400"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zM10 4a1 1 0 100 2 1 1 0 000-2zm-1 4a1 1 0 112 0v6a1 1 0 11-2 0v-6z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <div className="absolute z-10 invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-xs rounded p-2 max-w-xs -right-4 -top-2 transform -translate-y-full">
-              When enabled, the bot will use AI to analyze posts for relevance
-              before sending messages, even when keywords match. This helps
-              avoid sending messages to irrelevant posts, improving your
-              response rate.
-            </div>
-          </div>
-        </div>
+        {/* AI relevance check is always enabled */}
 
         {error && <div className="text-red-600 text-sm">{error}</div>}
 
