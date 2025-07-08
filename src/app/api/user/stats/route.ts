@@ -28,7 +28,7 @@ export async function GET(req: Request) {
       .from('users')
       .select('subscription_status')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
     if (userError) {
       console.error('Error fetching user data:', userError);

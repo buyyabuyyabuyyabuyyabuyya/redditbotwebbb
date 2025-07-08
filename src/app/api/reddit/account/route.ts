@@ -202,3 +202,99 @@ export async function GET(req: Request) {
     );
   }
 }
+
+// ------------------------------------------------------------
+// PUT handler: Update an existing Reddit account record
+// ------------------------------------------------------------
+export async function PUT(req: Request) {
+  try {
+    // Verify authentication with Clerk
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const url = new URL(req.url);
+    const accountId = url.searchParams.get('id');
+    if (!accountId) {
+      return NextResponse.json({ error: 'Missing account id' }, { status: 400 });
+    }
+
+    // Parse body
+    const { username, password, clientId, clientSecret } = await req.json();
+
+    const updates: Record<string, any> = {};
+    if (username !== undefined) updates.username = username;
+    if (password !== undefined) updates.password = password;
+    if (clientId !== undefined) updates.client_id = clientId;
+    if (clientSecret !== undefined) updates.client_secret = clientSecret;
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('reddit_accounts')
+      .update(updates)
+      .eq('id', accountId)
+      .eq('user_id', userId)
+      .select();
+
+    if (error) {
+      console.error('Error updating Reddit account:', error);
+      return NextResponse.json(
+        { error: `Database error: ${error.message}` },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ success: true, account: data?.[0] ?? null });
+  } catch (error: any) {
+    console.error('Server error:', error);
+    return NextResponse.json(
+      { error: `Server error: ${error?.message || 'Unknown error'}` },
+      { status: 500 }
+    );
+  }
+}
+
+// ------------------------------------------------------------
+// DELETE handler: Remove a Reddit account
+// ------------------------------------------------------------
+export async function DELETE(req: Request) {
+  try {
+    // Verify authentication with Clerk
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const url = new URL(req.url);
+    const accountId = url.searchParams.get('id');
+    if (!accountId) {
+      return NextResponse.json({ error: 'Missing account id' }, { status: 400 });
+    }
+
+    const { error } = await supabaseAdmin
+      .from('reddit_accounts')
+      .delete()
+      .eq('id', accountId)
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('Error deleting Reddit account:', error);
+      return NextResponse.json(
+        { error: `Database error: ${error.message}` },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error('Server error:', error);
+    return NextResponse.json(
+      { error: `Server error: ${error?.message || 'Unknown error'}` },
+      { status: 500 }
+    );
+  }
+}

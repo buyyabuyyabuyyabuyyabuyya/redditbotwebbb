@@ -20,8 +20,7 @@ const supabase = createClientSupabaseClient();
 interface RedditAccount {
   id: string;
   username: string;
-  password: string;
-  isValid: boolean | null;
+  is_validated: boolean | null;
 }
 
 interface MessageTemplate {
@@ -42,6 +41,8 @@ export default function Dashboard() {
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
   const [botCount, setBotCount] = useState(1);
   const [showAddAccount, setShowAddAccount] = useState(false);
+  const [showEditAccount, setShowEditAccount] = useState(false);
+  const [accountToEdit, setAccountToEdit] = useState<any>(null);
   const [showCreateTemplate, setShowCreateTemplate] = useState(false);
   const [showEditTemplate, setShowEditTemplate] = useState(false);
   const [templateToEdit, setTemplateToEdit] = useState<MessageTemplate | null>(
@@ -139,32 +140,39 @@ export default function Dashboard() {
     }
   };
 
-  const testAccount = async (account: RedditAccount) => {
+  // ---- Account Edit / Delete Handlers ----
+  const handleEditAccount = async (accountId: string) => {
     try {
-      // Here we'll implement the Reddit account validation logic
-      // For now, we'll simulate a successful test
-      const updatedAccounts = accounts.map((acc) =>
-        acc.username === account.username ? { ...acc, isValid: true } : acc
-      );
-      setAccounts(updatedAccounts);
-    } catch (error) {
-      console.error('Error testing account:', error);
-      const updatedAccounts = accounts.map((acc) =>
-        acc.username === account.username ? { ...acc, isValid: false } : acc
-      );
-      setAccounts(updatedAccounts);
+      const response = await fetch(`/api/reddit/account?id=${accountId}&credentials=true`);
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to load account');
+      }
+      setAccountToEdit(data.account);
+      setShowEditAccount(true);
+    } catch (err) {
+      console.error('Error loading account:', err);
     }
   };
 
-  const handleAddAccount = () => {
-    const newAccount: RedditAccount = {
-      id: 'temp-' + Date.now(),
-      username: '',
-      password: '',
-      isValid: null,
-    };
-    setAccounts([...accounts, newAccount]);
+  const handleDeleteAccount = async (accountId: string) => {
+    if (!confirm('Delete this Reddit account?')) return;
+    try {
+      const response = await fetch(`/api/reddit/account?id=${accountId}`, { method: 'DELETE' });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete account');
+      }
+      await loadAccounts();
+      setRefreshTrigger((prev) => prev + 1);
+    } catch (err) {
+      console.error('Error deleting account:', err);
+    }
   };
+
+
+
+
 
   useEffect(() => {
     if (user) {
@@ -379,6 +387,30 @@ export default function Dashboard() {
               </div>
             </Dialog>
 
+            {/* Edit Account Dialog */}
+            <Dialog
+              open={showEditAccount}
+              onClose={() => setShowEditAccount(false)}
+              className="relative z-50"
+            >
+              <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+              <div className="fixed inset-0 flex items-center justify-center p-4">
+                <Dialog.Panel className="mx-auto max-w-lg rounded bg-gray-800 border border-gray-700 p-6">
+                  {accountToEdit && (
+                    <AddRedditAccount
+                      userId={user?.id || ''}
+                      account={accountToEdit}
+                      onSuccess={() => {
+                        setShowEditAccount(false);
+                        loadAccounts();
+                        setRefreshTrigger((prev) => prev + 1);
+                      }}
+                    />
+                  )}
+                </Dialog.Panel>
+              </div>
+            </Dialog>
+
             {/* Delete Confirmation Dialog */}
             <Dialog
               open={deleteConfirmOpen}
@@ -427,48 +459,32 @@ export default function Dashboard() {
                       </button>
                     </div>
 
-                    {accounts.map((account, index) => (
+                    {accounts.map((account) => (
                       <div
-                        key={index}
-                        className="flex items-center space-x-4 p-4 border border-gray-700/50 rounded-lg bg-gray-800/30 backdrop-blur-sm mb-4 hover:bg-gray-800/50 transition-colors"
+                        key={account.id}
+                        className="flex items-center justify-between p-4 border border-gray-700/50 rounded-lg bg-gray-800/30 backdrop-blur-sm mb-4 hover:bg-gray-800/50 transition-colors"
                       >
-                        <div className="flex-1 space-x-4 flex items-center">
-                          <input
-                            type="text"
-                            placeholder="Username"
-                            value={account.username}
-                            onChange={(e) => {
-                              const newAccounts = [...accounts];
-                              newAccounts[index].username = e.target.value;
-                              setAccounts(newAccounts);
-                            }}
-                            className="flex-1 p-2 border border-gray-600/50 rounded-lg bg-gray-900/50 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                          />
-                          <input
-                            type="password"
-                            placeholder="Password"
-                            value={account.password}
-                            onChange={(e) => {
-                              const newAccounts = [...accounts];
-                              newAccounts[index].password = e.target.value;
-                              setAccounts(newAccounts);
-                            }}
-                            className="flex-1 p-2 border border-gray-600/50 rounded-lg bg-gray-900/50 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                          />
-                          <button
-                            onClick={() => testAccount(account)}
-                            className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition-all hover:shadow-lg font-medium"
-                          >
-                            Test
-                          </button>
+                        <div className="flex items-center space-x-3">
+                          <span className="text-white font-medium">{account.username}</span>
+                          {account.is_validated ? (
+                            <CheckCircleIcon className="h-5 w-5 text-green-500" />
+                          ) : (
+                            <XCircleIcon className="h-5 w-5 text-red-500" />
+                          )}
                         </div>
-                        <div className="flex items-center">
-                          {account.isValid === true && (
-                            <CheckCircleIcon className="h-6 w-6 text-green-500" />
-                          )}
-                          {account.isValid === false && (
-                            <XCircleIcon className="h-6 w-6 text-red-500" />
-                          )}
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => handleEditAccount(account.id)}
+                            className="px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-500 transition-all text-sm"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteAccount(account.id)}
+                            className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-500 transition-all text-sm"
+                          >
+                            Delete
+                          </button>
                         </div>
                       </div>
                     ))}

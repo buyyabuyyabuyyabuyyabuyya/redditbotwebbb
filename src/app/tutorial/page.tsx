@@ -307,12 +307,6 @@ export default async function TutorialPage() {
                             <strong>Scan Interval</strong> - How often the bot
                             should check for new posts (in minutes)
                           </li>
-                          <li>
-                            <strong>Use AI to check post relevance</strong> -{' '}
-                            <span className="text-green-400">Recommended</span>{' '}
-                            - Uses AI to analyze if posts are truly relevant
-                            before sending messages
-                          </li>
                         </ul>
                       </div>
                     </div>
