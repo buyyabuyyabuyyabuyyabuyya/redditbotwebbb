@@ -38,11 +38,15 @@ export async function GET(req: Request) {
       );
     }
 
-    // Count messages sent directly from the sent_messages table for real-time accuracy
+    // Count messages sent this calendar month for real-time accuracy
+    const now = new Date();
+    const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0));
+
     const { count: messageCount, error: messageError } = await supabaseAdmin
       .from('sent_messages')
       .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .gte('sent_at', startOfMonth.toISOString());
 
     if (messageError) {
       console.error('Error counting messages:', messageError);
@@ -53,17 +57,25 @@ export async function GET(req: Request) {
     }
 
     const subscriptionStatus = userData?.subscription_status || 'free';
+
+    // Define monthly limits per plan (null means unlimited)
+    const PLAN_LIMITS: Record<string, number | null> = {
+      free: 15,
+      pro: 200,
+      advanced: null,
+    };
+
+    const planLimit = PLAN_LIMITS[subscriptionStatus] ?? 15;
     const messagesRemaining =
-      subscriptionStatus === 'free'
-        ? Math.max(0, 15 - (messageCount || 0))
-        : null;
+      planLimit === null ? null : Math.max(0, planLimit - (messageCount || 0));
 
     // Return the user stats
     return NextResponse.json({
       subscription_status: subscriptionStatus,
       message_count: messageCount || 0,
+      limit: planLimit,
       remaining: messagesRemaining,
-      is_pro: subscriptionStatus === 'pro',
+      is_pro: subscriptionStatus === 'pro' || subscriptionStatus === 'advanced',
     });
   } catch (error: any) {
     console.error('Server error:', error);

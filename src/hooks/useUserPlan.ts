@@ -6,6 +6,8 @@ export function useUserPlan() {
   const { user } = useUser();
   const [plan, setPlan] = useState('free');
   const [messageCount, setMessageCount] = useState(0);
+  const [remaining, setRemaining] = useState<number | null>(null);
+  const [limit, setLimit] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,6 +31,8 @@ export function useUserPlan() {
 
         setPlan(data.subscription_status);
         setMessageCount(data.message_count);
+        setRemaining(data.remaining);
+        setLimit(data.limit);
       } catch (error) {
         console.error('Error fetching user plan:', error);
       } finally {
@@ -79,9 +83,9 @@ export function useUserPlan() {
   return {
     plan,
     messageCount,
+    limit,
     loading,
-    remaining: plan === 'free' ? Math.max(0, 15 - messageCount) : null,
-    isProUser: plan === 'pro' || 'advanced',
-    
+    remaining,
+    isProUser: plan === 'pro' || plan === 'advanced',
   };
 }

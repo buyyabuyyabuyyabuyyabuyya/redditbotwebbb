@@ -19,6 +19,16 @@ const supabaseAdmin = createClient(
   }
 );
 
+// Helper: resolve user ID from clerk email directory
+async function resolveUserIdByEmail(email: string): Promise<string | undefined> {
+  const { data } = await supabaseAdmin
+    .from('clerk_emails')
+    .select('user_id')
+    .eq('email', email.toLowerCase())
+    .single();
+  return data?.user_id;
+}
+
 export async function POST(req: Request) {
   const supabase = supabaseAdmin;
 
@@ -40,6 +50,7 @@ export async function POST(req: Request) {
 
     switch (event.type) {
       case 'checkout.session.completed': {
+        
         const session = event.data.object as Stripe.Checkout.Session;
         // Prefer metadata.userId if available (for Payment Links) otherwise client_reference_id
         let userId = session.metadata?.userId || session.client_reference_id;
@@ -77,17 +88,88 @@ export async function POST(req: Request) {
           newStatus = 'pro';
         }
 
-        // Update user's subscription status in DB (users.id is pk)
+        // Reset message_count and track period start for monthly quota
+        const updatePayload: Record<string, any> = { subscription_status: newStatus, message_count: 0 };
+        if (session.mode === 'subscription' && session.subscription) {
+          const subscriptionDetails = await stripe.subscriptions.retrieve(session.subscription as string);
+          if (subscriptionDetails.current_period_start) {
+            updatePayload.message_count_reset_at = new Date(subscriptionDetails.current_period_start * 1000).toISOString();
+          }
+          if (subscriptionDetails.current_period_end) {
+            updatePayload.subscription_period_end = new Date(subscriptionDetails.current_period_end * 1000).toISOString();
+          }
+        }
+
         const { error } = await supabase
           .from('users')
-          .update({ subscription_status: newStatus })
-          .eq('user_id', userId);
+          .update(updatePayload)
+          .eq('id', userId);
 
         if (error) {
           console.error('Error updating user subscription:', error);
           throw error;
         }
 
+        break;
+      }
+
+      case 'invoice.payment_succeeded': {
+        const invoice = event.data.object as Stripe.Invoice;
+
+        // Only act on recurring subscription invoices
+        if (invoice.billing_reason !== 'subscription_cycle' || !invoice.subscription) {
+          break;
+        }
+
+        let userId = invoice.metadata?.userId;
+        if (!userId && invoice.customer_email) {
+          userId = await resolveUserIdByEmail(invoice.customer_email);
+        }
+
+        if (!userId) {
+          console.warn('Unable to resolve user for invoice.payment_succeeded:', invoice.id);
+          break;
+        }
+
+        const { period_start, period_end } = invoice;
+        await supabase
+          .from('users')
+          .update({
+            message_count: 0,
+            message_count_reset_at: new Date(period_start * 1000).toISOString(),
+            subscription_period_end: new Date(period_end * 1000).toISOString(),
+          })
+          .eq('id', userId);
+        break;
+      }
+
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object as Stripe.Subscription;
+        let userId = subscription.metadata?.userId;
+
+        if (!userId && subscription.customer) {
+          const customer = await stripe.customers.retrieve(subscription.customer as string) as Stripe.Customer;
+          if (customer.email) {
+            userId = await resolveUserIdByEmail(customer.email);
+          }
+        }
+
+        if (!userId) {
+          console.warn('Unable to resolve user for customer.subscription.updated:', subscription.id);
+          break;
+        }
+
+        if (subscription.cancel_at_period_end && subscription.current_period_end) {
+          await supabase
+            .from('users')
+            .update({ subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString() })
+            .eq('id', userId);
+        } else if (['past_due', 'unpaid', 'incomplete_expired', 'canceled'].includes(subscription.status)) {
+          await supabase
+            .from('users')
+            .update({ subscription_status: 'free' })
+            .eq('id', userId);
+        }
         break;
       }
 
@@ -118,7 +200,7 @@ export async function POST(req: Request) {
         const { error } = await supabase
           .from('users')
           .update({ subscription_status: 'free' })
-          .eq('user_id', userId);
+          .eq('id', userId);
 
         if (error) {
           console.error('Error updating user subscription:', error);

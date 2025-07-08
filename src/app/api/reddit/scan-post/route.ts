@@ -231,6 +231,39 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       return NextResponse.json({ skipped: true, reason: 'already_messaged_config' });
     }
 
+    // ----- Quota enforcement (per message) -----
+    const PLAN_LIMITS: Record<string, number | null> = { free: 15, pro: 200, advanced: null };
+    // Fetch user plan
+    const { data: userRow } = await supabase
+      .from('users')
+      .select('subscription_status')
+      .eq('id', config.user_id)
+      .single();
+    const planStatus = userRow?.subscription_status || 'free';
+    const planLimit = PLAN_LIMITS[planStatus] ?? 15;
+    if (planLimit !== null) {
+      const now = new Date();
+      const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0));
+      const { count } = await supabase
+        .from('sent_messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', config.user_id)
+        .gte('sent_at', startOfMonth.toISOString());
+      const remainingQuota = Math.max(0, planLimit - (count || 0));
+      console.log('scan-post quota check', { userId: config.user_id, planStatus, planLimit, used: count || 0, remainingQuota });
+      if (remainingQuota === 0) {
+        await supabase.from('bot_logs').insert({
+          user_id: config.user_id,
+          config_id: configId,
+          action: 'quota_reached',
+          status: 'error',
+          subreddit: config.subreddit,
+          post_id: postId,
+        });
+        return NextResponse.json({ skipped: true, reason: 'quota_reached' });
+      }
+    }
+
     // Fetch template first (needed for reservation)
     const { data: template } = await supabase
       .from('message_templates')

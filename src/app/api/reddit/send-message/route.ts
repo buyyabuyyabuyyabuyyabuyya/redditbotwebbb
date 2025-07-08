@@ -63,6 +63,37 @@ export async function POST(req: Request) {
       );
     }
 
+    // ----- Quota enforcement (final gate) -----
+    const PLAN_LIMITS: Record<string, number | null> = { free: 15, pro: 200, advanced: null };
+    const { data: userRow } = await supabaseAdmin
+      .from('users')
+      .select('subscription_status')
+      .eq('id', body.userId || userId)
+      .single();
+    const planStatus = userRow?.subscription_status || 'free';
+    const planLimit = PLAN_LIMITS[planStatus] ?? 15;
+    if (planLimit !== null) {
+      const now = new Date();
+      const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0));
+      const { count } = await supabaseAdmin
+        .from('sent_messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', body.userId || userId)
+        .gte('sent_at', startOfMonth.toISOString());
+      console.log('send-message quota check', { userId: body.userId || userId, planStatus, planLimit, used: count || 0 });
+      if ((count || 0) >= planLimit) {
+        await supabaseAdmin.from('bot_logs').insert({
+          user_id: body.userId || userId,
+          config_id: configId,
+          action: 'quota_reached',
+          status: 'error',
+          subreddit,
+          recipient: recipientUsername,
+        });
+        return NextResponse.json({ error: 'quota_reached' }, { status: 402 });
+      }
+    }
+
     // Use explicit Edge Function URL if provided, otherwise construct it from the main Supabase URL
     const funcUrl =
       process.env.NEXT_PUBLIC_SUPABASE_EDGE_FUNCTION_URL ||

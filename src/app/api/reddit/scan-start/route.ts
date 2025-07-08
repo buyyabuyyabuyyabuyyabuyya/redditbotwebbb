@@ -26,13 +26,7 @@ export async function POST(req: Request) {
       remaining?: number;
       after?: string;
     };
-    const remaining = remainingInput ?? MAX_TOTAL_POSTS;
-    if (!configId) {
-      return NextResponse.json(
-        { error: 'configId is required' },
-        { status: 400 }
-      );
-    }
+
 
     // Regular client (respecting RLS) + admin client (bypass)
     const supabase = createServerSupabaseClient();
@@ -52,6 +46,42 @@ export async function POST(req: Request) {
         { error: 'Config not found' },
         { status: 404 }
       );
+    }
+
+    let remaining = remainingInput ?? MAX_TOTAL_POSTS;
+
+    // ----- Quota enforcement -----
+    const { data: userRow } = await supabaseAdmin
+      .from('users')
+      .select('subscription_status')
+      .eq('id', userId)
+      .single();
+    const planStatus = userRow?.subscription_status || 'free';
+    const PLAN_LIMITS: Record<string, number | null> = { free: 15, pro: 200, advanced: null };
+    const planLimit = PLAN_LIMITS[planStatus] ?? 15;
+    let quotaRemaining: number | null = null;
+    if (planLimit !== null) {
+      const now = new Date();
+      const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0));
+      const { count } = await supabaseAdmin
+        .from('sent_messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .gte('sent_at', startOfMonth.toISOString());
+      quotaRemaining = Math.max(0, planLimit - (count || 0));
+      console.log('scan-start quota check', { userId, planStatus, planLimit, used: count || 0, quotaRemaining });
+      if (quotaRemaining === 0) {
+        await supabaseAdmin.from('bot_logs').insert({
+          user_id: userId,
+          config_id: configId,
+          action: 'quota_reached',
+          status: 'error',
+          subreddit: config.subreddit,
+        });
+        return NextResponse.json({ error: 'quota_reached' }, { status: 402 });
+      }
+      // Adjust remaining posts based on quota
+      remaining = Math.min(remaining, quotaRemaining);
     }
 
     // Ensure we have a userId (fallback to config owner for internal calls)

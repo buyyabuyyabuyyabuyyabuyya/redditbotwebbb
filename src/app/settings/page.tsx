@@ -135,119 +135,22 @@ export default async function Settings() {
               </div>
             </div>
 
-            {/* Reddit Accounts Section */}
+
+            {/* Manage Subscription Section */}
             <div className="px-4 py-8 sm:px-0">
               <div className="rounded-lg bg-gray-800/70 shadow-lg border border-gray-700/50 backdrop-blur-sm">
                 <div className="px-4 py-5 sm:p-6">
                   <h3 className="text-lg font-medium leading-6 text-purple-300">
-                    Reddit Accounts
+                    Manage Subscription
                   </h3>
-                  <div className="mt-2 max-w-xl text-sm text-gray-300">
-                    <p>
-                      Manage your Reddit accounts. Add up to{' '}
-                      <span className="font-semibold text-white">
-                        {user?.subscription_status === 'pro'
-                          ? '3'
-                          : user?.subscription_status === 'advanced'
-                            ? 'Unlimited'
-                            : '1'}
-                      </span>{' '}
-                      accounts.
-                    </p>
-                  </div>
                   <div className="mt-5">
-                    <Link href="/dashboard">
-                      <Button3D>Manage Accounts</Button3D>
+                    <Link
+                      href="https://billing.stripe.com/p/login/test_9B6cN76L34NO5MoeYigYU00"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button3D>Open Billing Portal</Button3D>
                     </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Account Settings Section */}
-            <div className="px-4 py-8 sm:px-0">
-              <div className="rounded-lg bg-gray-800/70 shadow-lg border border-gray-700/50 backdrop-blur-sm">
-                <div className="px-4 py-5 sm:p-6">
-                  <h3 className="text-lg font-medium leading-6 text-purple-300">
-                    Account Settings
-                  </h3>
-                  <div className="mt-5">
-                    <div className="space-y-6">
-                      <div>
-                        <label
-                          htmlFor="email"
-                          className="block text-sm font-medium text-gray-300"
-                        >
-                          Email
-                        </label>
-                        <div className="mt-1">
-                          <input
-                            type="email"
-                            name="email"
-                            id="email"
-                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                            placeholder="you@example.com"
-                            disabled={false}
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="timezone"
-                          className="block text-sm font-medium text-gray-300"
-                        >
-                          Timezone
-                        </label>
-                        <div className="mt-1">
-                          <select
-                            id="timezone"
-                            name="timezone"
-                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                          >
-                            <option>UTC</option>
-                            <option>America/New_York</option>
-                            <option>America/Los_Angeles</option>
-                            <option>Europe/London</option>
-                            <option>Asia/Tokyo</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="notifications"
-                          className="block text-sm font-medium text-gray-300"
-                        >
-                          Email Notifications
-                        </label>
-                        <div className="mt-2 space-y-4">
-                          <div className="flex items-start">
-                            <div className="flex h-5 items-center">
-                              <input
-                                id="notifications"
-                                name="notifications"
-                                type="checkbox"
-                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                              />
-                            </div>
-                            <div className="ml-3 text-sm">
-                              <label
-                                htmlFor="notifications"
-                                className="font-medium text-gray-300"
-                              >
-                                Receive email notifications
-                              </label>
-                              <p className="text-gray-300">
-                                Get notified about important updates and account
-                                activity.
-                              </p>
-                            </div>
-                            <div className="ml-3 text-sm"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
