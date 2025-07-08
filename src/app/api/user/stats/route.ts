@@ -17,13 +17,18 @@ const supabaseAdmin = createClient(
 // GET handler for retrieving user stats
 export async function GET(req: Request) {
   try {
-    // Verify authentication with Clerk
-    /*
-    const { userId } = await auth();
+    // Verify authentication with Clerk first; fall back to X-User-Id header (useful for client-side token pass-through)
+    let { userId } = await auth();
+    if (!userId) {
+      const hdrUser = req.headers.get('x-user-id');
+      if (hdrUser) {
+        userId = hdrUser;
+      }
+    }
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-*/
+
     // Get user subscription status
     const { data: userData, error: userError } = await supabaseAdmin
       .from('users')

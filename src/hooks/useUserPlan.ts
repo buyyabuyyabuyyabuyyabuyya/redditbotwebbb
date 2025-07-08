@@ -21,7 +21,13 @@ export function useUserPlan() {
 
       try {
         // Use the API endpoint instead of direct Supabase queries
-        const response = await fetch('/api/user/stats');
+        const token = await user?.getToken?.();
+        const response = await fetch('/api/user/stats', {
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            'x-user-id': user.id,
+          },
+        });
 
         if (!response.ok) {
           throw new Error('Failed to fetch user stats');
