@@ -48,6 +48,11 @@ export async function POST(req: Request) {
       );
     }
 
+    // Ensure we have a userId (fallback to config owner for internal calls)
+    if (!userId) {
+      userId = config.user_id;
+    }
+
     let remaining = remainingInput ?? MAX_TOTAL_POSTS;
 
     // ----- Quota enforcement -----
@@ -84,10 +89,7 @@ export async function POST(req: Request) {
       remaining = Math.min(remaining, quotaRemaining);
     }
 
-    // Ensure we have a userId (fallback to config owner for internal calls)
-    if (!userId) {
-      userId = config.user_id;
-    }
+
     // If bot stopped, abort processing
     if (config.is_active === false) {
       return NextResponse.json({ skipped: true, reason: 'config_inactive' });
