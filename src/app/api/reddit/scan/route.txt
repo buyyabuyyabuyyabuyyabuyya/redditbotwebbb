@@ -119,8 +119,6 @@ interface RedditPost {
 interface PostAnalysis {
   isRelevant: boolean;
   confidence: number;
-  projectType: string;
-  projectName: string | null;
   keywordMatches: string[];
   reasoning: string;
 }
@@ -1847,8 +1845,6 @@ export async function POST(req: Request) {
               return {
                 isRelevant: hasKeywordMatch,
                 confidence: hasKeywordMatch ? 0.7 : 0.3,
-                projectType: 'unknown',
-                projectName: null,
                 keywordMatches: keywords.filter((keyword) =>
                   postContent.toLowerCase().includes(keyword.toLowerCase())
                 ),

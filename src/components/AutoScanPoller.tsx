@@ -46,6 +46,19 @@ export default function AutoScanPoller({
         .single();
 
       if (configError) {
+        // PostgREST returns 406 (PGRST116) when .single() finds 0 rows.
+        if (
+          configError.code === 'PGRST116' ||
+          configError.message?.includes('multiple') ||
+          configError.message?.includes('no rows')
+        ) {
+          console.warn(
+            'Scan configuration not found – it may have been deleted. Stopping auto-polling for this config.'
+          );
+          setIsPolling(false);
+          setStatus('idle');
+          return;
+        }
         throw new Error(`Failed to fetch scan config: ${configError.message}`);
       }
 

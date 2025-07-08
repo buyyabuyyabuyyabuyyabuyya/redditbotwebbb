@@ -238,8 +238,6 @@ export async function POST(req: Request) {
       {
         "isRelevant": boolean, // true if the post is relevant based on the criteria above, false otherwise
         "confidence": number, // between 0 and 1, indicating confidence in the analysis
-        "projectType": string, // the type of project (e.g., "web app", "mobile app", "API", etc.) or null if not applicable
-        "projectName": string, // the name of the project if mentioned, or null
         "keywordMatches": [string], // list of keywords that matched
         "reasoning": string // brief explanation of why this is relevant or not relevant
       }
