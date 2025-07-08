@@ -388,7 +388,7 @@ export async function POST(req: Request) {
           }
         }
 
-        console.log('Cleaned JSON text:', jsonText.substring(0, 100) + '...');
+        console.log('Cleaned JSON text:', jsonText);
         analysisResult = JSON.parse(jsonText);
       } catch (parseError) {
         console.error('Error parsing Gemini response:', parseError);
