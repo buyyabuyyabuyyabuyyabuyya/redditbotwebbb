@@ -124,7 +124,21 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
     let geminiResult: any = null;
     let isRelevant = false;
     try {
-      geminiResult = await callGemini(post.title + '\n' + post.selftext);
+      // Prepare keywords array from config (string or array in DB)
+      let keywordsArr: string[] = [];
+      if (typeof config.keywords === 'string') {
+        keywordsArr = config.keywords
+          .split(',')
+          .map((k: string) => k.trim())
+          .filter(Boolean);
+      } else if (Array.isArray(config.keywords)) {
+        keywordsArr = (config.keywords as any[]).map((k) => String(k).trim());
+      }
+
+      geminiResult = await callGemini(post.title + '\n' + post.selftext, {
+        subreddit: config.subreddit,
+        keywords: keywordsArr,
+      });
 
       // Log successful analysis
       await supabase.from('bot_logs').insert([

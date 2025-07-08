@@ -5,8 +5,16 @@ interface GeminiResponse {
   confidence: number;
 }
 
+interface GeminiOptions {
+  subreddit?: string;
+  keywords?: string[];
+}
+
 // Fetch wrapper with retries & body-read fix
-export async function callGemini(prompt: string): Promise<GeminiResponse | null> {
+export async function callGemini(
+  prompt: string,
+  options: GeminiOptions = {}
+): Promise<GeminiResponse | null> {
   const rawUrl = process.env.NEXT_PUBLIC_GEMINI_API_URL!;
   const key = process.env.GEMINI_KEY!;
 
@@ -40,7 +48,11 @@ export async function callGemini(prompt: string): Promise<GeminiResponse | null>
           // Hint to the analyze route that this is an internal server-to-server request
           'X-Internal-API': 'true',
         },
-        body: JSON.stringify({ content: prompt }),
+        body: JSON.stringify({
+          content: prompt,
+          subreddit: options.subreddit,
+          keywords: options.keywords,
+        }),
       });
 
       const text = await res.text();
