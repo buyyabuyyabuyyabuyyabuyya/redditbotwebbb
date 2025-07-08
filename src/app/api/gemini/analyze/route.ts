@@ -214,15 +214,9 @@ export async function POST(req: Request) {
       // Get a valid API key with rotation
       const apiKey = await getValidApiKey();
 
-      // Prepare the prompt for Gemini
-      let basePrompt = '';
-
-      // Use custom prompt if provided, otherwise use default
-      if (customPrompt && customPrompt.trim()) {
-        basePrompt = customPrompt;
-      } else {
-        basePrompt = `Analyze the following Reddit post from r/${subreddit} and determine if it's relevant to developer projects.`;
-      }
+      // Prepare the prompt for Gemini – prefer caller-supplied template
+      const basePrompt =
+        customPrompt && customPrompt.trim() ? customPrompt.trim() : '';
 
       const prompt = `
       ${basePrompt}
