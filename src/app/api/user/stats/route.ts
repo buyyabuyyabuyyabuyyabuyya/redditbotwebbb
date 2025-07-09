@@ -59,10 +59,10 @@ export async function GET(req: Request) {
       .eq('id', userId)
       .maybeSingle();
 
-    if (userError) {
-      console.error('Error fetching user data:', userError);
+    if (userStatsError) {
+      console.error('Error fetching user data:', userStatsError);
       return NextResponse.json(
-        { error: `Database error: ${userError.message}` },
+        { error: `Database error: ${userStatsError.message}` },
         { status: 500 }
       );
     }
@@ -83,7 +83,7 @@ export async function GET(req: Request) {
     // Return the user stats
     return NextResponse.json({
       subscription_status: subscriptionStatus,
-      message_count: messageCount || 0,
+      message_count: userStatsData?.message_count || 0,
       limit: planLimit,
       remaining: messagesRemaining,
       is_pro: subscriptionStatus === 'pro' || subscriptionStatus === 'advanced',
