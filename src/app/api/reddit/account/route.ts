@@ -56,6 +56,7 @@ export async function POST(req: Request) {
             subscription_status: 'free',
             message_count: 0,
             created_at: new Date().toISOString(),
+            message_count_reset_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           },
         ]);
 

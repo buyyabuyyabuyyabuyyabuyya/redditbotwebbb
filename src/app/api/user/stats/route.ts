@@ -44,6 +44,13 @@ export async function GET(req: Request) {
       );
     }
 
+    // If message_count_reset_at is null, set it to created_at + 1 month (if created_at exists) or now +1 month
+    if (!userData?.message_count_reset_at) {
+      const resetAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      await supabaseAdmin.from('users').update({ message_count_reset_at: resetAt }).eq('id', userId);
+      userData!.message_count_reset_at = resetAt;
+    }
+
     // Count messages sent this calendar month for real-time accuracy
     const now = new Date();
     const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0));
