@@ -51,20 +51,17 @@ export async function GET(req: Request) {
       userData!.message_count_reset_at = resetAt;
     }
 
-    // Count messages sent this calendar month for real-time accuracy
-    const now = new Date();
-    const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0));
+    // Get user's message count and subscription status
+    const { data: userData, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('subscription_status, message_count')
+      .eq('id', userId)
+      .maybeSingle();
 
-    const { count: messageCount, error: messageError } = await supabaseAdmin
-      .from('sent_messages')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .gte('sent_at', startOfMonth.toISOString());
-
-    if (messageError) {
-      console.error('Error counting messages:', messageError);
+    if (userError) {
+      console.error('Error fetching user data:', userError);
       return NextResponse.json(
-        { error: `Database error: ${messageError.message}` },
+        { error: `Database error: ${userError.message}` },
         { status: 500 }
       );
     }

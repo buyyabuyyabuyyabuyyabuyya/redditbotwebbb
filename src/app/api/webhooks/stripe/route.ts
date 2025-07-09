@@ -88,15 +88,16 @@ export async function POST(req: Request) {
           newStatus = 'pro';
         }
 
-        // Reset message_count and track period start for monthly quota
-        const updatePayload: Record<string, any> = { subscription_status: newStatus, message_count: 0 };
+        // Reset message_count for new subscription
+        const updatePayload: Record<string, any> = { 
+          subscription_status: newStatus, 
+          message_count: 0 
+        };
+        
         if (session.mode === 'subscription' && session.subscription) {
           const subscriptionDetails = await stripe.subscriptions.retrieve(session.subscription as string);
-          if (subscriptionDetails.current_period_start) {
-            updatePayload.message_count_reset_at = new Date(subscriptionDetails.current_period_start * 1000).toISOString();
-          }
-          if (subscriptionDetails.current_period_end) {
-            updatePayload.subscription_period_end = new Date(subscriptionDetails.current_period_end * 1000).toISOString();
+          if (subscriptionDetails.subscription_period_end) {
+            updatePayload.subscription_period_end = new Date(subscriptionDetails.subscription_period_end * 1000).toISOString();
           }
         }
 
