@@ -43,6 +43,7 @@ export async function GET(req: Request) {
         { status: 500 }
       );
     }
+/* this is old logic now we use the cron laravel to reset on the first of each month
 
     // If message_count_reset_at is null, set it to created_at + 1 month (if created_at exists) or now +1 month
     if (!userData?.message_count_reset_at) {
@@ -50,7 +51,7 @@ export async function GET(req: Request) {
       await supabaseAdmin.from('users').update({ message_count_reset_at: resetAt }).eq('id', userId);
       userData!.message_count_reset_at = resetAt;
     }
-
+*/
     // Get user's message count and subscription status (second query)
     const { data: userStatsData, error: userStatsError } = await supabaseAdmin
       .from('users')
