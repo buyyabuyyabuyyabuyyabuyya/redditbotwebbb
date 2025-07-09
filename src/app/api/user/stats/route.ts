@@ -51,8 +51,8 @@ export async function GET(req: Request) {
       userData!.message_count_reset_at = resetAt;
     }
 
-    // Get user's message count and subscription status
-    const { data: userData, error: userError } = await supabaseAdmin
+    // Get user's message count and subscription status (second query)
+    const { data: userStatsData, error: userStatsError } = await supabaseAdmin
       .from('users')
       .select('subscription_status, message_count')
       .eq('id', userId)
@@ -66,7 +66,7 @@ export async function GET(req: Request) {
       );
     }
 
-    const subscriptionStatus = userData?.subscription_status || 'free';
+    const subscriptionStatus = userStatsData?.subscription_status || 'free';
 
     // Define monthly limits per plan (null means unlimited)
     const PLAN_LIMITS: Record<string, number | null> = {
@@ -77,7 +77,7 @@ export async function GET(req: Request) {
 
     const planLimit = PLAN_LIMITS[subscriptionStatus] ?? 15;
     const messagesRemaining =
-      planLimit === null ? null : Math.max(0, planLimit - (messageCount || 0));
+      planLimit === null ? null : Math.max(0, planLimit - (userStatsData?.message_count || 0));
 
     // Return the user stats
     return NextResponse.json({
