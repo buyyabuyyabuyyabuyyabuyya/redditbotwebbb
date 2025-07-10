@@ -9,9 +9,12 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
   manifest: '/manifest.json',
-  themeColor: '#09090b',
   title: 'Reddit Bot Outreach Platform',
   description: 'Automate your Reddit outreach with our powerful bot platform',
+};
+
+export const viewport = {
+  themeColor: '#09090b',
 };
 
 export default function RootLayout({
