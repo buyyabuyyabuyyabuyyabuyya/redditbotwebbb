@@ -55,10 +55,10 @@ export async function POST(req: Request) {
 
     let remaining = remainingInput ?? MAX_TOTAL_POSTS;
 
-    // ----- Quota enforcement -----
+    // ----- Quota enforcement (use denormalized message_count like /api/user/stats) -----
     const { data: userRow } = await supabaseAdmin
       .from('users')
-      .select('subscription_status')
+      .select('subscription_status, message_count')
       .eq('id', userId)
       .single();
     const planStatus = userRow?.subscription_status || 'free';
@@ -66,15 +66,9 @@ export async function POST(req: Request) {
     const planLimit = PLAN_LIMITS[planStatus] ?? 15;
     let quotaRemaining: number | null = null;
     if (planLimit !== null) {
-      const now = new Date();
-      const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0));
-      const { count } = await supabaseAdmin
-        .from('sent_messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .gte('sent_at', startOfMonth.toISOString());
-      quotaRemaining = Math.max(0, planLimit - (count || 0));
-      console.log('scan-start quota check', { userId, planStatus, planLimit, used: count || 0, quotaRemaining });
+      const used = userRow?.message_count || 0;
+      quotaRemaining = Math.max(0, planLimit - used);
+      console.log('scan-start quota check', { userId, planStatus, planLimit, used, quotaRemaining });
       if (quotaRemaining === 0) {
         await supabaseAdmin.from('bot_logs').insert({
           user_id: userId,
