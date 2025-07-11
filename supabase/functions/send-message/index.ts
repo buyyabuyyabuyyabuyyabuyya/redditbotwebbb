@@ -79,6 +79,11 @@ serve(async (req) => {
     const PLAN_LIMITS: Record<string, number | null> = { free: 15, pro: 200, advanced: null };
     const planLimit = PLAN_LIMITS[user.subscription_status] ?? 15;
     if (planLimit !== null && (user.message_count ?? 0) >= planLimit) {
+      await supabase.from('bot_logs').insert({
+        user_id: userId,
+        action: 'quota_reached',
+        status: 'error',
+      });
       return new Response(
         JSON.stringify({
           error:

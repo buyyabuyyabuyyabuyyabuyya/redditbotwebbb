@@ -76,6 +76,18 @@ export async function POST(req: Request) {
       const used = userRow?.message_count || 0;
       console.log('send-message quota check', { userId: body.userId || userId, planStatus, planLimit, used });
       if (used >= planLimit) {
+        // Deactivate bot (if a config context is provided)
+        if (configId) {
+          await supabaseAdmin.from('scan_configs').update({ is_active: false }).eq('id', configId);
+          await supabaseAdmin.from('bot_logs').insert({
+            user_id: body.userId || userId,
+            config_id: configId,
+            action: 'bot_stopped_quota',
+            status: 'warning',
+            subreddit,
+            message: 'Bot automatically stopped due to quota reached',
+          });
+        }
         await supabaseAdmin.from('bot_logs').insert({
           user_id: body.userId || userId,
           config_id: configId,
