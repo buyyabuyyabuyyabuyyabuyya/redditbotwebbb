@@ -266,6 +266,16 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       const remainingQuota = Math.max(0, planLimit - (count || 0));
       console.log('scan-post quota check', { userId: config.user_id, planStatus, planLimit, used: count || 0, remainingQuota });
       if (remainingQuota === 0) {
+        // Deactivate bot when quota reached
+        await supabase.from('scan_configs').update({ is_active: false }).eq('id', configId);
+        await supabase.from('bot_logs').insert({
+          user_id: config.user_id,
+          config_id: configId,
+          action: 'bot_stopped_quota',
+          status: 'warning',
+          subreddit: config.subreddit,
+          message: 'Bot automatically stopped due to quota reached',
+        });
         await supabase.from('bot_logs').insert({
           user_id: config.user_id,
           config_id: configId,
