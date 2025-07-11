@@ -76,7 +76,9 @@ serve(async (req) => {
       );
     }
 
-    if (user.subscription_status === "free" && (user.message_count ?? 0) >= 100) {
+    const PLAN_LIMITS: Record<string, number | null> = { free: 15, pro: 200, advanced: null };
+    const planLimit = PLAN_LIMITS[user.subscription_status] ?? 15;
+    if (planLimit !== null && (user.message_count ?? 0) >= planLimit) {
       return new Response(
         JSON.stringify({
           error:
