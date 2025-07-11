@@ -245,26 +245,19 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       return NextResponse.json({ skipped: true, reason: 'already_messaged_config' });
     }
 
-    // ----- Quota enforcement (per message) -----
+    // ----- Quota enforcement (per message using message_count) -----
     const PLAN_LIMITS: Record<string, number | null> = { free: 15, pro: 200, advanced: null };
-    // Fetch user plan
     const { data: userRow } = await supabase
       .from('users')
-      .select('subscription_status')
+      .select('subscription_status, message_count')
       .eq('id', config.user_id)
       .single();
     const planStatus = userRow?.subscription_status || 'free';
     const planLimit = PLAN_LIMITS[planStatus] ?? 15;
     if (planLimit !== null) {
-      const now = new Date();
-      const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0));
-      const { count } = await supabase
-        .from('sent_messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', config.user_id)
-        .gte('sent_at', startOfMonth.toISOString());
-      const remainingQuota = Math.max(0, planLimit - (count || 0));
-      console.log('scan-post quota check', { userId: config.user_id, planStatus, planLimit, used: count || 0, remainingQuota });
+      const used = userRow?.message_count || 0;
+      const remainingQuota = Math.max(0, planLimit - used);
+      console.log('scan-post quota check', { userId: config.user_id, planStatus, planLimit, used, remainingQuota });
       if (remainingQuota === 0) {
         // Deactivate bot when quota reached
         await supabase.from('scan_configs').update({ is_active: false }).eq('id', configId);
