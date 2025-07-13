@@ -210,7 +210,7 @@ export async function POST(req: Request) {
               ]);
 
               // Update message count
-              await supabase
+              await supabaseAdmin
                 .from('users')
                 .update({ message_count: userData.message_count + 1 })
                 .eq('user_id', userId);
