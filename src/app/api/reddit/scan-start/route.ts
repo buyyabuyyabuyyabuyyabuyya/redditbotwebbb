@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { verifySignatureAppRouter } from '@upstash/qstash/nextjs';
 import { auth } from '@clerk/nextjs';
 import { createServerSupabaseClient } from '../../../../utils/supabase-server';
 import { createClient } from '@supabase/supabase-js';
@@ -11,7 +12,15 @@ const DELAY_INTERVAL_MS = 100_000; // 100 s ≈ 1.7 min – safe for Reddit
 const BATCH_SIZE = 10; // number of posts to queue per batch
 const MAX_TOTAL_POSTS = 100; // upper-bound for a single scan session
 
-export async function POST(req: Request) {
+export const runtime = 'nodejs';
+
+// Simple health check so QStash can verify the endpoint without triggering signature verification.
+export async function GET() {
+  return NextResponse.json({ ok: true });
+}
+
+// Main POST handler with QStash signature verification
+export const POST = verifySignatureAppRouter(async (req: Request) => {
   try {
     const internal =
       req.headers.get('X-Internal-API') === 'true' ||
@@ -42,10 +51,13 @@ export async function POST(req: Request) {
       .eq('id', configId)
       .single();
     if (cfgErr || !config) {
-      return NextResponse.json(
+      const res = NextResponse.json(
         { error: 'Config not found' },
         { status: 404 }
       );
+      // Prevent QStash from retrying on config not found
+      res.headers.set('Upstash-NonRetryable-Error', 'true');
+      return res;
     }
 
     // Ensure we have a userId (fallback to config owner for internal calls)
@@ -70,6 +82,8 @@ export async function POST(req: Request) {
       quotaRemaining = Math.max(0, planLimit - used);
       console.log('scan-start quota check', { userId, planStatus, planLimit, used, quotaRemaining });
       if (quotaRemaining === 0) {
+        // Deactivate bot when quota reached
+        await supabaseAdmin.from('scan_configs').update({ is_active: false }).eq('id', configId);
         await supabaseAdmin.from('bot_logs').insert({
           user_id: userId,
           config_id: configId,
@@ -111,7 +125,13 @@ export async function POST(req: Request) {
       const elapsedMinutes =
         (Date.now() - new Date(firstStart.created_at).getTime()) / 60000;
       if (elapsedMinutes >= effectiveInterval) {
-        // Deactivate bot
+        // Deactivate bot and prevent QStash retries
+        await supabaseAdmin
+          .from('scan_configs')
+          .update({ is_active: false })
+          .eq('id', configId);
+
+        await supabaseAdmin.from('bot_logs').insert({
         await supabaseAdmin
           .from('scan_configs')
           .update({ is_active: false })
@@ -185,10 +205,13 @@ export async function POST(req: Request) {
       .eq('id', config.reddit_account_id)
       .single();
     if (!account) {
-      return NextResponse.json(
+      const res = NextResponse.json(
         { error: 'Reddit account not found' },
         { status: 400 }
       );
+      // Prevent QStash from retrying on account not found
+      res.headers.set('Upstash-NonRetryable-Error', 'true');
+      return res;
     }
 
     // Minimal snoowrap instance
