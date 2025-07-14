@@ -6,6 +6,12 @@ import { callGemini } from '../../../../utils/gemini';
 
 export const runtime = 'nodejs'; // we need node modules (snoowrap)
 
+// Simple health check so QStash (or uptime monitors) can verify the endpoint without
+// triggering signature verification. Returns 200 OK.
+export async function GET() {
+  return NextResponse.json({ ok: true });
+}
+
 export const POST = verifySignatureAppRouter(async (req: Request) => {
   try {
     const payload = (await req.json()) as { configId: string; postId: string };
@@ -33,7 +39,14 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
     }
     if (config.is_active === false) {
       console.log('scan-post: config inactive, skipping');
-      return NextResponse.json({ skipped: true, reason: 'config_inactive' });
+      // Respond with 410 Gone so QStash will stop retrying this specific message.
+      const resGone = NextResponse.json(
+        { skipped: true, reason: 'config_inactive' },
+        { status: 410 }
+      );
+      // Explicitly mark as non-retryable according to Upstash docs.
+      resGone.headers.set('Upstash-NonRetryable-Error', 'true');
+      return resGone;
     }
 
     const { data: account } = await supabase

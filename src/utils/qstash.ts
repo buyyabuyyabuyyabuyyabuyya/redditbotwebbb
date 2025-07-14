@@ -20,6 +20,8 @@ export interface PublishOptions<T> {
   delayMs?: number;
   /** Additional request headers to include when QStash forwards the message. */
   headers?: Record<string, string>;
+  /** How many times QStash should retry delivery on non-2xx responses (default 7). */
+  retries?: number;
 }
 
 /**
@@ -31,7 +33,7 @@ export async function publishQStashMessage<T>(options: PublishOptions<T>) {
     throw new Error('QStash env vars not configured');
   }
 
-  const { destination, body, delayMs, headers: extraHeaders } = options;
+  const { destination, body, delayMs, retries = 7, headers: extraHeaders } = options;
 
   // Publish using path-parameter style: /v2/publish/<urlencoded-destination>
   const url = `${QSTASH_URL}/v2/publish/${destination}`; // QStash REST endpoint
@@ -42,6 +44,10 @@ export async function publishQStashMessage<T>(options: PublishOptions<T>) {
     'X-Internal-API': 'true',
     ...(extraHeaders || {}),
   };
+  // Configure retry attempts for automatic exponential backoff handling
+  if (retries !== undefined) {
+    headers['Upstash-Retries'] = `${retries}`;
+  }
 
   if (delayMs && delayMs > 0) {
     // Upstash expects a string ending with "s" or "m" etc; use seconds
@@ -82,7 +88,7 @@ export async function scheduleQStashMessage<T>(options: ScheduleOptions<T>) {
     throw new Error('QStash env vars not configured');
   }
 
-  const { destination, body, delaySeconds, notBefore, headers: extraHeaders } = options;
+  const { destination, body, delaySeconds, notBefore, retries = 7, headers: extraHeaders } = options;
 
   if (!delaySeconds && !notBefore) {
     throw new Error('Either delaySeconds or notBefore must be provided');
@@ -93,6 +99,8 @@ export async function scheduleQStashMessage<T>(options: ScheduleOptions<T>) {
     ...(extraHeaders || {}),
     'X-Internal-API': 'true',
   };
+  // Ensure retry attempts header is forwarded for scheduled jobs as well
+  headers['Upstash-Retries'] = `${retries}`;
   if (delaySeconds) headers['Upstash-Delay'] = `${delaySeconds}s`;
   if (notBefore) headers['Upstash-Not-Before'] = `${notBefore}`;
 
