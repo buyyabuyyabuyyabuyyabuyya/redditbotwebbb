@@ -394,7 +394,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       },
       delaySeconds,
       headers: {
-        'X-Internal-API': 'true',
+        'Upstash-Forward-X-Internal-API': 'true',
         'Upstash-Schedule-Id': `msg-${configId}-${postId}`,
       },
     });
