@@ -71,7 +71,9 @@ export async function POST(req: Request) {
       .eq('id', body.userId || userId)
       .single();
     const planStatus = userRow?.subscription_status || 'free';
-    const planLimit = PLAN_LIMITS[planStatus] ?? 15;
+    const planLimit = Object.prototype.hasOwnProperty.call(PLAN_LIMITS, planStatus)
+      ? PLAN_LIMITS[planStatus]
+      : 15;
     if (planLimit !== null) {
       const used = userRow?.message_count || 0;
       console.log('send-message quota check', { userId: body.userId || userId, planStatus, planLimit, used });

@@ -77,6 +77,7 @@ serve(async (req) => {
     }
 
     const PLAN_LIMITS: Record<string, number | null> = { free: 15, pro: 200, advanced: null };
+    
     const planLimit = Object.prototype.hasOwnProperty.call(PLAN_LIMITS, user.subscription_status)
       ? PLAN_LIMITS[user.subscription_status]
       : 15;
@@ -96,6 +97,26 @@ serve(async (req) => {
     }
 
     // Helper that actually sends the PM and records it
+    // Skip if recipient opted out
+    const { data: optOut } = await supabase
+      .from("opt_outs")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("recipient", recipientUsername.toLowerCase())
+      .maybeSingle();
+    if (optOut) {
+      await supabase.from('bot_logs').insert({
+        user_id: userId,
+        action: 'opt_out_skip',
+        status: 'info',
+        recipient: recipientUsername,
+      });
+      return; // silently skip send
+    }
+
+    const OPT_OUT_FOOTER = "\n\n---\nReply STOP to never hear from me again.";
+    const finalText = message + OPT_OUT_FOOTER;
+
     const executeSend = async () => {
       const reddit = new snoowrap({
         userAgent: "Reddit Bot SaaS",
@@ -108,7 +129,7 @@ serve(async (req) => {
       await reddit.composeMessage({
         to: recipientUsername,
         subject: subject || "Message from Reddit Bot SaaS",
-        text: message,
+        text: finalText,
       });
 
       // Update user's message count
@@ -151,7 +172,7 @@ serve(async (req) => {
         { status: 202 }
       );
     }
-
+//pus test
     // Otherwise, send immediately and wait for completion
     await executeSend();
     return new Response(JSON.stringify({ success: true }), { status: 200 });

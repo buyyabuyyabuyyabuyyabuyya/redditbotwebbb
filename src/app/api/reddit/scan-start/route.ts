@@ -4,6 +4,7 @@ import { createServerSupabaseClient } from '../../../../utils/supabase-server';
 import { createClient } from '@supabase/supabase-js';
 import { publishQStashMessage, scheduleQStashMessage } from '../../../../utils/qstash';
 import snoowrap from 'snoowrap';
+import { ensureInboxSchedule } from '../../../../utils/inboxScheduler';
 import { checkAndArchiveLogs } from '../auto-archive-helper';
 
 // Inter-message delay (ms)
@@ -41,6 +42,12 @@ export async function POST(req: Request) {
       .select('*')
       .eq('id', configId)
       .single();
+    // Ensure recurring inbox job exists for this user
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_VERCEL_URL || '';
+    if (baseUrl) {
+      ensureInboxSchedule(config.user_id, baseUrl.startsWith('http') ? baseUrl : `https://${baseUrl}`);
+    }
+
     if (cfgErr || !config) {
       return NextResponse.json(
         { error: 'Config not found' },
