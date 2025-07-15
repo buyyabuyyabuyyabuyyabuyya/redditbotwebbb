@@ -48,7 +48,18 @@ export async function POST(req: Request) {
       process.env.NEXT_PUBLIC_VERCEL_URL ||
       process.env.VERCEL_URL || '';
     if (baseUrl) {
-      ensureInboxSchedule(config.user_id, baseUrl.startsWith('http') ? baseUrl : `https://${baseUrl}`);
+      const fullOrigin = baseUrl.startsWith('http') ? baseUrl : `https://${baseUrl}`;
+      ensureInboxSchedule(config.user_id, fullOrigin);
+      // one-off inbox check 5 s later so opt-outs are honoured right away
+      try {
+        await publishQStashMessage({
+          destination: `${fullOrigin}/api/reddit/process-inbox`,
+          body: { userId: config.user_id },
+          delayMs: 7000,
+        });
+      } catch (err) {
+        console.error('failed to queue immediate inbox check', err);
+      }
     }
 
     if (cfgErr || !config) {

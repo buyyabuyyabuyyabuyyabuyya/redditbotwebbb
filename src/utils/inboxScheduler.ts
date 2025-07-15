@@ -14,6 +14,7 @@ export async function ensureInboxSchedule(userId: string, baseUrl: string) {
         'Content-Type': 'application/json',
         'Upstash-Cron': cron,
         'Upstash-Method': 'POST',
+        'Upstash-Schedule-Id': `inbox-${userId}`,
         'Upstash-Forward-X-Internal-API': 'true',
       },
       body: JSON.stringify({ userId }),

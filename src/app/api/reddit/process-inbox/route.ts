@@ -35,8 +35,13 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       .eq('user_id', userId)
       .eq('is_active', true)
       .order('created_at');
-    if (accErr || !accounts) {
-      return NextResponse.json({ error: 'No accounts found' }, { status: 404 });
+    if (accErr) {
+      console.error('process-inbox supabase error', accErr);
+      return NextResponse.json({ error: 'Database error' }, { status: 500 });
+    }
+    if (!accounts || accounts.length === 0) {
+      // Nothing to process – treat as success so QStash doesn't retry
+      return NextResponse.json({ processed: 0 });
     }
 
     let processed = 0;
