@@ -63,7 +63,9 @@ export async function POST(req: Request) {
       .single();
     const planStatus = userRow?.subscription_status || 'free';
     const PLAN_LIMITS: Record<string, number | null> = { free: 15, pro: 200, advanced: null };
-    const planLimit = PLAN_LIMITS[planStatus] ?? 15;
+    const planLimit = Object.prototype.hasOwnProperty.call(PLAN_LIMITS, planStatus)
+      ? PLAN_LIMITS[planStatus]
+      : 15;
     let quotaRemaining: number | null = null;
     if (planLimit !== null) {
       const used = userRow?.message_count || 0;
