@@ -33,7 +33,6 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       .from('reddit_accounts')
       .select('*')
       .eq('user_id', userId)
-      .eq('is_active', true)
       .order('created_at');
     if (accErr) {
       console.error('process-inbox supabase error', accErr);
