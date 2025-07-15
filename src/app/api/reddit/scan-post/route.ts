@@ -266,7 +266,9 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       .eq('id', config.user_id)
       .single();
     const planStatus = userRow?.subscription_status || 'free';
-    const planLimit = PLAN_LIMITS[planStatus] ?? 15;
+    const planLimit = Object.prototype.hasOwnProperty.call(PLAN_LIMITS, planStatus)
+      ? PLAN_LIMITS[planStatus]
+      : 15;
     if (planLimit !== null) {
       const used = userRow?.message_count || 0;
       const remainingQuota = Math.max(0, planLimit - used);
