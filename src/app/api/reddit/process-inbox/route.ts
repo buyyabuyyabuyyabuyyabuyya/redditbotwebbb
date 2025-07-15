@@ -47,7 +47,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
     for (const account of accounts) {
       if (accountId && account.id !== accountId) continue; // if specific account requested
       const reddit = new snoowrap({
-        userAgent: 'Reddit Bot SaaS – inbox processor',
+        userAgent: 'Reddit Bot SaaS - inbox processor',
         clientId: account.client_id,
         clientSecret: account.client_secret,
         username: account.username,
