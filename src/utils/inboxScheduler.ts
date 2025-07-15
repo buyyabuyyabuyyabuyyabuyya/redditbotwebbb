@@ -5,7 +5,7 @@ export async function ensureInboxSchedule(userId: string, baseUrl: string) {
     if (!QSTASH_URL || !QSTASH_TOKEN) return;
     const cron = '*/15 * * * *';
     const destination = `${baseUrl}/api/reddit/process-inbox`;
-    const url = `${QSTASH_URL}/v2/schedules/${encodeURIComponent(destination)}`;
+      const url = `${QSTASH_URL}/v2/schedules/${destination}`;
   
     const res = await fetch(url, {
       method: 'POST',
@@ -14,7 +14,7 @@ export async function ensureInboxSchedule(userId: string, baseUrl: string) {
         'Content-Type': 'application/json',
         'Upstash-Cron': cron,
         'Upstash-Method': 'POST',
-        'X-Internal-API': 'true',
+        'Upstash-Forward-X-Internal-API': 'true',
       },
       body: JSON.stringify({ userId }),
     });
