@@ -20,7 +20,7 @@ export interface PublishOptions<T> {
   delayMs?: number;
   /** Additional request headers to include when QStash forwards the message. */
   headers?: Record<string, string>;
-  /** How many times QStash should retry delivery on non-2xx responses (default 7). */
+  /** How many times QStash should retry delivery on non-2xx responses (default 5). */
   retries?: number;
 }
 
@@ -33,7 +33,9 @@ export async function publishQStashMessage<T>(options: PublishOptions<T>) {
     throw new Error('QStash env vars not configured');
   }
 
-  const { destination, body, delayMs, retries = 7, headers: extraHeaders } = options;
+  const MAX_QSTASH_RETRIES = 5;
+  const { destination, body, delayMs, retries = MAX_QSTASH_RETRIES, headers: extraHeaders } = options;
+  const retriesClamped = Math.min(retries, MAX_QSTASH_RETRIES);
 
   // Publish using path-parameter style: /v2/publish/<urlencoded-destination>
   const url = `${QSTASH_URL}/v2/publish/${destination}`; // QStash REST endpoint
@@ -45,8 +47,8 @@ export async function publishQStashMessage<T>(options: PublishOptions<T>) {
     ...(extraHeaders || {}),
   };
   // Configure retry attempts for automatic exponential backoff handling
-  if (retries !== undefined) {
-    headers['Upstash-Retries'] = `${retries}`;
+  if (retriesClamped !== undefined) {
+    headers['Upstash-Retries'] = `${retriesClamped}`;
   }
 
   if (delayMs && delayMs > 0) {
@@ -88,7 +90,9 @@ export async function scheduleQStashMessage<T>(options: ScheduleOptions<T>) {
     throw new Error('QStash env vars not configured');
   }
 
-  const { destination, body, delaySeconds, notBefore, retries = 7, headers: extraHeaders } = options;
+  const MAX_QSTASH_RETRIES_SCH = 5;
+  const { destination, body, delaySeconds, notBefore, retries = MAX_QSTASH_RETRIES_SCH, headers: extraHeaders } = options;
+  const retriesClamped = Math.min(retries, MAX_QSTASH_RETRIES_SCH);
 
   if (!delaySeconds && !notBefore) {
     throw new Error('Either delaySeconds or notBefore must be provided');
@@ -100,7 +104,7 @@ export async function scheduleQStashMessage<T>(options: ScheduleOptions<T>) {
     'X-Internal-API': 'true',
   };
   // Ensure retry attempts header is forwarded for scheduled jobs as well
-  headers['Upstash-Retries'] = `${retries}`;
+  headers['Upstash-Retries'] = `${retriesClamped}`;
   if (delaySeconds) headers['Upstash-Delay'] = `${delaySeconds}s`;
   if (notBefore) headers['Upstash-Not-Before'] = `${notBefore}`;
 
