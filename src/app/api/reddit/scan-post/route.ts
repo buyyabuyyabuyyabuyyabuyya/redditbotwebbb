@@ -3,6 +3,7 @@ import { verifySignatureAppRouter } from '@upstash/qstash/nextjs';
 import { createClient } from '@supabase/supabase-js';
 import snoowrap from 'snoowrap';
 import { callGemini } from '../../../../utils/gemini';
+import { scheduleQStashMessage } from '../../../../utils/qstash';
 
 export const runtime = 'nodejs'; // we need node modules (snoowrap)
 
@@ -341,50 +342,65 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       funcUrl = `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')}/api/reddit/send-message`;
     }
 
-    await supabase.from('bot_logs').insert({
-      user_id: config.user_id,
-      config_id: configId,
-      action: 'message_scheduled',
-      status: 'queue',
-      subreddit: config.subreddit,
-      post_id: postId,
-      recipient: post.author.name,
-      message: `Message queued with ${100}s spacing`,
-    });
+    // ----- Queue send via QStash schedule with staggered delay -----
+    const BASE_DELAY_SEC = 100;
 
-    const EDGE_DELAY_MS = 100_000; // 100 second buffer after AI check
+    // Count queued messages in the last hour to determine offset
+    const sinceIso = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { data: queued } = await supabase
+      .from('bot_logs')
+      .select('id')
+      .eq('user_id', config.user_id)
+      .eq('action', 'message_scheduled')
+      .eq('status', 'queue')
+      .gte('created_at', sinceIso);
 
-    console.log('scan-post: calling send-message', funcUrl);
-    const edgeRes = await fetch(funcUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
-        'X-Internal-API': 'true',
-      },
-      body: JSON.stringify({
+    const index = (queued?.length || 0) + 1; // 1-based
+    const delaySeconds = BASE_DELAY_SEC * index;
+
+    // Log schedule after we know delay
+    await supabase.from('bot_logs').insert([
+      {
+        user_id: config.user_id,
+        config_id: configId,
+        action: 'message_scheduled',
+        status: 'queue',
+        subreddit: config.subreddit,
+        post_id: postId,
+        recipient: post.author.name,
+        message: `Message queued with ~${delaySeconds}s spacing`,
+      }
+    ], { ignoreDuplicates: true });
+
+    console.log('scan-post: scheduling send-message via QStash', { delaySeconds });
+
+    // Build absolute destination URL for QStash
+    const origin =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      `https://${process.env.VERCEL_URL}`;
+    const destinationUrl = `${origin.replace(/\/$/, '')}/api/reddit/send-message`;
+
+    await scheduleQStashMessage({
+      destination: destinationUrl,
+      destination: `${funcUrl.startsWith('http') ? funcUrl : (process.env.NEXT_PUBLIC_APP_URL || '').replace(/\/$/, '') + funcUrl}`,
+      body: {
         userId: config.user_id,
         recipientUsername: post.author.name,
         accountId: config.reddit_account_id,
         message: messageContent,
         subject: `Regarding your post in r/${config.subreddit}`,
-        delayMs: EDGE_DELAY_MS,
         postId,
         configId,
-      }),
+      },
+      delaySeconds,
+      headers: {
+        'X-Internal-API': 'true',
+        'Upstash-Schedule-Id': `msg-${configId}-${postId}`,
+      },
     });
 
-    console.log('scan-post: send-message status', edgeRes.status);
-    if (!edgeRes.ok) {
-      const errText = await edgeRes.text();
-      console.error('send-message edge function failed', edgeRes.status, errText);
-      return NextResponse.json(
-        { error: 'Message send failed', details: errText },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ queued: true, delaySeconds });
   } catch (err) {
     console.error('scan-post error', err);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
