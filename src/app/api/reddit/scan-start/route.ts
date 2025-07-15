@@ -43,7 +43,10 @@ export async function POST(req: Request) {
       .eq('id', configId)
       .single();
     // Ensure recurring inbox job exists for this user
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_VERCEL_URL || '';
+    const baseUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      process.env.NEXT_PUBLIC_VERCEL_URL ||
+      process.env.VERCEL_URL || '';
     if (baseUrl) {
       ensureInboxSchedule(config.user_id, baseUrl.startsWith('http') ? baseUrl : `https://${baseUrl}`);
     }
