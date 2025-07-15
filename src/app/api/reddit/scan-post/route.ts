@@ -383,7 +383,6 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
 
     await scheduleQStashMessage({
       destination: destinationUrl,
-      destination: `${funcUrl.startsWith('http') ? funcUrl : (process.env.NEXT_PUBLIC_APP_URL || '').replace(/\/$/, '') + funcUrl}`,
       body: {
         userId: config.user_id,
         recipientUsername: post.author.name,
