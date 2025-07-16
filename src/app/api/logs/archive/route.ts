@@ -253,6 +253,21 @@ export async function POST(req: Request) {
         deletedCount: logIds.length,
         retainedCount: logs.length - logIds.length,
       });
+
+      // Record the manual archive action in bot_logs
+      try {
+        await supabaseAdmin.from('bot_logs').insert({
+          user_id: userId,
+          action: 'archive_manual',
+          status: 'success',
+          subreddit: config.subreddit,
+          config_id: config.id,
+          message: `Manually archived ${logs.length} logs for r/${config.subreddit}`,
+          created_at: new Date().toISOString(),
+        });
+      } catch (logErr) {
+        console.error('Failed to insert manual archive log:', logErr);
+      }
     }
 
     return NextResponse.json({

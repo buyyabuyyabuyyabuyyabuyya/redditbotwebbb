@@ -4,11 +4,13 @@ import { useState } from 'react';
 
 interface LogArchiveButtonProps {
   configId?: string;
+  subreddit?: string;
   onSuccess?: () => void;
 }
 
 export default function LogArchiveButton({
   configId,
+  subreddit,
   onSuccess,
 }: LogArchiveButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
@@ -32,6 +34,25 @@ export default function LogArchiveButton({
 
       // Get the response data
       const data = await response.json();
+
+      // Log the manual archival action to bot_logs for auditing
+      try {
+        await fetch('/api/reddit/bot-logs', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: 'archive_manual',
+            status: 'success',
+            subreddit: subreddit || '_system',
+            config_id: configId,
+            message: `Manual archive triggered${subreddit ? ` for r/${subreddit}` : ''}`,
+          }),
+        });
+      } catch (logErr) {
+        console.error('Failed to log manual archive action:', logErr);
+      }
 
       // Show success message
       alert('Logs archived successfully!');

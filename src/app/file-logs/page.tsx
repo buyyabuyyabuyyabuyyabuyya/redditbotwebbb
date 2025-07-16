@@ -86,7 +86,7 @@ export default async function FileLogsPage() {
           <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
             <div className="px-4 py-8 sm:px-0">
               <div className="flex justify-between mb-4">
-                <LogArchiveButton />
+                <LogArchiveButton subreddit="_system"/>
                 <Link
                   href="/dashboard"
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-purple-300 hover:text-purple-200"
