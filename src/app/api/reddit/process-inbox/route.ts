@@ -66,12 +66,15 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
           if (insertErr) {
             console.error('opt_outs insert error', insertErr);
             // fire-and-forget diagnostic log, ignore failure
-            await supabase.from('bot_logs').insert({
+            const logRes = await supabase.from('bot_logs').insert({
               user_id: userId,
               action: 'opt_out_insert_error',
               status: 'error',
               error_message: insertErr.message?.slice(0, 250) || 'insert error',
-            }).catch(() => {});
+            });
+            if (logRes.error) {
+              console.error('bot_logs insert error', logRes.error);
+            }
           } else {
             processed += 1;
             console.log(`Recorded opt-out from ${msg.author.name}`);
