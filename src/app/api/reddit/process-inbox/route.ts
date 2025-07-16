@@ -69,6 +69,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
             const logRes = await supabase.from('bot_logs').insert({
               user_id: userId,
               action: 'opt_out_insert_error',
+              subreddit: '_system',
               status: 'error',
               error_message: insertErr.message?.slice(0, 250) || 'insert error',
             });
@@ -90,6 +91,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       await supabase.from('bot_logs').insert({
         user_id: userId,
         action: 'processed_opt_outs',
+        subreddit: '_system',
         status: 'info',
         message: `Recorded ${processed} opt-outs`,
       });
