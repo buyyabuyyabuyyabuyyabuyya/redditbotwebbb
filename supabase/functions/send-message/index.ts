@@ -126,11 +126,37 @@ serve(async (req) => {
         password: account.password,
       });
 
-      await reddit.composeMessage({
-        to: recipientUsername,
-        subject: subject || "Message from Reddit Bot SaaS",
-        text: finalText,
-      });
+      try {
+        await reddit.composeMessage({
+          to: recipientUsername,
+          subject: subject || "Message from Reddit Bot SaaS",
+          text: finalText,
+        });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        const privacyErr = msg.includes('NOT_WHITELISTED_BY_USER_MESSAGE') || msg.includes("can't send a message to that user");
+
+        if (privacyErr) {
+          // Soft-fail: user does not accept PMs. Log & exit without counting toward quota.
+          await supabase.from('bot_logs').insert({
+            user_id: userId,
+            action: 'recipient_not_whitelisted',
+            status: 'info',
+            recipient: recipientUsername,
+          });
+          return; // treat as sent-but-skipped
+        }
+
+        // Otherwise treat as error
+        await supabase.from('bot_logs').insert({
+          user_id: userId,
+          action: 'reddit_api_error',
+          status: 'error',
+          recipient: recipientUsername,
+          error_message: msg.slice(0, 250),
+        });
+        throw err;
+      }
 
       // Update user's message count
       await supabase
@@ -172,15 +198,35 @@ serve(async (req) => {
         { status: 202 }
       );
     }
-//pus test
+
     // Otherwise, send immediately and wait for completion
     await executeSend();
     return new Response(JSON.stringify({ success: true }), { status: 200 });
-  } catch (err) {
-    console.error("Edge function error:", err);
+  } 
+  
+  
+  catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("Edge function error:", msg);
+    // Attempt to log for visibility
+    try {
+      const supabase = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SERVICE_ROLE_KEY")!,
+        {
+          auth: { autoRefreshToken: false, persistSession: false },
+        },
+      );
+      await supabase.from('bot_logs').insert({
+        user_id: userId ?? null,
+        action: 'message_send_error',
+        status: 'error',
+        error_message: msg.slice(0, 250),
+      });
+    } catch (_) {}
     return new Response(
-      JSON.stringify({ error: "Failed to send message" }),
-      { status: 500 }
+      JSON.stringify({ error: msg }),
+      { status: 500 },
     );
   }
 });

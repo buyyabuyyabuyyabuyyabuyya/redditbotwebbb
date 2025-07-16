@@ -58,12 +58,14 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       const unread = await reddit.getUnreadMessages({ limit: 50 });
       for (const msg of unread) {
         const body = (msg.body || '').trim().toLowerCase();
-        if (body === 'stop' || body === 'unsubscribe' || body === 'optout' || body === 'opt out') {
+        const isOptOut = ['stop', 'unsubscribe', 'optout', 'opt out'].some((kw) => body.includes(kw));
+        if (isOptOut) {
           await supabase
             .from('opt_outs')
             .insert({ user_id: userId, recipient: msg.author.name.toLowerCase() }, { onConflict: 'user_id,recipient' })
             .select();
           processed += 1;
+          console.log(`Recorded opt-out from ${msg.author.name}`);
         }
         try { await msg.markAsRead(); } catch {}
       }
