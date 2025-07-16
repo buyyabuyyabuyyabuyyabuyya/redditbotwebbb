@@ -62,8 +62,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
         if (isOptOut) {
           await supabase
             .from('opt_outs')
-            .insert({ user_id: userId, recipient: msg.author.name.toLowerCase() }, { onConflict: 'user_id,recipient' })
-            .select();
+            .insert({ user_id: userId, recipient: msg.author.name.toLowerCase() }, { ignoreDuplicates: true });
           processed += 1;
           console.log(`Recorded opt-out from ${msg.author.name}`);
         }
