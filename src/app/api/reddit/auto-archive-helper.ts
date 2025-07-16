@@ -11,6 +11,42 @@ import { SupabaseClient } from '@supabase/supabase-js';
  * persist those essential logs in the table so a user can still see when the
  * bot was started and when a scan cycle kicked off.
  */
+// Deletes archived log files and DB rows older than retentionMinutes.
+export async function deleteExpiredArchives(
+  supabaseAdmin: SupabaseClient,
+  retentionMinutes = 60,
+): Promise<void> {
+  try {
+    const cutoffIso = new Date(Date.now() - retentionMinutes * 60_000).toISOString();
+    const { data: oldArchives, error } = await supabaseAdmin
+      .from('archived_logs')
+      .select('id,file_path')
+      .lt('created_at', cutoffIso);
+    if (error) {
+      console.error('Error fetching expired archives:', error);
+      return;
+    }
+    if (!oldArchives || oldArchives.length === 0) return;
+
+    const paths = oldArchives.map((a: any) => a.file_path);
+    // Attempt to remove files first (ignore individual failures)
+    const { error: removeErr } = await supabaseAdmin.storage.from('logs').remove(paths);
+    if (removeErr) {
+      console.error('Error deleting archived files from storage', removeErr);
+    }
+
+    const ids = oldArchives.map((a: any) => a.id);
+    const { error: delErr } = await supabaseAdmin.from('archived_logs').delete().in('id', ids);
+    if (delErr) {
+      console.error('Error deleting archived_logs rows', delErr);
+    } else {
+      console.log(`Deleted ${ids.length} archived logs older than ${retentionMinutes} minutes`);
+    }
+  } catch (e) {
+    console.error('Unexpected error in deleteExpiredArchives', e);
+  }
+}
+
 export async function checkAndArchiveLogs(
   supabaseAdmin: SupabaseClient,
   userId: string,
