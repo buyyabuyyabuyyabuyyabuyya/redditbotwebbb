@@ -5,7 +5,7 @@ import { useUser } from '@clerk/nextjs';
 import { createClientSupabaseClient } from '../utils/supabase';
 import { useUserPlan } from '../hooks/useUserPlan';
 import Button, { RippleButton, Button3D } from './ui/Button';
-import BotStatusDisplay from './BotStatusDisplay';
+
 import UpgradePrompt from './UpgradePrompt';
 
 const supabase = createClientSupabaseClient();
@@ -817,17 +817,7 @@ export default function SubredditScanner({
                 </div>
               </div>
 
-              {/* Show BotStatusDisplay for active bots */}
-              {config.isActive && config.id && (
-                <BotStatusDisplay
-                  configId={config.id}
-                  subreddit={config.subreddit}
-                  keywords={config.keywords}
-                  scanInterval={config.scanInterval}
-                  refreshTrigger={refreshTrigger}
-                  onStopBot={(configId) => toggleConfig(configId, false)}
-                />
-              )}
+
             </div>
           ))}
         </div>
