@@ -122,6 +122,10 @@ export default function SubredditScanner({
     }
   };
 
+  const handleClearKeywords = () => {
+    setNewConfig({ ...newConfig, keywords: [] });
+  };
+
   const handleRemoveKeyword = (indexToRemove: number) => {
     setNewConfig({
       ...newConfig,
@@ -626,6 +630,16 @@ export default function SubredditScanner({
             >
               Add
             </Button>
+            {newConfig.keywords.length > 0 && (
+              <Button
+                type="button"
+                variant="danger"
+                size="medium"
+                onClick={handleClearKeywords}
+              >
+                Clear All
+              </Button>
+            )}
           </div>
           <p className="mt-1 text-xs text-gray-400">
             Press Enter or click “Add” to insert keywords (comma-separated supported).
