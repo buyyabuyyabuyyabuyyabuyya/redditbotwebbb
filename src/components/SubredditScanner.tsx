@@ -68,6 +68,9 @@ export default function SubredditScanner({
     // For each config loaded from DB, ensure both property formats are available
     return {
       ...config,
+      // Map snake_case is_active to camelCase isActive for UI consistency
+      isActive:
+        config.isActive !== undefined ? config.isActive : config.is_active,
       // Ensure useAiCheck is set from use_ai_check if needed
       useAiCheck:
         config.useAiCheck !== undefined
