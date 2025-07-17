@@ -787,11 +787,11 @@ export default function SubredditScanner({
                     onClick={() =>
                       config.id && toggleConfig(config.id, !config.isActive)
                     }
-                    variant={config.isActive ? 'danger' : 'success'}
+                    variant="success"
                     size="medium"
                     className="px-4 py-2 font-medium"
                   >
-                    {config.isActive ? 'Stop Bot' : 'Start Bot'}
+                    {config.isActive ? 'Running' : 'Start Bot'}
                   </Button3D>
 
                   <Button3D
