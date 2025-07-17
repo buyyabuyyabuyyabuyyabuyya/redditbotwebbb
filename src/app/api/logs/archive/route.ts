@@ -108,6 +108,22 @@ export async function POST(req: Request) {
       // Format logs as text
       const dateRangeStart = new Date(logs[0].created_at);
       const dateRangeEnd = new Date(logs[logs.length - 1].created_at);
+      console.log('[MANUAL-ARCHIVE] Selected log batch', {
+        userId,
+        configId: config.id,
+        subreddit: config.subreddit,
+        totalLogs: logs.length,
+        dateRangeStart: dateRangeStart.toISOString(),
+        dateRangeEnd: dateRangeEnd.toISOString()
+      });
+      console.log('[MANUAL-ARCHIVE] Selected log batch', {
+        userId,
+        configId: config.id,
+        subreddit: config.subreddit,
+        totalLogs: logs.length,
+        dateRangeStart: dateRangeStart.toISOString(),
+        dateRangeEnd: dateRangeEnd.toISOString()
+      });
 
       let logContent = `=== BOT LOGS ARCHIVE ===\n`;
       logContent += `Configuration ID: ${config.id}\n`;
@@ -154,6 +170,7 @@ export async function POST(req: Request) {
           contentType: 'text/plain',
           cacheControl: '3600',
         });
+      console.log('[MANUAL-ARCHIVE] Upload result', { fileName, uploadError, uploadedPath: uploadData?.path });
 
       if (uploadError) {
         console.error(
