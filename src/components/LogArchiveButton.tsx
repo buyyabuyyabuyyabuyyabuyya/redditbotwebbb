@@ -25,7 +25,7 @@ export default function LogArchiveButton({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(configId ? { configId } : {}),
+        body: JSON.stringify(configId ? { configId, manual: true } : { manual: true }),
       });
 
       if (!response.ok) {
@@ -37,6 +37,9 @@ export default function LogArchiveButton({
 
       // Log the manual archival action to bot_logs for auditing
       try {
+        // Only log to bot_logs directly if we have both configId and a valid subreddit (not placeholder)
+      if (configId && subreddit && subreddit !== '_system') {
+        console.log('[ARCHIVE-BUTTON] Logging manual archive', { subreddit, configId });
         await fetch('/api/reddit/bot-logs', {
           method: 'POST',
           headers: {
@@ -50,6 +53,7 @@ export default function LogArchiveButton({
             message: `Manual archive triggered${subreddit ? ` for r/${subreddit}` : ''}`,
           }),
         });
+      }
       } catch (logErr) {
         console.error('Failed to log manual archive action:', logErr);
       }

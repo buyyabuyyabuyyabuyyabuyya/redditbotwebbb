@@ -27,7 +27,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { configId } = await req.json();
+    const { configId, manual = false } = await req.json();
 
     // If configId is provided, archive logs only for that config
     // Otherwise, archive for all configs belonging to the user
@@ -77,13 +77,14 @@ export async function POST(req: Request) {
         continue;
       }
 
-      if (!count || count < 100) {
+      const minLogs = manual ? 1 : 100;
+      if (!count || count < minLogs) {
         // Skip if there are fewer than 100 logs
         results.push({
           configId: config.id,
           subreddit: config.subreddit,
           status: 'skipped',
-          reason: `Only ${count} logs found (minimum 100 required)`,
+          reason: `Only ${count} logs found (minimum ${minLogs} required)`, 
         });
         continue;
       }
@@ -273,6 +274,7 @@ export async function POST(req: Request) {
 
       // Record the manual archive action in bot_logs
       try {
+        console.log('[MANUAL-ARCHIVE] inserting bot_logs record', { subreddit: config.subreddit, configId: config.id });
         await supabaseAdmin.from('bot_logs').insert({
           user_id: userId,
           action: 'archive_manual',
