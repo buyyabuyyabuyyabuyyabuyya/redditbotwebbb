@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import { useUser } from '@clerk/nextjs';
 import { createClientSupabaseClient } from '../utils/supabase';
 
@@ -10,15 +11,15 @@ export function useUserPlan() {
   const [limit, setLimit] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const channelRef = useRef<RealtimeChannel | null>(null);
+
   useEffect(() => {
-    let supabaseSubscription: any = null;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
     async function fetchUserPlan() {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
       try {
         // Use the API endpoint instead of direct Supabase queries
         const token = await user?.getToken?.();
@@ -51,9 +52,9 @@ export function useUserPlan() {
 
       try {
         const supabase = createClientSupabaseClient();
-        if (supabaseSubscription) return; // prevent duplicate subscribe
+        if (channelRef.current) return; // prevent duplicate subscribe
         // Setup realtime subscription to sent_messages table
-        supabaseSubscription = supabase
+        channelRef.current = supabase
           .channel('message-count-changes')
           .on(
             'postgres_changes',
@@ -79,9 +80,10 @@ export function useUserPlan() {
 
     // Cleanup subscription when component unmounts
     return () => {
-      if (supabaseSubscription) {
+      if (channelRef.current) {
         const supabase = createClientSupabaseClient();
-        supabase.removeChannel(supabaseSubscription);
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
       }
     };
   }, [user]);
