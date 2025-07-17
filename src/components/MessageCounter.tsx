@@ -30,7 +30,7 @@ export default function MessageCounter({
     // Subscribe to real-time changes on the sent_messages table
     const supabase = createClientSupabaseClient();
 
-    const subscription = supabase
+    const channel = supabase
       .channel('message-counter')
       .on(
         'postgres_changes',
@@ -49,7 +49,7 @@ export default function MessageCounter({
 
     // Cleanup subscription when component unmounts
     return () => {
-      supabase.removeChannel(subscription);
+      channel.unsubscribe();
     };
   }, [userId]);
 
