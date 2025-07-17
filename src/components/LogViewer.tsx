@@ -180,14 +180,37 @@ export default function LogViewer({
 
     fetchLogs();
 
-    
-    
+    let intervalId: ReturnType<typeof setInterval> | null = null;
 
-    // Poll every 10 s but only while the user is in the detailed "View Logs" view (to avoid excess requests)
-    const interval = viewingDetailedLogs && currentPage === 1 ? setInterval(fetchLogs, 10_000) : null;
+    const startPolling = () => {
+      // Prevent multiple intervals
+      if (intervalId) clearInterval(intervalId);
+      intervalId = setInterval(fetchLogs, 10_000); // 10 s throttle
+    };
+
+    if (viewingDetailedLogs && currentPage === 1 && !document.hidden) {
+      startPolling();
+    }
+
+    const handleVisibility = () => {
+      if (document.hidden) {
+        if (intervalId) {
+          clearInterval(intervalId);
+          intervalId = null;
+        }
+      } else {
+        // Page became visible – resume polling if conditions still apply
+        if (!intervalId && viewingDetailedLogs && currentPage === 1) {
+          startPolling();
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
-      if (interval) clearInterval(interval);
+      if (intervalId) clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [
     userId,

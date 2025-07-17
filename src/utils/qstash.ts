@@ -33,7 +33,7 @@ export async function publishQStashMessage<T>(options: PublishOptions<T>) {
     throw new Error('QStash env vars not configured');
   }
 
-  const MAX_QSTASH_RETRIES = 5;
+  const MAX_QSTASH_RETRIES = 2;
   const { destination, body, delayMs, retries = MAX_QSTASH_RETRIES, headers: extraHeaders } = options;
   const retriesClamped = Math.min(retries, MAX_QSTASH_RETRIES);
 
@@ -90,7 +90,7 @@ export async function scheduleQStashMessage<T>(options: ScheduleOptions<T>) {
     throw new Error('QStash env vars not configured');
   }
 
-  const MAX_QSTASH_RETRIES_SCH = 5;
+  const MAX_QSTASH_RETRIES_SCH = 2;
   const { destination, body, delaySeconds, notBefore, retries = MAX_QSTASH_RETRIES_SCH, headers: extraHeaders } = options;
   const retriesClamped = Math.min(retries, MAX_QSTASH_RETRIES_SCH);
 
