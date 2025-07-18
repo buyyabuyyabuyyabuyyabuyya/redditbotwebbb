@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
+import { SignUpButton } from '@clerk/nextjs';
 
 const createSupabaseServerClient = () => {
   const cookieStore = cookies();
@@ -154,7 +155,7 @@ export default async function Pricing() {
                         /month
                       </span>
                     </p>
-                    {plan.cta === 'Current Plan' ? (
+                    {plan.name === 'Free' ? null : plan.cta === 'Current Plan' ? (
                       <button
                         type="button"
                         disabled
@@ -181,13 +182,13 @@ export default async function Pricing() {
                         {plan.cta}
                       </a>
                     ) : (
-                      <Link
-                        href="/api/stripe"
-                        className="mt-10 block w-full rounded-md bg-purple-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline-purple-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600"
-                      >
-                        {plan.cta}
-                      </Link>
+                      <SignUpButton mode="modal" afterSignUpUrl="/dashboard">
+                        <button className="mt-10 block w-full rounded-md bg-purple-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline-purple-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600">
+                          {plan.cta}
+                        </button>
+                      </SignUpButton>
                     )}
+                    
                     <p className="mt-6 text-xs leading-5 text-gray-300">
                       Invoices and receipts available for easy company
                       reimbursement
