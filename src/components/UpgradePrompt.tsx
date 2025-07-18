@@ -9,10 +9,11 @@ interface UpgradePromptProps {
 export default function UpgradePrompt({
   showDetails = false,
 }: UpgradePromptProps) {
-  const { plan, remaining, isProUser } = useUserPlan();
+  const { plan, remaining, isProUser, loading } = useUserPlan();
 
-  if (isProUser) {
-    return null; // Don't show anything for pro users
+  // Avoid showing banner until we know the plan for sure
+  if (loading || isProUser) {
+    return null;
   }
 
   return (
