@@ -1,6 +1,7 @@
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { RippleButton, Button3D } from '../components/ui/Button';
 import AuthButtons from '../components/AuthButtons';
 
@@ -18,10 +19,13 @@ export default async function Home() {
       {/* Hero section */}
       <div className="relative isolate px-6 pt-14 lg:px-8">
         <div className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
-          <div className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-purple-800 to-red-600 opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"></div>
+          <div className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-purple-800 to-red-600 opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]" />
         </div>
-        <div className="mx-auto max-w-2xl py-32 sm:py-48 lg:py-56">
-          <div className="text-center">
+        {/* subtle noise overlay */}
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-[url('/noise.png')] opacity-20 mix-blend-soft-light" />
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-16 py-32 sm:py-48 lg:flex-row lg:items-center lg:gap-24">
+          {/* Text area */}
+          <div className="flex-1 text-center lg:text-left">
             <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-red-500">
               Automate Your Reddit Outreach
             </h1>
@@ -30,10 +34,21 @@ export default async function Home() {
               Customize your messages, target specific subreddits, and track
               your results.
             </p>
-            {/* Button placeholder - will be replaced by client component */}
-            <div className="mt-10" id="auth-buttons-container">
+            {/* CTA buttons */}
+            <div className="mt-10 flex justify-center lg:justify-start" id="auth-buttons-container">
               <AuthButtons />
             </div>
+          </div>
+          {/* Image preview */}
+          <div className="flex-1 mt-12 lg:mt-0 hidden lg:block">
+            <Image
+              src="/dashboard-preview.png"
+              alt="Reddit Bot dashboard preview"
+              width={600}
+              height={400}
+              className="w-full rounded-xl shadow-2xl ring-1 ring-white/10"
+              priority
+            />
           </div>
         </div>
         <div className="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]">
@@ -54,7 +69,7 @@ export default async function Home() {
           </div>
           <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
             <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
-              <div className="flex flex-col bg-gray-700/50 p-6 rounded-xl backdrop-blur-lg border border-gray-600/30 shadow-lg transform hover:-translate-y-1 transition-all duration-300">
+              <div className="flex flex-col bg-gray-700/40 p-6 rounded-xl backdrop-blur-lg border border-gray-600/30 ring-1 ring-white/10 hover:ring-purple-500/40 shadow-lg transform hover:-translate-y-1 transition-all duration-300">
                 <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-purple-300">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -79,7 +94,7 @@ export default async function Home() {
                   </p>
                 </dd>
               </div>
-              <div className="flex flex-col bg-gray-700/50 p-6 rounded-xl backdrop-blur-lg border border-gray-600/30 shadow-lg transform hover:-translate-y-1 transition-all duration-300">
+              <div className="flex flex-col bg-gray-700/40 p-6 rounded-xl backdrop-blur-lg border border-gray-600/30 ring-1 ring-white/10 hover:ring-purple-500/40 shadow-lg transform hover:-translate-y-1 transition-all duration-300">
                 <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-purple-300">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -104,7 +119,7 @@ export default async function Home() {
                   </p>
                 </dd>
               </div>
-              <div className="flex flex-col bg-gray-700/50 p-6 rounded-xl backdrop-blur-lg border border-gray-600/30 shadow-lg transform hover:-translate-y-1 transition-all duration-300">
+              <div className="flex flex-col bg-gray-700/40 p-6 rounded-xl backdrop-blur-lg border border-gray-600/30 ring-1 ring-white/10 hover:ring-purple-500/40 shadow-lg transform hover:-translate-y-1 transition-all duration-300">
                 <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-purple-300">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -147,7 +162,7 @@ export default async function Home() {
               upgrade when you're ready.
             </p>
           </div>
-          <div className="mx-auto mt-16 max-w-2xl rounded-3xl border border-purple-500/20 shadow-lg shadow-purple-500/10 sm:mt-20 lg:mx-0 lg:flex lg:max-w-none overflow-hidden">
+          <div className="mx-auto mt-16 max-w-2xl rounded-3xl border border-purple-500/20 ring-1 ring-white/10 shadow-lg shadow-purple-500/10 sm:mt-20 lg:mx-0 lg:flex lg:max-w-none overflow-hidden">
             <div className="p-8 sm:p-10 lg:flex-auto bg-gray-800/70 backdrop-blur-sm">
               <h3 className="text-2xl font-bold tracking-tight text-white">
                 Pro Plan
