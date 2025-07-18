@@ -115,7 +115,7 @@ export default async function Pricing() {
                 {plan.description}
               </p>
               <div className="mt-10 flex items-center gap-x-4">
-                <h4 className="flex-none text-sm font-semibold leading-6 text-blue-600">
+                <h4 className="flex-none text-sm font-semibold leading-6 text-purple-400">
                   What's included
                 </h4>
                 <div className="h-px flex-auto bg-gray-100" />
@@ -127,7 +127,7 @@ export default async function Pricing() {
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex gap-x-3">
                     <svg
-                      className="h-6 w-5 flex-none text-blue-600"
+                      className="h-6 w-5 flex-none text-purple-400"
                       viewBox="0 0 20 20"
                       fill="currentColor"
                     >
@@ -168,7 +168,7 @@ export default async function Pricing() {
                         href="https://buy.stripe.com/test_9B6cN76L34NO5MoeYigYU00"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="mt-10 block w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                        className="mt-10 block w-full rounded-md bg-purple-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline-purple-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600"
                       >
                         {plan.cta}
                       </a>
@@ -177,14 +177,14 @@ export default async function Pricing() {
                         href="https://buy.stripe.com/test_5kQbJ3glD944b6I6rMgYU01"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="mt-10 block w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                        className="mt-10 block w-full rounded-md bg-purple-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline-purple-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600"
                       >
                         {plan.cta}
                       </a>
                     ) : (
                       <Link
                         href="/api/stripe"
-                        className="mt-10 block w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                        className="mt-10 block w-full rounded-md bg-purple-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline-purple-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600"
                       >
                         {plan.cta}
                       </Link>
