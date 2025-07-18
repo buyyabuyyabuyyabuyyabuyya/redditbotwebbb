@@ -88,12 +88,15 @@ export function useUserPlan() {
     };
   }, [user]);
 
+  // Consider any plan that is not explicitly 'free' or 'trialing' as a paid plan
+  const isProUser = plan !== 'free' && plan !== 'trialing' && plan !== null;
+
   return {
     plan,
     messageCount,
     limit,
     loading,
     remaining,
-    isProUser: plan === 'pro' || plan === 'advanced',
+    isProUser,
   };
 }
