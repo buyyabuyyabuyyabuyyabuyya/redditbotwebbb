@@ -105,7 +105,7 @@ export default async function Pricing() {
           {PLANS.map((plan, index) => (
             <div
               key={plan.name}
-              className={`p-8 sm:p-10 ${index === 1 ? 'lg:flex-auto' : ''}`}
+              className={`relative flex flex-col bg-gray-800/70 p-8 sm:p-10 rounded-2xl ring-1 ring-white/10 ${index === 1 ? 'lg:flex-auto' : ''}`}
             >
               <h3 className="text-2xl font-bold tracking-tight text-white">
                 {plan.name} Plan
@@ -140,8 +140,8 @@ export default async function Pricing() {
                   </li>
                 ))}
               </ul>
-              <div className="-mt-2 p-2 lg:mt-0 lg:w-full lg:max-w-md lg:flex-shrink-0">
-                <div className="rounded-2xl bg-gray-800/70 py-10 text-center ring-1 ring-inset ring-gray-900/5 lg:flex lg:flex-col lg:justify-center lg:py-16">
+              <div className="mt-10">
+                <div className="py-8 text-center lg:flex lg:flex-col lg:justify-center">
                   <div className="mx-auto max-w-xs px-8">
                     <p className="text-base font-semibold text-gray-300">
                       Monthly subscription
