@@ -16,6 +16,23 @@ export default async function Home() {
 
   return (
     <div className="bg-gray-900 text-white">
+      {/* Site navigation */}
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-gray-800 bg-gray-900/70 backdrop-blur-md">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+          <Link href="/" className="text-xl font-semibold tracking-tight text-white">
+            Reddit <span className="text-purple-400">Bot</span>
+          </Link>
+          <nav className="hidden md:flex gap-8 text-sm font-medium">
+            <a href="#features" className="hover:text-purple-300">Features</a>
+            <a href="#pricing" className="hover:text-purple-300">Pricing</a>
+            <a href="https://github.com/buyyabuyyabuyyabuyyabuyya/redditbotwebbb" target="_blank" rel="noopener" className="hover:text-purple-300">GitHub</a>
+          </nav>
+          <div className="flex gap-2">
+            <AuthButtons />
+          </div>
+        </div>
+      </header>
+      <main className="pt-28">
       {/* Hero section */}
       <div className="relative isolate px-6 pt-14 lg:px-8">
         <div className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
@@ -26,7 +43,7 @@ export default async function Home() {
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-16 py-32 sm:py-48 lg:flex-row lg:items-center lg:gap-24">
           {/* Text area */}
           <div className="flex-1 text-center lg:text-left">
-            <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-red-500">
+            <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight text-white bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-red-500">
               Automate Your Reddit Outreach
             </h1>
             <p className="mt-6 text-lg leading-8 text-gray-300">
@@ -303,6 +320,7 @@ export default async function Home() {
           </div>
         </div>
       </div>
+        </main>
     </div>
   );
 }
