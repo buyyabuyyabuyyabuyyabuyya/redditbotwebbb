@@ -10,15 +10,15 @@ interface PlanLimits {
 export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
   free: {
     maxAccounts: 1,
-    maxMessages: 15, // lifetime limit
-    maxTemplates: 1,
+    maxMessages: 50, // per calendar month
+    maxTemplates: 2,
     maxScanConfigs: 1,
   },
   pro: {
-    maxAccounts: 3,
-    maxMessages: 200, // per calendar month
-    maxTemplates: 3,
-    maxScanConfigs: 3,
+    maxAccounts: 5,
+    maxMessages: 1000, // per calendar month
+    maxTemplates: 10,
+    maxScanConfigs: 10,
   },
   advanced: {
     maxAccounts: null,

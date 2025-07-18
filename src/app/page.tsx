@@ -25,7 +25,7 @@ export default async function Home() {
           <nav className="hidden md:flex gap-8 text-sm font-medium">
             <a href="#features" className="hover:text-purple-300">Features</a>
             <a href="#pricing" className="hover:text-purple-300">Pricing</a>
-            <a href="https://github.com/buyyabuyyabuyyabuyyabuyya/redditbotwebbb" target="_blank" rel="noopener" className="hover:text-purple-300">GitHub</a>
+            
           </nav>
           <div className="flex gap-2">
             <AuthButtons />
@@ -74,7 +74,7 @@ export default async function Home() {
       </div>
 
       {/* Features section */}
-      <div className="bg-gray-800 py-24 sm:py-32">
+      <div id="features" className="bg-gray-800 py-24 sm:py-32 scroll-mt-28">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center">
             <h2 className="text-base font-semibold leading-7 text-purple-400">
@@ -161,13 +161,46 @@ export default async function Home() {
                   </p>
                 </dd>
               </div>
+              <div className="flex flex-col bg-gray-700/40 p-6 rounded-xl backdrop-blur-lg border border-gray-600/30 ring-1 ring-white/10 hover:ring-purple-500/40 shadow-lg transform hover:-translate-y-1 transition-all duration-300">
+                <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-purple-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h18M3 12h18M3 21h18" />
+                  </svg>
+                  AI-Powered Content Analysis
+                </dt>
+                <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
+                  <p className="flex-auto">Leverage natural-language processing to match keywords and sentiment for higher targeting accuracy.</p>
+                </dd>
+              </div>
+              <div className="flex flex-col bg-gray-700/40 p-6 rounded-xl backdrop-blur-lg border border-gray-600/30 ring-1 ring-white/10 hover:ring-purple-500/40 shadow-lg transform hover:-translate-y-1 transition-all duration-300">
+                <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-purple-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2" />
+                  </svg>
+                  Instant Subreddit Scan
+                </dt>
+                <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
+                  <p className="flex-auto">Trigger ad-hoc scans at any time to message fresh posts without waiting for the next schedule.</p>
+                </dd>
+              </div>
+              <div className="flex flex-col bg-gray-700/40 p-6 rounded-xl backdrop-blur-lg border border-gray-600/30 ring-1 ring-white/10 hover:ring-purple-500/40 shadow-lg transform hover:-translate-y-1 transition-all duration-300">
+                <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-purple-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2a4 4 0 118 0v2" />
+                  </svg>
+                  Bot-Specific Log Viewer
+                </dt>
+                <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
+                  <p className="flex-auto">Debug and monitor each bot with live logs directly from your dashboard.</p>
+                </dd>
+              </div>
             </dl>
           </div>
         </div>
       </div>
 
       {/* Pricing section */}
-      <div className="bg-gray-900 py-24 sm:py-32 relative overflow-hidden">
+      <div id="pricing" className="bg-gray-900 py-24 sm:py-32 relative overflow-hidden scroll-mt-28">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,#4c1d95,transparent_65%)]"></div>
         <div className="mx-auto max-w-7xl px-6 lg:px-8 relative z-10">
           <div className="mx-auto max-w-2xl sm:text-center">

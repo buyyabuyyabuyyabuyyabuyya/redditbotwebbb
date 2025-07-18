@@ -24,7 +24,7 @@ export default function AuthButtons({ pricing = false }: AuthButtonsProps) {
       <SignUpButton mode="modal" afterSignUpUrl="/dashboard">
         <Button3D>Get started</Button3D>
       </SignUpButton>
-      <Link href="/pricing">
+      <Link href="#pricing">
         <RippleButton variant="secondary">View pricing</RippleButton>
       </Link>
     </div>
