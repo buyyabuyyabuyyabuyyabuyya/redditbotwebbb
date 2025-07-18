@@ -34,13 +34,13 @@ export default async function Home() {
       </header>
       <main className="pt-28">
       {/* Hero section */}
-      <div className="relative isolate px-6 pt-14 lg:px-8">
+      <div className="relative isolate px-6 pt-4 lg:px-8">
         <div className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
           <div className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-purple-800 to-red-600 opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]" />
         </div>
         {/* subtle noise overlay */}
         <div className="pointer-events-none absolute inset-0 -z-10 bg-[url('/noise.png')] opacity-20 mix-blend-soft-light" />
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-16 py-32 sm:py-48 lg:flex-row lg:items-center lg:gap-24">
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-16 py-20 sm:py-32 lg:flex-row lg:items-center lg:gap-24">
           {/* Text area */}
           <div className="flex-1 text-center lg:text-left">
             <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight text-white bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-red-500">
@@ -212,7 +212,61 @@ export default async function Home() {
               upgrade when you're ready.
             </p>
           </div>
-          <div className="mx-auto mt-16 max-w-2xl rounded-3xl border border-purple-500/20 ring-1 ring-white/10 shadow-lg shadow-purple-500/10 sm:mt-20 lg:mx-0 lg:flex lg:max-w-none overflow-hidden">
+          {/* Three-plan grid */}
+<div className="mx-auto mt-16 max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-8 sm:mt-20">
+  {/* Free Plan */}
+  <div className="flex flex-col bg-gray-800/70 p-8 rounded-2xl ring-1 ring-white/10 backdrop-blur-sm">
+    <h3 className="text-2xl font-bold tracking-tight text-white">Free Plan</h3>
+    <p className="mt-4 text-sm leading-7 text-gray-300">Perfect for getting started</p>
+    <ul className="mt-6 space-y-2 text-sm leading-6 text-gray-300 list-disc list-inside">
+      <li>1 Reddit account</li>
+      <li>50 messages/month</li>
+      <li>2 templates</li>
+      <li>1 scan config</li>
+      <li>Basic analytics</li>
+    </ul>
+    <p className="mt-8 text-4xl font-bold text-white">$0</p>
+    <div className="mt-auto pt-6">
+      <AuthButtons pricing />
+    </div>
+  </div>
+  {/* Pro Plan */}
+  <div className="flex flex-col bg-gray-800/70 p-8 rounded-2xl ring-1 ring-white/10 backdrop-blur-sm">
+    <h3 className="text-2xl font-bold tracking-tight text-white">Pro Plan</h3>
+    <p className="mt-4 text-sm leading-7 text-gray-300">For serious outreach</p>
+    <ul className="mt-6 space-y-2 text-sm leading-6 text-gray-300 list-disc list-inside">
+      <li>5 Reddit accounts</li>
+      <li>1000 messages/month</li>
+      <li>10 templates</li>
+      <li>10 scan configs</li>
+      <li>Advanced analytics</li>
+      <li>Priority support</li>
+    </ul>
+    <p className="mt-8 text-4xl font-bold text-white">$7.99</p>
+    <div className="mt-auto pt-6">
+      <AuthButtons pricing />
+    </div>
+  </div>
+  {/* Advanced Plan */}
+  <div className="flex flex-col bg-gray-800/70 p-8 rounded-2xl ring-1 ring-white/10 backdrop-blur-sm">
+    <h3 className="text-2xl font-bold tracking-tight text-white">Advanced Plan</h3>
+    <p className="mt-4 text-sm leading-7 text-gray-300">Unlimited capabilities</p>
+    <ul className="mt-6 space-y-2 text-sm leading-6 text-gray-300 list-disc list-inside">
+      <li>Unlimited accounts</li>
+      <li>Unlimited messages</li>
+      <li>Unlimited templates</li>
+      <li>Unlimited scan configs</li>
+      <li>AI message optimization</li>
+      <li>24/7 premium support</li>
+    </ul>
+    <p className="mt-8 text-4xl font-bold text-white">$13.99</p>
+    <div className="mt-auto pt-6">
+      <AuthButtons pricing />
+    </div>
+  </div>
+</div>
+
+<div className="mx-auto mt-16 max-w-2xl hidden">
             <div className="p-8 sm:p-10 lg:flex-auto bg-gray-800/70 backdrop-blur-sm">
               <h3 className="text-2xl font-bold tracking-tight text-white">
                 Pro Plan
