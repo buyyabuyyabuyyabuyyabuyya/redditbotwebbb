@@ -27,15 +27,79 @@ export async function POST(req: Request) {
       const selectedPlan = plan === 'advanced' ? 'advanced' : 'pro';
       const priceId = selectedPlan === 'advanced' ? ADVANCED_PRICE_ID : PRO_PRICE_ID;
 
-      // Fetch user email/phone/name from DB (if stored)
-      const { data: userRow } = await supabase
+      // Fetch user info (email + any saved stripe_customer_id)
+      const { data: userRow, error: userErr } = await supabase
         .from('users')
-        .select('email')
+        .select('email, stripe_customer_id')
         .eq('user_id', userId)
         .single();
-      const customerEmail = userRow?.email || undefined;
 
-      // Create Stripe checkout session using predefined Price ID
+      if (userErr) {
+        console.error('Error fetching user row:', userErr);
+      }
+
+      const customerEmail = userRow?.email || undefined;
+      let customerId = userRow?.stripe_customer_id || undefined;
+
+      // If we don't have a customer ID stored, try to look it up in Stripe via email
+      if (!customerId && customerEmail) {
+        try {
+          const search = await stripe.customers.search({
+            query: `email:\"${customerEmail}\"`,
+          });
+          if (search.data.length) {
+            customerId = search.data[0].id;
+            // Persist for later use
+            await supabase
+              .from('users')
+              .update({ stripe_customer_id: customerId })
+              .eq('user_id', userId);
+          }
+        } catch (err) {
+          console.error('Stripe customer search failed', err);
+        }
+      }
+
+      // If a customer exists, check for active subscription to upgrade
+      if (customerId) {
+        const subs = await stripe.subscriptions.list({
+          customer: customerId,
+          status: 'active',
+          limit: 1,
+        });
+
+        if (subs.data.length) {
+          const currentSub = subs.data[0];
+          const currentItem = currentSub.items.data[0];
+
+          // If the subscription is already on the desired price, no action needed
+          if (currentItem.price.id === priceId) {
+            return NextResponse.json({ upgraded: false, message: 'Already on desired plan' });
+          }
+
+          // Otherwise, update the subscription in-place (prorated)
+          await stripe.subscriptions.update(currentSub.id, {
+            proration_behavior: 'create_prorations',
+            cancel_at_period_end: false,
+            items: [
+              {
+                id: currentItem.id,
+                price: priceId,
+              },
+            ],
+          });
+
+          // Reflect new status in Supabase immediately (webhook will also do it)
+          await supabase
+            .from('users')
+            .update({ subscription_status: selectedPlan })
+            .eq('user_id', userId);
+
+          return NextResponse.json({ upgraded: true });
+        }
+      }
+
+      // No active subscription -> create a new checkout session
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         line_items: [
@@ -47,10 +111,10 @@ export async function POST(req: Request) {
         mode: 'subscription',
         success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
         cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?canceled=true`,
-        client_reference_id: userId, // still set for redundancy
-        customer_creation: 'always',
+        client_reference_id: userId,
+        customer: customerId, // reuse existing customer if we have one
+        customer_creation: customerId ? 'if_required' : 'always',
         customer_email: customerEmail,
-        // Auto-prefill customer data
         customer_update: {
           name: 'auto',
           address: 'auto',
