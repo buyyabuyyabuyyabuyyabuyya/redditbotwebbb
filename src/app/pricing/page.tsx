@@ -48,7 +48,7 @@ export default async function Pricing() {
       description: 'Perfect for getting started',
       features: [
         '1 Reddit account',
-        '50 message limit (monthly)',
+        '15 message limit',
         '2 templates',
         '1 scan config',
         'Basic analytics',
@@ -61,10 +61,10 @@ export default async function Pricing() {
       price: '$7.99',
       description: 'For serious outreach',
       features: [
-        '5 Reddit accounts',
-        '1000 messages/month',
-        '10 templates',
-        '10 scan configs',
+        '3 Reddit accounts',
+        '200 messages/month',
+        '3 templates',
+        '3 scan configs',
         'Advanced analytics',
         'Priority support',
       ],
@@ -80,7 +80,6 @@ export default async function Pricing() {
         'Unlimited messages',
         'Unlimited templates',
         'Unlimited scan configs',
-        'AI message optimization',
         '24/7 premium support',
       ],
       cta:

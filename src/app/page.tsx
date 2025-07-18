@@ -218,7 +218,7 @@ export default async function Home() {
                 <h3 className="text-2xl font-bold tracking-tight text-white">Free Plan</h3>
                 <p className="mt-4 text-base leading-7 text-gray-300">Perfect for getting started</p>
                 <ul className="mt-8 space-y-3 text-sm leading-6 text-gray-300">
-                  {['1 Reddit account','50 message limit (monthly)','2 templates','1 scan config','Basic analytics'].map(item => (
+                  {['1 Reddit account','15 message limit (one-time)','1 templates','1 scan config','Basic analytics'].map(item => (
                     <li key={item} className="flex gap-x-3">
                       <svg className="h-6 w-5 flex-none text-purple-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>{item}
                     </li>
@@ -233,7 +233,7 @@ export default async function Home() {
                 <h3 className="text-2xl font-bold tracking-tight text-white">Pro Plan</h3>
                 <p className="mt-4 text-base leading-7 text-gray-300">For serious outreach</p>
                 <ul className="mt-8 space-y-3 text-sm leading-6 text-gray-300">
-                  {['5 Reddit accounts','1000 messages/month','10 templates','10 scan configs','Advanced analytics','Priority support'].map(item => (
+                  {['3 Reddit accounts','200 messages/month','3 templates','3 scan configs','Advanced analytics','Priority support'].map(item => (
                     <li key={item} className="flex gap-x-3">
                       <svg className="h-6 w-5 flex-none text-purple-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>{item}
                     </li>
