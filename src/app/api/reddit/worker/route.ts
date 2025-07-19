@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '../../../../utils/supabase-server';
-import { deleteExpiredArchives } from '../auto-archive-helper';
+
 
 // Using the imported createServerSupabaseClient function
 
@@ -64,8 +64,7 @@ export async function GET() {
     });
 
     // Check for logs that need archiving for each user and their configs
-    // Clean up expired archives (older than 60 minutes) once per worker invocation
-    await deleteExpiredArchives(supabase, 60);
+    // Archive cleanup is now handled individually via QStash scheduling
 
     console.log('========== PROACTIVE LOG ARCHIVAL CHECK ==========');
     console.log(
