@@ -106,7 +106,7 @@ export default function CreateMessageTemplate({
   };
 
   return (
-    <div className="flex gap-4 max-w-7xl mx-auto">
+    <div className="flex gap-4 w-full">
       {/* Template Suggestions - Left Side */}
       {!isEditing && (
         <div className="w-72 bg-gray-800 shadow sm:rounded-lg border border-gray-700 shrink-0">
