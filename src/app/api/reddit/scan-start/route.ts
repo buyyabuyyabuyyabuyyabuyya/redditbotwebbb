@@ -201,7 +201,7 @@ export async function POST(req: Request) {
       config.subreddit
     );
 
-    // Fetch Reddit account creds
+    // Fetch Reddit account creds (skip banned accounts)
     const { data: account } = await supabaseAdmin
       .from('reddit_accounts')
       .select('*')
@@ -211,6 +211,12 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { error: 'Reddit account not found' },
         { status: 400 }
+      );
+    }
+    if (account.status === 'banned') {
+      return NextResponse.json(
+        { error: 'Reddit account is banned and cannot be used' },
+        { status: 403 }
       );
     }
 

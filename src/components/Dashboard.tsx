@@ -21,6 +21,8 @@ interface RedditAccount {
   id: string;
   username: string;
   is_validated: boolean | null;
+  status?: string;
+  banned_at?: string;
 }
 
 interface MessageTemplate {
@@ -465,11 +467,20 @@ export default function Dashboard() {
                         className="flex items-center justify-between p-4 border border-gray-700/50 rounded-lg bg-gray-800/30 backdrop-blur-sm mb-4 hover:bg-gray-800/50 transition-colors"
                       >
                         <div className="flex items-center space-x-3">
-                          <span className="text-white font-medium">{account.username}</span>
-                          {account.is_validated ? (
+                          <span className={`font-medium ${
+                            account.status === 'banned' ? 'text-red-400 line-through' : 'text-white'
+                          }`}>
+                            {account.username}
+                          </span>
+                          {account.status === 'banned' ? (
+                            <div className="flex items-center space-x-1">
+                              <XCircleIcon className="h-5 w-5 text-red-500" />
+                              <span className="text-xs text-red-400">BANNED</span>
+                            </div>
+                          ) : account.is_validated ? (
                             <CheckCircleIcon className="h-5 w-5 text-green-500" />
                           ) : (
-                            <XCircleIcon className="h-5 w-5 text-red-500" />
+                            <XCircleIcon className="h-5 w-5 text-yellow-500" />
                           )}
                         </div>
                         <div className="flex items-center space-x-2">

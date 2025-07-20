@@ -28,11 +28,12 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       process.env.SUPABASE_SERVICE_ROLE_KEY || ''
     );
 
-    // Fetch Reddit account(s)
+    // Fetch Reddit account(s) that are not banned
     const { data: accounts, error: accErr } = await supabase
       .from('reddit_accounts')
       .select('*')
       .eq('user_id', userId)
+      .neq('status', 'banned') // Skip banned accounts
       .order('created_at');
     if (accErr) {
       console.error('process-inbox supabase error', accErr);
@@ -55,7 +56,42 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       });
 
       // Fetch unread messages (max 50 per account)
-      const unread = await reddit.getUnreadMessages({ limit: 50 });
+      let unread;
+      try {
+        unread = await reddit.getUnreadMessages({ limit: 50 });
+      } catch (redditError: any) {
+        // Check if this is a banned/suspended account error
+        const errorMsg = redditError?.message || String(redditError);
+        const isBannedError = errorMsg.includes('USER_REQUIRED') || 
+                             errorMsg.includes('SUBREDDIT_REQUIRED') ||
+                             errorMsg.includes('403') ||
+                             errorMsg.includes('suspended') ||
+                             errorMsg.includes('banned');
+        
+        if (isBannedError) {
+          console.log(`Account ${account.username} appears to be banned/suspended, marking as banned`);
+          
+          // Mark account as banned
+          await supabase
+            .from('reddit_accounts')
+            .update({ status: 'banned', banned_at: new Date().toISOString() })
+            .eq('id', account.id);
+          
+          // Log the ban
+          await supabase.from('bot_logs').insert({
+            user_id: userId,
+            action: 'account_banned',
+            subreddit: '_system',
+            status: 'error',
+            error_message: `Reddit account ${account.username} marked as banned: ${errorMsg.slice(0, 200)}`,
+          });
+          
+          continue; // Skip this account
+        }
+        
+        // If it's not a ban error, re-throw
+        throw redditError;
+      }
       for (const msg of unread) {
         const body = (msg.body || '').trim().toLowerCase();
         const isOptOut = ['stop', 'unsubscribe', 'optout', 'opt out'].some((kw) => body.includes(kw));
@@ -98,8 +134,22 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
     }
 
     return NextResponse.json({ processed });
-  } catch (err) {
+  } catch (err: any) {
     console.error('process-inbox error', err);
+    
+    // Check if this is a general authentication/ban error affecting all accounts
+    const errorMsg = err?.message || String(err);
+    const isBannedError = errorMsg.includes('USER_REQUIRED') || 
+                         errorMsg.includes('SUBREDDIT_REQUIRED') ||
+                         errorMsg.includes('403') ||
+                         errorMsg.includes('suspended') ||
+                         errorMsg.includes('banned');
+    
+    if (isBannedError) {
+      // This might be a general auth issue, but we've already handled individual account bans above
+      return NextResponse.json({ error: 'Authentication error - accounts may be banned' }, { status: 403 });
+    }
+    
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 });
