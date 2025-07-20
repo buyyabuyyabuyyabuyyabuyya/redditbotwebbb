@@ -1,5 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { publishQStashMessage } from '../../../utils/qstash';
+import { publishQStashMessage } from '../../../../utils/qstash';
 
 /**
  * Checks if a configuration has more than 100 logs and triggers archival if needed

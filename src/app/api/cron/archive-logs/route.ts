@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { publishQStashMessage } from '../../../utils/qstash';
+import { publishQStashMessage } from '../../../../utils/qstash';
 
 // Create a Supabase admin client with service role key for bypassing RLS
 const supabaseAdmin = createClient(
