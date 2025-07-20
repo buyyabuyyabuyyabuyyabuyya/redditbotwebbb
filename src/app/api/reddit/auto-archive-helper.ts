@@ -194,20 +194,8 @@ export async function checkAndArchiveLogs(
         throw new Error(`Failed to record archive: ${archiveError.message}`);
       }
 
-      // Schedule cleanup of this archive in 1 hour using QStash
-      try {
-        const { publishQStashMessage } = await import('../../../../utils/qstash');
-        await publishQStashMessage({
-          destination: `${process.env.NEXT_PUBLIC_APP_URL}/api/cron/cleanup-archives`,
-          body: { archiveId: archiveRecord?.[0]?.id },
-          delayMs: 60 * 60 * 1000, // 1 hour delay
-          retries: 2,
-        });
-        console.log(`Scheduled cleanup for archive ${archiveRecord?.[0]?.id} in 1 hour`);
-      } catch (qstashError) {
-        console.error('Failed to schedule archive cleanup:', qstashError);
-        // Don't fail the whole operation if scheduling fails
-      }
+      // Note: Archive cleanup scheduling is handled by the cron job that calls this function
+      // Individual cleanup scheduling removed to avoid build issues with dynamic imports
 
       // Filter logs to exclude those with action type 'start_bot' or 'start_scan' from deletion
       const logsToDelete = logs.filter(
