@@ -240,7 +240,7 @@ export async function GET(req: Request) {
 
         // Schedule cleanup of this archive in 1 hour using QStash
         try {
-          const { publishQStashMessage } = await import('../../../../utils/qstash');
+          const { publishQStashMessage } = await import('../../../utils/qstash');
           await publishQStashMessage({
             destination: `${process.env.NEXT_PUBLIC_APP_URL}/api/cron/cleanup-archives`,
             body: { archiveId: archiveRecord?.[0]?.id },
