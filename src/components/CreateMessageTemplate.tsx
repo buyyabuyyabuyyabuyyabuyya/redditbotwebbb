@@ -30,6 +30,26 @@ export default function CreateMessageTemplate({
   const [error, setError] = useState<string | null>(null);
   const isEditing = !!existingTemplate;
 
+  // Pre-made template suggestions
+  const templateSuggestions = [
+    {
+      name: "Developer Outreach",
+      content: `Hi {username},\n\nI noticed your project in r/{subreddit}. It looks interesting! I'm the owner of DevAppShowcase.com, a platform where developers can list their apps to get valuable feedback and increase visibility.\n\nWould you be interested in listing your project? It's COMPLETELY FREE and only takes a few minutes to set up. No hidden fees - 100% free!\n\nFeel free to check out the site at https://www.devappshowcase.com/\n\nBest regards!`,
+      ai_prompt: "Check if the post is discussing an app, project, or website that the user has created or is promoting."
+    },
+    {
+      name: "Service Promotion",
+      content: `Hello {username},\n\nI saw your post about {post_title} in r/{subreddit} and thought you might be interested in our service.\n\nWe help people like you achieve better results with [your service/product]. Many of our clients have seen significant improvements in just a few weeks.\n\nIf you're interested, feel free to reach out or check out our website for more information.\n\nThanks for your time!`,
+      ai_prompt: "Check if the post is asking for help, advice, or discussing challenges that our service could solve."
+    }
+  ];
+
+  const handlePickTemplate = (template: typeof templateSuggestions[0]) => {
+    setName(template.name);
+    setContent(template.content);
+    setAiPrompt(template.ai_prompt);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -86,14 +106,44 @@ export default function CreateMessageTemplate({
   };
 
   return (
-    <div className="bg-gray-800 shadow sm:rounded-lg border border-gray-700">
-      <div className="px-4 py-5 sm:p-6">
-        <h3 className="text-lg font-medium leading-6 text-white">
-          {isEditing ? 'Edit' : 'Create'} Message Template
-        </h3>
-        <div className="mt-2 max-w-xl text-sm text-gray-300">
-          <p>Create a reusable message template for your Reddit outreach.</p>
+    <div className="flex gap-6">
+      {/* Template Suggestions - Left Side */}
+      {!isEditing && (
+        <div className="w-80 bg-gray-800 shadow sm:rounded-lg border border-gray-700">
+          <div className="px-4 py-5 sm:p-6">
+            <h3 className="text-lg font-medium leading-6 text-white mb-4">
+              Template Ideas
+            </h3>
+            <div className="space-y-4">
+              {templateSuggestions.map((template, index) => (
+                <div key={index} className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                  <h4 className="font-semibold text-white mb-2">{template.name}</h4>
+                  <p className="text-sm text-gray-300 mb-3 line-clamp-4">
+                    {template.content.substring(0, 150)}...
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => handlePickTemplate(template)}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
+                  >
+                    Use This Template
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
+      )}
+
+      {/* Main Form */}
+      <div className="flex-1 bg-gray-800 shadow sm:rounded-lg border border-gray-700">
+        <div className="px-4 py-5 sm:p-6">
+          <h3 className="text-lg font-medium leading-6 text-white">
+            {isEditing ? 'Edit' : 'Create'} Message Template
+          </h3>
+          <div className="mt-2 max-w-xl text-sm text-gray-300">
+            <p>Create a reusable message template for your Reddit outreach.</p>
+          </div>
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           <div>
             <label
@@ -214,6 +264,7 @@ export default function CreateMessageTemplate({
             </RippleButton>
           </div>
         </form>
+        </div>
       </div>
     </div>
   );
