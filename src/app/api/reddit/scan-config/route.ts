@@ -110,6 +110,30 @@ export async function POST(req: Request) {
       );
     }
 
+    // Check if the selected Reddit account is banned
+    const { data: accountCheck, error: accountError } = await supabaseAdmin
+      .from('reddit_accounts')
+      .select('status, username')
+      .eq('id', redditAccountId)
+      .single();
+    
+    if (accountError) {
+      return NextResponse.json(
+        { error: 'Reddit account not found' },
+        { status: 400 }
+      );
+    }
+    
+    if (accountCheck.status === 'banned') {
+      return NextResponse.json(
+        { 
+          error: `Cannot create scan config: Reddit account "${accountCheck.username}" is banned/suspended. Please use a different account or contact support.`,
+          banned: true 
+        },
+        { status: 403 }
+      );
+    }
+
     // Now insert the scan config
     const { data, error } = await supabaseAdmin
       .from('scan_configs')
