@@ -1,8 +1,7 @@
-"use client";
-
-import { useState } from "react";
-import { useUser } from "@clerk/nextjs";
-import { toast } from "sonner";
+import { useState } from 'react';
+import { createClientSupabaseClient } from '../utils/supabase';
+import { RippleButton } from './ui/Button';
+import { InfoCircleIcon } from './ui/Icons';
 
 export default function CreateMessageTemplate() {
   const { user } = useUser();
