@@ -1,4 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
+import { publishQStashMessage } from '../../../utils/qstash';
 
 /**
  * Checks if a configuration has more than 100 logs and triggers archival if needed
@@ -196,7 +197,6 @@ export async function checkAndArchiveLogs(
 
       // Schedule cleanup of this archive in 1 hour using QStash
       try {
-        const { publishQStashMessage } = await import('../../../utils/qstash');
         await publishQStashMessage({
           destination: `${process.env.NEXT_PUBLIC_APP_URL}/api/cron/cleanup-archives`,
           body: { archiveId: archiveRecord?.[0]?.id },
