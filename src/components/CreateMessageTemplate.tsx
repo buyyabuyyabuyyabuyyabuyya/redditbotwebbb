@@ -106,30 +106,30 @@ export default function CreateMessageTemplate({
   };
 
   return (
-    <div className="flex gap-6">
+    <div className="flex gap-4 max-w-7xl mx-auto">
       {/* Template Suggestions - Left Side */}
       {!isEditing && (
-        <div className="w-80 bg-gray-800 shadow sm:rounded-lg border border-gray-700">
+        <div className="w-72 bg-gray-800 shadow sm:rounded-lg border border-gray-700 shrink-0">
           <div className="px-4 py-5 sm:p-6">
             <h3 className="text-lg font-medium leading-6 text-white mb-4">
               Template Ideas
             </h3>
-            <div className="space-y-4">
+            <div className="space-y-3">
               {templateSuggestions.map((template, index) => (
-                <div key={index} className="bg-gray-700 rounded-lg p-4 border border-gray-600">
-                  <h4 className="font-semibold text-white mb-2">{template.name}</h4>
-                  <p className="text-sm text-gray-300 mb-3 line-clamp-4">
-                    {template.content.substring(0, 150)}...
+                <div key={index} className="bg-gray-700 rounded-lg p-3 border border-gray-600">
+                  <h4 className="font-medium text-white mb-2 text-sm">{template.name}</h4>
+                  <p className="text-xs text-gray-300 mb-3 leading-relaxed">
+                    {template.content.substring(0, 120)}...
                   </p>
                   <button
                     type="button"
                     onClick={() => handlePickTemplate(template)}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1.5 px-3 rounded-md transition-colors"
                   >
                     Use This Template
                   </button>
                 </div>
-              ))}
+              ))
             </div>
           </div>
         </div>
