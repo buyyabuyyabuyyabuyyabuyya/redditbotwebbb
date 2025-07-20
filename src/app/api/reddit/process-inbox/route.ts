@@ -45,79 +45,91 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
     }
 
     let processed = 0;
+    let accountErrors = [];
+    
     for (const account of accounts) {
       if (accountId && account.id !== accountId) continue; // if specific account requested
-      const reddit = new snoowrap({
-        userAgent: 'Reddit Bot SaaS - inbox processor',
-        clientId: account.client_id,
-        clientSecret: account.client_secret,
-        username: account.username,
-        password: account.password,
-      });
-
-      // Fetch unread messages (max 50 per account)
-      let unread;
+      
       try {
-        unread = await reddit.getUnreadMessages({ limit: 50 });
-      } catch (redditError: any) {
-        // Check if this is a banned/suspended account error
-        const errorMsg = redditError?.message || String(redditError);
-        const isBannedError = errorMsg.includes('USER_REQUIRED') || 
-                             errorMsg.includes('SUBREDDIT_REQUIRED') ||
-                             errorMsg.includes('403') ||
-                             errorMsg.includes('suspended') ||
-                             errorMsg.includes('banned');
-        
-        if (isBannedError) {
-          console.log(`Account ${account.username} appears to be banned/suspended, marking as banned`);
+        const reddit = new snoowrap({
+          userAgent: 'Reddit Bot SaaS - inbox processor',
+          clientId: account.client_id,
+          clientSecret: account.client_secret,
+          username: account.username,
+          password: account.password,
+        });
+
+        // Fetch unread messages (max 50 per account)
+        let unread;
+        try {
+          unread = await reddit.getUnreadMessages({ limit: 50 });
+        } catch (redditError: any) {
+          // Check if this is a banned/suspended account error
+          const errorMsg = redditError?.message || String(redditError);
+          const isBannedError = errorMsg.includes('USER_REQUIRED') || 
+                               errorMsg.includes('SUBREDDIT_REQUIRED') ||
+                               errorMsg.includes('403') ||
+                               errorMsg.includes('suspended') ||
+                               errorMsg.includes('banned');
           
-          // Mark account as banned
-          await supabase
-            .from('reddit_accounts')
-            .update({ status: 'banned', banned_at: new Date().toISOString() })
-            .eq('id', account.id);
-          
-          // Log the ban
-          await supabase.from('bot_logs').insert({
-            user_id: userId,
-            action: 'account_banned',
-            subreddit: '_system',
-            status: 'error',
-            error_message: `Reddit account ${account.username} marked as banned: ${errorMsg.slice(0, 200)}`,
-          });
-          
-          continue; // Skip this account
-        }
-        
-        // If it's not a ban error, re-throw
-        throw redditError;
-      }
-      for (const msg of unread) {
-        const body = (msg.body || '').trim().toLowerCase();
-        const isOptOut = ['stop', 'unsubscribe', 'optout', 'opt out'].some((kw) => body.includes(kw));
-        if (isOptOut) {
-          const { error: insertErr } = await supabase
-            .from('opt_outs')
-            .insert({ id: crypto.randomUUID(), user_id: userId, recipient: msg.author.name.toLowerCase() }, { ignoreDuplicates: true });
-          if (insertErr) {
-            console.error('opt_outs insert error', insertErr);
-            // fire-and-forget diagnostic log, ignore failure
-            const logRes = await supabase.from('bot_logs').insert({
+          if (isBannedError) {
+            console.log(`Account ${account.username} (ID: ${account.id}) appears to be banned/suspended, marking as banned`);
+            
+            // Mark account as banned
+            await supabase
+              .from('reddit_accounts')
+              .update({ status: 'banned', banned_at: new Date().toISOString() })
+              .eq('id', account.id);
+            
+            // Log the ban
+            await supabase.from('bot_logs').insert({
               user_id: userId,
-              action: 'opt_out_insert_error',
+              action: 'account_banned',
               subreddit: '_system',
               status: 'error',
-              error_message: insertErr.message?.slice(0, 250) || 'insert error',
+              error_message: `Reddit account ${account.username} (ID: ${account.id}) marked as banned: ${errorMsg.slice(0, 200)}`,
             });
-            if (logRes.error) {
-              console.error('bot_logs insert error', logRes.error);
-            }
-          } else {
-            processed += 1;
-            console.log(`Recorded opt-out from ${msg.author.name}`);
+            
+            accountErrors.push({ accountId: account.id, username: account.username, error: 'banned' });
+            continue; // Skip this account but continue with others
           }
+          
+          // If it's not a ban error, log it but don't fail the whole process
+          console.error(`Non-ban error for account ${account.username}:`, redditError);
+          accountErrors.push({ accountId: account.id, username: account.username, error: errorMsg });
+          continue;
         }
-        try { await msg.markAsRead(); } catch {}
+        for (const msg of unread) {
+          const body = (msg.body || '').trim().toLowerCase();
+          const isOptOut = ['stop', 'unsubscribe', 'optout', 'opt out'].some((kw) => body.includes(kw));
+          if (isOptOut) {
+            const { error: insertErr } = await supabase
+              .from('opt_outs')
+              .insert({ id: crypto.randomUUID(), user_id: userId, recipient: msg.author.name.toLowerCase() }, { ignoreDuplicates: true });
+            if (insertErr) {
+              console.error('opt_outs insert error', insertErr);
+              // fire-and-forget diagnostic log, ignore failure
+              const logRes = await supabase.from('bot_logs').insert({
+                user_id: userId,
+                action: 'opt_out_insert_error',
+                subreddit: '_system',
+                status: 'error',
+                error_message: insertErr.message?.slice(0, 250) || 'insert error',
+              });
+              if (logRes.error) {
+                console.error('bot_logs insert error', logRes.error);
+              }
+            } else {
+              processed += 1;
+              console.log(`Recorded opt-out from ${msg.author.name} via account ${account.username}`);
+            }
+          }
+          try { await msg.markAsRead(); } catch {}
+        }
+      } catch (accountError) {
+        // Log account-specific errors but don't fail the whole process
+        console.error(`Error processing account ${account.username}:`, accountError);
+        accountErrors.push({ accountId: account.id, username: account.username, error: String(accountError) });
       }
     }
 
@@ -133,7 +145,14 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       });
     }
 
-    return NextResponse.json({ processed });
+    // Return success even if some accounts had errors
+    const result: any = { processed };
+    if (accountErrors.length > 0) {
+      result.accountErrors = accountErrors;
+      result.message = `Processed ${processed} opt-outs, ${accountErrors.length} accounts had errors`;
+    }
+    
+    return NextResponse.json(result);
   } catch (err: any) {
     console.error('process-inbox error', err);
     
