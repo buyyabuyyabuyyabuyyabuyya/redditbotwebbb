@@ -34,7 +34,7 @@ export default function CreateMessageTemplate({
   const templateSuggestions = [
     {
       name: "Developer Outreach",
-      content: `Hi {username},\n\nI noticed your project in r/{subreddit}. It looks interesting! I'm the owner of DevAppShowcase.com, a platform where developers can list their apps to get valuable feedback and increase visibility.\n\nWould you be interested in listing your project? It's COMPLETELY FREE and only takes a few minutes to set up. No hidden fees - 100% free!\n\nFeel free to check out the site at https://www.devappshowcase.com/\n\nBest regards!`,
+      content: `Hi {username},\n\nI noticed your post about {post_title} in r/{subreddit}. Great work on your project!\n\nI wanted to reach out because I think there might be some opportunities for collaboration or ways I could help with your development journey.\n\nIf you're interested in connecting or discussing your project further, feel free to reach out. Always happy to chat with fellow developers!\n\nBest regards!`,
       ai_prompt: "Check if the post is discussing an app, project, or website that the user has created or is promoting."
     },
     {
@@ -106,25 +106,25 @@ export default function CreateMessageTemplate({
   };
 
   return (
-    <div className="flex gap-4 w-full">
-      {/* Template Suggestions - Left Side */}
+    <div className="w-full max-w-none space-y-6">
+      {/* Template Suggestions - Top Section */}
       {!isEditing && (
-        <div className="w-72 bg-gray-800 shadow sm:rounded-lg border border-gray-700 shrink-0">
+        <div className="bg-gray-800 shadow sm:rounded-lg border border-gray-700">
           <div className="px-4 py-5 sm:p-6">
             <h3 className="text-lg font-medium leading-6 text-white mb-4">
               Template Ideas
             </h3>
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {templateSuggestions.map((template, index) => (
-                <div key={index} className="bg-gray-700 rounded-lg p-3 border border-gray-600">
+                <div key={index} className="bg-gray-700 rounded-lg p-4 border border-gray-600">
                   <h4 className="font-medium text-white mb-2 text-sm">{template.name}</h4>
                   <p className="text-xs text-gray-300 mb-3 leading-relaxed">
-                    {template.content.substring(0, 120)}...
+                    {template.content.substring(0, 150)}...
                   </p>
                   <button
                     type="button"
                     onClick={() => handlePickTemplate(template)}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1.5 px-3 rounded-md transition-colors"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded-md transition-colors"
                   >
                     Use This Template
                   </button>
@@ -136,7 +136,7 @@ export default function CreateMessageTemplate({
       )}
 
       {/* Main Form */}
-      <div className="flex-1 bg-gray-800 shadow sm:rounded-lg border border-gray-700">
+      <div className="bg-gray-800 shadow sm:rounded-lg border border-gray-700">
         <div className="px-4 py-5 sm:p-6">
           <h3 className="text-lg font-medium leading-6 text-white">
             {isEditing ? 'Edit' : 'Create'} Message Template
