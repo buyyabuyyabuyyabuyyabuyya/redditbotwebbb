@@ -24,8 +24,8 @@ export default async function Home() {
           </Link>
           <nav className="hidden md:flex gap-8 text-sm font-medium">
             <a href="#features" className="hover:text-purple-300">Features</a>
+            <a href="#how-it-works" className="hover:text-purple-300">How It Works</a>
             <a href="#pricing" className="hover:text-purple-300">Pricing</a>
-            
           </nav>
           <div className="flex gap-2">
             <AuthButtons />
@@ -40,32 +40,18 @@ export default async function Home() {
         </div>
         {/* subtle noise overlay */}
         <div className="pointer-events-none absolute inset-0 -z-10 bg-[url('/noise.png')] opacity-20 mix-blend-soft-light" />
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-16 py-24 sm:py-32 lg:flex-row lg:items-center lg:gap-24">
-          {/* Text area */}
-          <div className="flex-1 text-center lg:text-left">
-            <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight text-white bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-red-500">
-              Automate Your Reddit Outreach
-            </h1>
-            <p className="mt-6 text-lg leading-8 text-gray-300">
-              Reach more people on Reddit with our powerful automation platform.
-              Customize your messages, target specific subreddits, and track
-              your results.
-            </p>
-            {/* CTA buttons */}
-            <div className="mt-10 flex justify-center lg:justify-start" id="auth-buttons-container">
-              <AuthButtons />
-            </div>
-          </div>
-          {/* Image preview */}
-          <div className="flex-1 mt-12 lg:mt-0 hidden lg:block">
-            <Image
-              src="/dashboard-preview.png"
-              alt="Reddit Bot dashboard preview"
-              width={600}
-              height={400}
-              className="w-full rounded-xl shadow-2xl ring-1 ring-white/10"
-              priority
-            />
+        <div className="mx-auto max-w-4xl text-center py-24 sm:py-32">
+          <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight text-white bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-red-500">
+            Automate Your Reddit Outreach
+          </h1>
+          <p className="mt-6 text-lg leading-8 text-gray-300 max-w-2xl mx-auto">
+            Reach more people on Reddit with our powerful automation platform.
+            Customize your messages, target specific subreddits, and track
+            your results.
+          </p>
+          {/* CTA buttons */}
+          <div className="mt-10 flex justify-center" id="auth-buttons-container">
+            <AuthButtons />
           </div>
         </div>
         <div className="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]">
@@ -195,6 +181,119 @@ export default async function Home() {
                 </dd>
               </div>
             </dl>
+          </div>
+        </div>
+      </div>
+
+      {/* How It Works section */}
+      <div id="how-it-works" className="bg-gray-900 py-24 sm:py-32 scroll-mt-28">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="mx-auto max-w-2xl lg:text-center">
+            <h2 className="text-base font-semibold leading-7 text-purple-400">How It Works</h2>
+            <p className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              See Reddit Bot in Action
+            </p>
+            <p className="mt-6 text-lg leading-8 text-gray-300">
+              Watch how easy it is to set up and automate your Reddit outreach in just a few simple steps.
+            </p>
+          </div>
+
+          <div className="mx-auto mt-16 max-w-7xl">
+            {/* Step 1: Add Reddit Account */}
+            <div className="mb-24 flex flex-col lg:flex-row items-center gap-12">
+              <div className="lg:w-[800px] lg:order-1">
+                <div className="relative">
+                  <img
+                    src="/account.gif"
+                    alt="Adding a Reddit account demonstration"
+                    className="w-full h-auto max-w-[800px] rounded-xl shadow-2xl ring-1 ring-white/10"
+                  />
+                </div>
+              </div>
+              <div className="flex-1 lg:order-2">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-600">
+                    <span className="text-sm font-semibold text-white">1</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-white">Connect Your Reddit Account</h3>
+                </div>
+                <p className="text-lg text-gray-300 leading-relaxed">
+                  Securely connect your Reddit account with OAuth authentication. Your credentials are encrypted and stored safely. Add multiple accounts to scale your outreach across different personas.
+                </p>
+              </div>
+            </div>
+
+            {/* Step 2: Create Message Template */}
+            <div className="mb-24 flex flex-col lg:flex-row items-center gap-12">
+              <div className="lg:w-[800px] lg:order-2">
+                <div className="relative">
+                  <img
+                    src="/template.gif"
+                    alt="Creating a message template demonstration"
+                    className="w-full h-auto max-w-[800px] rounded-xl shadow-2xl ring-1 ring-white/10"
+                  />
+                </div>
+              </div>
+              <div className="flex-1 lg:order-1">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-600">
+                    <span className="text-sm font-semibold text-white">2</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-white">Create Custom Templates</h3>
+                </div>
+                <p className="text-lg text-gray-300 leading-relaxed">
+                  Design personalized message templates with dynamic variables like {'{username}'} and {'{subreddit}'}. Use our pre-built templates or create your own from scratch for different outreach scenarios.
+                </p>
+              </div>
+            </div>
+
+            {/* Step 3: Configure Scan Settings */}
+            <div className="mb-24 flex flex-col lg:flex-row items-center gap-12">
+              <div className="lg:w-[800px] lg:order-1">
+                <div className="relative">
+                  <img
+                    src="/scan.gif"
+                    alt="Setting up scan configuration demonstration"
+                    className="w-full h-auto max-w-[800px] rounded-xl shadow-2xl ring-1 ring-white/10"
+                  />
+                </div>
+              </div>
+              <div className="flex-1 lg:order-2">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-600">
+                    <span className="text-sm font-semibold text-white">3</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-white">Set Up Scan Configurations</h3>
+                </div>
+                <p className="text-lg text-gray-300 leading-relaxed">
+                  Target specific subreddits with custom keywords and filters. Set scan intervals, choose which Reddit account to use, and select the perfect message template for each configuration.
+                </p>
+              </div>
+            </div>
+
+            {/* Step 4: Monitor Bot Logs */}
+            <div className="mb-12 flex flex-col lg:flex-row items-center gap-12">
+              <div className="lg:w-[800px] lg:order-2">
+                <div className="relative">
+                  <img
+                    src="/logs.gif"
+                    alt="Viewing bot logs demonstration"
+                    className="w-full h-auto max-w-[800px] rounded-xl shadow-2xl ring-1 ring-white/10"
+                  />
+                </div>
+              </div>
+              <div className="flex-1 lg:order-1">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-600">
+                    <span className="text-sm font-semibold text-white">4</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-white">Monitor & Track Results</h3>
+                </div>
+                <p className="text-lg text-gray-300 leading-relaxed">
+                  Watch your bots in action with real-time logs. Track message delivery, monitor engagement rates, and debug any issues with detailed logging and analytics dashboard.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
