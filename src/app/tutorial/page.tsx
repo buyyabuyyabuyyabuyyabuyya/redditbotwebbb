@@ -155,6 +155,30 @@ export default async function TutorialPage() {
                           </ol>
                         </div>
                       </div>
+                      
+                      {/* Account Safety Tips */}
+                      <div className="bg-amber-900/20 border border-amber-500/30 rounded-lg p-4">
+                        <h4 className="text-amber-400 font-semibold mb-3 flex items-center gap-2">
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                          </svg>
+                          Account Safety Tips
+                        </h4>
+                        <ul className="text-sm text-gray-300 space-y-2">
+                          <li className="flex items-start gap-2">
+                            <span className="text-amber-400 mt-1">•</span>
+                            <span><strong>Use established accounts:</strong> 7+ days old, positive karma, verified email</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="text-amber-400 mt-1">•</span>
+                            <span><strong>Content compliance:</strong> No spam or NSFW, avoid unsolicited ads</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="text-amber-400 mt-1">•</span>
+                            <span><strong>Account quality:</strong> Only use accounts with no recent enforcement actions. New accounts are especially prone to being flagged and banned if automated</span>
+                          </li>
+                        </ul>
+                      </div>
                     </div>
                   </div>
 
