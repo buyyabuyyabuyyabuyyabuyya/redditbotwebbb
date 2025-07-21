@@ -8,7 +8,7 @@ import { ensureInboxSchedule } from '../../../../utils/inboxScheduler';
 import { checkAndArchiveLogs } from '../auto-archive-helper';
 
 // Inter-message delay (ms)
-const DELAY_INTERVAL_MS = 100_000; // 100 s ≈ 1.7 min – safe for Reddit
+const DELAY_INTERVAL_MS = 200_000; // 200 s ≈ 3.3 min – safe for Reddit
 const BATCH_SIZE = 10; // number of posts to queue per batch
 const MAX_TOTAL_POSTS = 100; // upper-bound for a single scan session
 
