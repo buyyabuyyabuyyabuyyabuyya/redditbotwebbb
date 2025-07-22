@@ -4,6 +4,7 @@ import { createServerSupabaseClient } from '../../utils/supabase-server';
 import { Button3D, RippleButton } from '../../components/ui/Button';
 import Link from 'next/link';
 import MessageCounter from '../../components/MessageCounter';
+import DuplicateSubscriptionWarning from '../../components/DuplicateSubscriptionWarning';
 import { createClient } from '@supabase/supabase-js';
 
 // Using the imported createServerSupabaseClient function
@@ -55,6 +56,11 @@ export default async function Settings() {
         </header>
         <main>
           <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            {/* Duplicate Subscription Warning */}
+            <div className="px-4 py-4 sm:px-0">
+              <DuplicateSubscriptionWarning />
+            </div>
+            
             {/* Subscription Section */}
             <div className="px-4 py-8 sm:px-0">
               <div className="rounded-lg bg-gray-800/70 shadow-lg border border-gray-700/50 backdrop-blur-sm overflow-hidden">
