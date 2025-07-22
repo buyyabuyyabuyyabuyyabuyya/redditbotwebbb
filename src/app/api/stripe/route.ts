@@ -118,10 +118,12 @@ export async function POST(req: Request) {
         },
         customer: customerId, // reuse existing customer if we have one
         customer_email: customerEmail,
-        customer_update: {
-          name: 'auto',
-          address: 'auto',
-        },
+        ...(customerId && {
+          customer_update: {
+            name: 'auto',
+            address: 'auto',
+          },
+        }),
         phone_number_collection: { enabled: true },
         metadata: {
           email: customerEmail,
