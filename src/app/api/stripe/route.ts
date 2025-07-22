@@ -139,7 +139,10 @@ export async function POST(req: Request) {
         },
       });
 
-      return NextResponse.json({ sessionId: session.id });
+      return NextResponse.json({ 
+        sessionId: session.id,
+        url: session.url 
+      });
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

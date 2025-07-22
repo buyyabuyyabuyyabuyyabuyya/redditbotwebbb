@@ -47,11 +47,12 @@ export default function PricingClient({ plans, userSubscriptionStatus }: Pricing
 
       const data = await response.json();
       
-      if (data.sessionId) {
-        // Redirect to Stripe Checkout
-        window.location.href = `https://checkout.stripe.com/pay/${data.sessionId}`;
-      } else if (data.url) {
+      if (data.url) {
         window.location.href = data.url;
+      } else if (data.sessionId) {
+        // Use Stripe.js to redirect to checkout
+        const stripe = (window as any).Stripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+        stripe.redirectToCheckout({ sessionId: data.sessionId });
       } else {
         throw new Error('No checkout URL or session ID returned');
       }
