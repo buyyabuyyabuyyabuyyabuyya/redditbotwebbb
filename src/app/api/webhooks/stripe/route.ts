@@ -55,19 +55,58 @@ export async function POST(req: Request) {
         // Prefer metadata.userId if available (for Payment Links) otherwise client_reference_id
         let userId = session.metadata?.userId || session.client_reference_id;
 
-        // Fallback: resolve via customer email using clerk_emails directory
+        // Fallback: resolve via customer email using Clerk API
         if (!userId && session.customer_details?.email) {
-          const { data: dir } = await supabase
-            .from('clerk_emails')
-            .select('user_id')
-            .eq('email', session.customer_details.email.toLowerCase())
-            .single();
-          userId = dir?.user_id || undefined;
+          try {
+            const { clerkClient } = await import('@clerk/nextjs/server');
+            const users = await clerkClient.users.getUserList({
+              emailAddress: [session.customer_details.email.toLowerCase()]
+            });
+            
+            if (users.data.length > 0) {
+              userId = users.data[0].id;
+              console.log('Resolved user ID via Clerk API:', userId);
+            }
+          } catch (clerkError) {
+            console.error('Error resolving user via Clerk:', clerkError);
+            
+            // Fallback to clerk_emails table
+            const { data: dir } = await supabase
+              .from('clerk_emails')
+              .select('user_id')
+              .eq('email', session.customer_details.email.toLowerCase())
+              .single();
+            userId = dir?.user_id || undefined;
+          }
         }
 
         if (!userId) {
           console.warn('Unable to resolve user for checkout.session.completed event:', session.id);
           break; // Skip processing if userId is still missing
+        }
+
+        // Ensure user exists in our database - create if not exists
+        const { data: existingUser } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', userId)
+          .single();
+
+        if (!existingUser) {
+          console.log('Creating new user record for:', userId);
+          const { error: createError } = await supabase
+            .from('users')
+            .insert({
+              id: userId,
+              subscription_status: 'free',
+              message_count: 0,
+              created_at: new Date().toISOString()
+            });
+          
+          if (createError) {
+            console.error('Error creating user record:', createError);
+            // Continue anyway - the update might still work
+          }
         }
 
         // Default to 'pro', will update if advanced detected
@@ -103,8 +142,13 @@ export async function POST(req: Request) {
 
         const { error } = await supabase
           .from('users')
-          .update(updatePayload)
-          .eq('id', userId);
+          .upsert({
+            id: userId,
+            ...updatePayload,
+            created_at: new Date().toISOString()
+          }, {
+            onConflict: 'id'
+          });
 
         if (error) {
           console.error('Error updating user subscription:', error);
