@@ -117,7 +117,6 @@ export async function POST(req: Request) {
           plan: selectedPlan
         },
         customer: customerId, // reuse existing customer if we have one
-        customer_creation: customerId ? 'if_required' : 'always',
         customer_email: customerEmail,
         customer_update: {
           name: 'auto',
