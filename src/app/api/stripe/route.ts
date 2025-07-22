@@ -112,6 +112,10 @@ export async function POST(req: Request) {
         success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
         cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?canceled=true`,
         client_reference_id: userId,
+        metadata: {
+          userId: userId,
+          plan: selectedPlan
+        },
         customer: customerId, // reuse existing customer if we have one
         customer_creation: customerId ? 'if_required' : 'always',
         customer_email: customerEmail,

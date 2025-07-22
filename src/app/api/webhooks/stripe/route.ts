@@ -52,11 +52,20 @@ export async function POST(req: Request) {
       case 'checkout.session.completed': {
         
         const session = event.data.object as Stripe.Checkout.Session;
+        console.log('Processing checkout.session.completed:', {
+          sessionId: session.id,
+          customerEmail: session.customer_details?.email,
+          metadata: session.metadata,
+          clientReferenceId: session.client_reference_id
+        });
+        
         // Prefer metadata.userId if available (for Payment Links) otherwise client_reference_id
         let userId = session.metadata?.userId || session.client_reference_id;
+        console.log('Initial userId from session:', userId);
 
         // Fallback: resolve via customer email using Clerk API
         if (!userId && session.customer_details?.email) {
+          console.log('Attempting to resolve user via email:', session.customer_details.email);
           try {
             const { clerkClient } = await import('@clerk/nextjs/server');
             const users = await clerkClient.users.getUserList({
@@ -73,19 +82,28 @@ export async function POST(req: Request) {
             console.error('Error resolving user via Clerk:', clerkError);
             
             // Fallback to clerk_emails table
-            const { data: dir } = await supabase
+            console.log('Falling back to clerk_emails table for:', session.customer_details.email.toLowerCase());
+            const { data: dir, error: dbError } = await supabase
               .from('clerk_emails')
               .select('user_id')
               .eq('email', session.customer_details.email.toLowerCase())
               .single();
+            console.log('clerk_emails query result:', { data: dir, error: dbError });
             userId = dir?.user_id || undefined;
           }
         }
 
         if (!userId) {
-          console.warn('Unable to resolve user for checkout.session.completed event:', session.id);
+          console.warn('Unable to resolve user for checkout.session.completed event:', {
+            sessionId: session.id,
+            customerEmail: session.customer_details?.email,
+            metadata: session.metadata,
+            clientReferenceId: session.client_reference_id
+          });
           break; // Skip processing if userId is still missing
         }
+        
+        console.log('Successfully resolved userId:', userId);
 
         // Ensure user exists in our database - create if not exists
         const { data: existingUser } = await supabase
