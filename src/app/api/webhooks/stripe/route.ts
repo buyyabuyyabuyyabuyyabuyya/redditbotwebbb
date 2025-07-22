@@ -98,6 +98,7 @@ export async function POST(req: Request) {
             .from('users')
             .insert({
               id: userId,
+              user_id: userId, // Add this field too
               subscription_status: 'free',
               message_count: 0,
               created_at: new Date().toISOString()
@@ -144,6 +145,7 @@ export async function POST(req: Request) {
           .from('users')
           .upsert({
             id: userId,
+            user_id: userId, // Ensure user_id is also set
             ...updatePayload,
             created_at: new Date().toISOString()
           }, {
