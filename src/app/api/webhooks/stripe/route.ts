@@ -63,9 +63,11 @@ export async function POST(req: Request) {
               emailAddress: [session.customer_details.email.toLowerCase()]
             });
             
-            if (users.data.length > 0) {
+            if (users && users.data && users.data.length > 0) {
               userId = users.data[0].id;
               console.log('Resolved user ID via Clerk API:', userId);
+            } else {
+              console.log('No users found via Clerk API for email:', session.customer_details.email);
             }
           } catch (clerkError) {
             console.error('Error resolving user via Clerk:', clerkError);
