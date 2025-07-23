@@ -60,23 +60,36 @@ export async function POST(req: Request) {
         }
       }
 
-      // If a customer exists, check for active subscription to upgrade
+      // Enhanced duplicate prevention: Check for ANY active subscriptions by email
       if (customerId) {
+        // Check for active subscriptions (including past_due, unpaid, paused)
         const subs = await stripe.subscriptions.list({
           customer: customerId,
-          status: 'active',
-          limit: 1,
+          status: 'all', // Check all statuses to prevent duplicates
+          limit: 10,
         });
 
-        if (subs.data.length) {
-          const currentSub = subs.data[0];
+        // Filter for truly active subscriptions (Stripe's definition of "active")
+        const activeSubscriptions = subs.data.filter(sub => 
+          ['active', 'past_due', 'unpaid', 'paused'].includes(sub.status)
+        );
+
+        if (activeSubscriptions.length > 0) {
+          const currentSub = activeSubscriptions[0];
           const currentItem = currentSub.items.data[0];
 
-          // If the subscription is already on the desired price, no action needed
+          // If the subscription is already on the desired price, redirect to customer portal
           if (currentItem.price.id === priceId) {
-            return NextResponse.json({ upgraded: false, message: 'Already on desired plan' });
+            return NextResponse.json({ 
+              upgraded: false, 
+              message: 'Already on desired plan',
+              redirectToPortal: true 
+            });
           }
 
+          // If they have a different active subscription, offer upgrade/downgrade
+          console.log(`Customer ${customerId} has existing subscription ${currentSub.id}, upgrading...`);
+          
           // Otherwise, update the subscription in-place (prorated)
           await stripe.subscriptions.update(currentSub.id, {
             proration_behavior: 'create_prorations',
@@ -96,6 +109,38 @@ export async function POST(req: Request) {
             .eq('user_id', userId);
 
           return NextResponse.json({ upgraded: true });
+        }
+      }
+
+      // Additional safety check: Search for any existing subscriptions by email
+      if (customerEmail && !customerId) {
+        try {
+          const customers = await stripe.customers.search({
+            query: `email:"${customerEmail}"`,
+          });
+          
+          for (const customer of customers.data) {
+            const customerSubs = await stripe.subscriptions.list({
+              customer: customer.id,
+              status: 'all',
+              limit: 5,
+            });
+            
+            const activeCustomerSubs = customerSubs.data.filter(sub => 
+              ['active', 'past_due', 'unpaid', 'paused'].includes(sub.status)
+            );
+            
+            if (activeCustomerSubs.length > 0) {
+              console.log(`Found existing subscription for email ${customerEmail}`);
+              return NextResponse.json({ 
+                error: 'You already have an active subscription. Please use the billing portal to manage it.',
+                redirectToPortal: true,
+                existingCustomerId: customer.id
+              }, { status: 409 }); // 409 Conflict
+            }
+          }
+        } catch (err) {
+          console.error('Error checking for existing subscriptions:', err);
         }
       }
 

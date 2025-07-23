@@ -42,10 +42,33 @@ export default function PricingClient({ plans, userSubscriptionStatus }: Pricing
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create checkout session');
+        const errorData = await response.json();
+        
+        // Handle duplicate subscription conflict
+        if (response.status === 409 && errorData.redirectToPortal) {
+          alert(errorData.error || 'You already have an active subscription.');
+          // Redirect to billing portal
+          window.location.href = '/settings?tab=billing';
+          return;
+        }
+        
+        throw new Error(errorData.error || 'Failed to create checkout session');
       }
 
       const data = await response.json();
+      
+      // Handle cases where user should be redirected to portal instead
+      if (data.redirectToPortal) {
+        alert(data.message || 'Redirecting to billing portal to manage your subscription.');
+        window.location.href = '/settings?tab=billing';
+        return;
+      }
+      
+      if (data.upgraded) {
+        alert('Your subscription has been updated successfully!');
+        window.location.reload();
+        return;
+      }
       
       if (data.url) {
         window.location.href = data.url;

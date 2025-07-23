@@ -143,7 +143,7 @@ export default function DuplicateSubscriptionWarning() {
             </ul>
           </div>
 
-          <div className="mt-4 flex gap-3">
+          <div className="mt-4 flex flex-wrap gap-3">
             <button
               onClick={checkForDuplicates}
               className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-md transition-colors"
@@ -151,7 +151,13 @@ export default function DuplicateSubscriptionWarning() {
               Refresh Check
             </button>
             <a
-              href="mailto:support@yourapp.com?subject=Duplicate Stripe Subscriptions&body=I have duplicate Stripe customer accounts that need to be resolved."
+              href="/settings?tab=billing"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md transition-colors"
+            >
+              Go to Billing Portal
+            </a>
+            <a
+              href="mailto:buyyav20@gmail.com?subject=Duplicate Stripe Subscriptions&body=I have duplicate Stripe customer accounts that need to be resolved."
               className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded-md transition-colors"
             >
               Contact Support

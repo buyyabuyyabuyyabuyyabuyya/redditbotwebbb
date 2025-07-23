@@ -4,6 +4,7 @@ import Script from 'next/script';
 import './globals.css';
 import Navigation from '@/components/Navigation';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import Footer from '@/components/Footer';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -41,6 +42,7 @@ export default function RootLayout({
           <ErrorBoundary>
             <Navigation />
             <main className="min-h-screen bg-gray-900">{children}</main>
+            <Footer />
           </ErrorBoundary>
         </body>
       </html>

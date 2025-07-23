@@ -109,6 +109,27 @@ export default async function Pricing() {
             userSubscriptionStatus={user?.subscription_status}
           />
         </div>
+        
+        {/* Legal Links */}
+        <div className="mt-16 text-center">
+          <p className="text-sm text-gray-400 mb-4">
+            By subscribing, you agree to our terms and privacy policy.
+          </p>
+          <div className="flex justify-center space-x-6">
+            <Link 
+              href="/terms" 
+              className="text-sm text-gray-400 hover:text-white transition-colors underline"
+            >
+              Terms of Service
+            </Link>
+            <Link 
+              href="/privacy" 
+              className="text-sm text-gray-400 hover:text-white transition-colors underline"
+            >
+              Privacy Policy
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );
