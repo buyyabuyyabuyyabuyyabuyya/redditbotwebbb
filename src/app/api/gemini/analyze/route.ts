@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
 import { createClient } from '@supabase/supabase-js';
+import { apiKeyManager } from '../../../utils/apiKeyManager';
 
 // Create a Supabase admin client with service role key for bypassing RLS
 const supabaseAdmin = createClient(
@@ -14,94 +15,19 @@ const supabaseAdmin = createClient(
   }
 );
 
-// Global variable to track current API key index
-let currentKeyIndex = 0;
-let availableKeys: any[] = [];
-let lastKeysRefresh = 0;
-
-// Helper function to get a valid API key with rotation
-async function getValidApiKey() {
-  try {
-    const now = Date.now();
-    // Refresh the keys list if it's been more than 30 seconds or if we don't have any keys
-    if (now - lastKeysRefresh > 30000 || availableKeys.length === 0) {
-      console.log('Refreshing API keys from database...');
-      // Get all active API keys
-      const { data, error } = await supabaseAdmin
-        .from('api_keys')
-        .select('*')
-        .eq('is_active', true)
-        .eq('provider', 'gemini')
-        .order('id', { ascending: true }); // Order by ID to ensure consistent ordering
-
-      if (error) {
-        console.error('Error fetching API keys:', error);
-        throw new Error('Failed to fetch API keys');
-      }
-
-      if (!data || data.length === 0) {
-        console.error('No valid API keys available in the database');
-        throw new Error('No valid API keys available');
-      }
-
-      availableKeys = data;
-      lastKeysRefresh = now;
-      console.log(`Loaded ${availableKeys.length} API keys from database`);
-
-      // Start from index 1 as requested (if available)
-      if (availableKeys.length > 1) {
-        currentKeyIndex = 1; // Start with the second key (index 1)
-      } else {
-        currentKeyIndex = 0; // If only one key, use index 0
-      }
-    }
-
-    // If we've gone through all keys, start over
-    if (currentKeyIndex >= availableKeys.length) {
-      currentKeyIndex = 0;
-    }
-//pus test
-    // Get the current key
-    const apiKey = availableKeys[currentKeyIndex];
-    // Log key information - show first 6 and last 4 chars for debugging
-    const keyPrefix = apiKey.key.substring(0, 6);
-    const keySuffix = apiKey.key.substring(apiKey.key.length - 4);
-    console.log(
-      `Using API key index ${currentKeyIndex} of ${availableKeys.length}: ${keyPrefix}...${keySuffix} (ID: ${apiKey.id})`
-    );
-
-    // Check if the key is rate limited
-    if (
-      apiKey.rate_limit_reset &&
-      new Date(apiKey.rate_limit_reset) > new Date()
-    ) {
-      console.log(
-        `API key at index ${currentKeyIndex} is rate limited, trying next one`
-      );
-      // Move to the next key
-      currentKeyIndex++;
-      // Recursively try the next key
-      return getValidApiKey();
-    }
-
-    // Update the usage count and last used time
-    await supabaseAdmin
-      .from('api_keys')
-      .update({
-        usage_count: apiKey.usage_count + 1,
-        last_used: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', apiKey.id);
-
-    // Set up to use the next key for future requests
-    currentKeyIndex++;
-
-    return apiKey.key;
-  } catch (error) {
-    console.error('Error in getValidApiKey:', error);
-    throw error;
+// Helper function to get a valid API key using the new manager
+async function getValidApiKey(userId: string): Promise<string> {
+  // First, release any expired rate-limited keys
+  await apiKeyManager.releaseExpiredRateLimitedKeys();
+  
+  // Acquire a new API key
+  const apiKey = await apiKeyManager.acquireApiKey(userId, 'gemini');
+  
+  if (!apiKey) {
+    throw new Error('No available API keys');
   }
+  
+  return apiKey;
 }
 
 // Helper function to handle API key errors
@@ -210,9 +136,10 @@ export async function POST(req: Request) {
       );
     }
 
+    let apiKey: string | null = null;
     try {
       // Get a valid API key with rotation
-      const apiKey = await getValidApiKey();
+      apiKey = await getValidApiKey(userId);
 
       // Prepare the prompt for Gemini – prefer caller-supplied template
       const basePrompt =
@@ -301,8 +228,6 @@ export async function POST(req: Request) {
           errorData = { error: { message: errorText } };
         }
 
-        console.error(`
-============================================================`);
         console.error(`GEMINI API ERROR (${status}):`);
         console.error(
           `API KEY: ${keyPrefix}...${keySuffix} (LENGTH: ${apiKey.length})`
@@ -314,47 +239,14 @@ export async function POST(req: Request) {
         console.error(`============================================================
 `);
 
-        // Find the API key in the database to update its error status
-        const { data: keyData } = await supabaseAdmin
-          .from('api_keys')
-          .select('id')
-          .eq('key', apiKey)
-          .single();
+        // Handle the API key error using the new manager
+        await apiKeyManager.handleApiKeyError(apiKey, new Error(errorText), userId);
 
-        if (keyData?.id) {
-          // For 401 errors, mark the key as invalid
-          if (status === 401) {
-            const keyPrefix = apiKey.substring(0, 6);
-            const keySuffix = apiKey.substring(apiKey.length - 4);
-            console.log(
-              `API KEY INVALID (401 Unauthorized): ${keyPrefix}...${keySuffix}`
-            );
-            console.log(`FULL KEY LENGTH: ${apiKey.length} characters`);
-            console.log(`MARKING KEY ID ${keyData.id} AS INACTIVE`);
-            await supabaseAdmin
-              .from('api_keys')
-              .update({
-                is_active: false,
-                error_count: supabaseAdmin.rpc('increment', {
-                  row_id: keyData.id,
-                  table_name: 'api_keys',
-                  column_name: 'error_count',
-                }),
-                updated_at: new Date().toISOString(),
-              })
-              .eq('id', keyData.id);
-          } else {
-            // For other errors, use the general error handler
-            await handleApiKeyError(keyData.id, errorData);
-          }
-        }
-
-        // Log detailed error information
-        console.log(`API key error. Trying again with a different key...`);
-
-        // Try again with a different key
-        return POST(req);
+        throw new Error(`Gemini API error (${status}): ${errorText}`);
       }
+
+      // Release the API key after successful use
+      await apiKeyManager.releaseApiKey(apiKey, userId);
 
       const data = await response.json();
 
@@ -406,6 +298,10 @@ export async function POST(req: Request) {
       });
     } catch (apiError: any) {
       console.error('API processing error:', apiError);
+      // Release the API key on error
+      if (apiKey) {
+        await apiKeyManager.releaseApiKey(apiKey, userId);
+      }
       return NextResponse.json(
         { error: `API error: ${apiError.message || 'Unknown API error'}` },
         { status: 500 }
