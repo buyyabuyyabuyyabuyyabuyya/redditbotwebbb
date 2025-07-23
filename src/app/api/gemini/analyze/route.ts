@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
 import { createClient } from '@supabase/supabase-js';
-import { apiKeyManager } from '../../../utils/apiKeyManager';
+import { apiKeyManager } from '../../../../utils/apiKeyManager';
 
 // Create a Supabase admin client with service role key for bypassing RLS
 const supabaseAdmin = createClient(
