@@ -71,7 +71,7 @@ export class ApiKeyManager {
       const apiKey = availableKeys[0] as ApiKey;
 
       // Mark the key as being used
-      const { error: updateError } = await supabaseAdmin
+      const { data: updateData, error: updateError } = await supabaseAdmin
         .from('api_keys')
         .update({
           being_used: true,
@@ -80,12 +80,22 @@ export class ApiKeyManager {
           updated_at: new Date().toISOString()
         })
         .eq('id', apiKey.id)
-        .eq('being_used', false); // Ensure it's still not being used (atomic check)
+        .eq('being_used', false) // Ensure it's still not being used (atomic check)
+        .select();
 
       if (updateError) {
         console.error(`[${userId}] Error marking API key as being used:`, updateError);
         return null;
       }
+
+      // Check if the update actually affected any rows
+      if (!updateData || updateData.length === 0) {
+        console.log(`[${userId}] API key was already taken by another request, trying again...`);
+        // Recursively try to get another key
+        return this.acquireApiKey(userId, provider);
+      }
+
+      console.log(`[${userId}] Successfully marked API key as being_used = true`);
 
       const keyPrefix = apiKey.key.substring(0, 6);
       const keySuffix = apiKey.key.substring(apiKey.key.length - 4);
