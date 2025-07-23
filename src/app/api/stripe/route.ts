@@ -124,7 +124,6 @@ export async function POST(req: Request) {
             address: 'auto',
           },
         }),
-        phone_number_collection: { enabled: true },
         metadata: {
           email: customerEmail,
           plan: selectedPlan,
