@@ -245,9 +245,6 @@ export async function POST(req: Request) {
         throw new Error(`Gemini API error (${status}): ${errorText}`);
       }
 
-      // Release the API key after successful use
-      await apiKeyManager.releaseApiKey(apiKey, userId);
-
       const data = await response.json();
 
       // Extract the JSON response from Gemini
@@ -288,6 +285,9 @@ export async function POST(req: Request) {
           { status: 500 }
         );
       }
+
+      // Release the API key after successful processing
+      await apiKeyManager.releaseApiKey(apiKey, userId);
 
       return NextResponse.json({
         success: true,
