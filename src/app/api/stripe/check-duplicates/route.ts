@@ -40,22 +40,34 @@ export async function GET() {
       })),
     };
 
-    // Get subscription details for each customer
+    // Get subscription details for each customer (ONLY ACTIVE SUBSCRIPTIONS)
+    const customersWithActiveSubscriptions = [];
+    
     for (const customer of duplicateInfo.customers) {
       const subscriptions = await stripe.subscriptions.list({
         customer: customer.id,
-        status: 'all',
+        status: 'active', // Only get active subscriptions
       });
       
-      customer.subscriptions = subscriptions.data.map(sub => ({
-        id: sub.id,
-        status: sub.status,
-        current_period_start: new Date(sub.current_period_start * 1000).toISOString(),
-        current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
-        plan_name: sub.items.data[0]?.price?.nickname || 'Unknown',
-        amount: sub.items.data[0]?.price?.unit_amount || 0,
-      }));
+      // Only include customers that have active subscriptions
+      if (subscriptions.data.length > 0) {
+        customer.subscriptions = subscriptions.data.map(sub => ({
+          id: sub.id,
+          status: sub.status,
+          current_period_start: new Date(sub.current_period_start * 1000).toISOString(),
+          current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
+          plan_name: sub.items.data[0]?.price?.nickname || 'Unknown',
+          amount: sub.items.data[0]?.price?.unit_amount || 0,
+        }));
+        
+        customersWithActiveSubscriptions.push(customer);
+      }
     }
+    
+    // Update duplicate info to only include customers with active subscriptions
+    duplicateInfo.customers = customersWithActiveSubscriptions;
+    duplicateInfo.customerCount = customersWithActiveSubscriptions.length;
+    duplicateInfo.hasDuplicates = customersWithActiveSubscriptions.length > 1;
 
     return NextResponse.json(duplicateInfo);
   } catch (error) {

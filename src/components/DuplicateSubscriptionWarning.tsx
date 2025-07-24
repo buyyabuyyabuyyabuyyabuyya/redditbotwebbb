@@ -142,8 +142,10 @@ export default function DuplicateSubscriptionWarning() {
     return null; // No duplicates, don't show anything
   }
 
-  const activeSubscriptions = duplicateInfo.customers.flatMap(customer => 
-    customer.subscriptions.filter(sub => sub.status === 'active')
+  // Since the API now only returns customers with active subscriptions, 
+  // we can get the total count directly
+  const totalActiveSubscriptions = duplicateInfo.customers.reduce((total, customer) => 
+    total + customer.subscriptions.length, 0
   );
 
   return (
@@ -158,7 +160,7 @@ export default function DuplicateSubscriptionWarning() {
           </h3>
           <p className="text-red-300 mb-4">
             We found {duplicateInfo.customerCount} Stripe customer accounts with your email address. 
-            You have {activeSubscriptions.length} active subscription{activeSubscriptions.length !== 1 ? 's' : ''}.
+            You have {totalActiveSubscriptions} active subscription{totalActiveSubscriptions !== 1 ? 's' : ''}.
           </p>
           
           <div className="space-y-3 mb-4">
