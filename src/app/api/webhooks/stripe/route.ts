@@ -29,6 +29,87 @@ async function resolveUserIdByEmail(email: string): Promise<string | undefined> 
   return data?.user_id;
 }
 
+// Helper: Handle duplicate subscriptions after successful checkout
+async function handleDuplicateSubscriptions(
+  session: Stripe.Checkout.Session, 
+  userId: string, 
+  newSubscriptionTier: 'pro' | 'advanced'
+) {
+  try {
+    console.log(`[DUPLICATE CHECK] Checking for duplicate subscriptions for user: ${userId}`);
+    
+    // Get customer ID from the session
+    const customerId = session.customer as string;
+    if (!customerId) {
+      console.log('[DUPLICATE CHECK] No customer ID found, skipping duplicate check');
+      return;
+    }
+
+    // Get the new subscription ID
+    const newSubscriptionId = session.subscription as string;
+    if (!newSubscriptionId) {
+      console.log('[DUPLICATE CHECK] No subscription ID found, skipping duplicate check');
+      return;
+    }
+
+    // Find all active subscriptions for this customer
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customerId,
+      status: 'all',
+      limit: 10,
+    });
+
+    // Filter for truly active subscriptions (excluding the new one)
+    const activeSubscriptions = subscriptions.data.filter(sub => 
+      ['active', 'past_due', 'unpaid', 'paused'].includes(sub.status) &&
+      sub.id !== newSubscriptionId
+    );
+
+    console.log(`[DUPLICATE CHECK] Found ${activeSubscriptions.length} other active subscriptions`);
+
+    if (activeSubscriptions.length > 0) {
+      // Get price information for comparison
+      const priceHierarchy = {
+        'price_1RWAeqPBL9IyGFhJCnaG18Gi': { tier: 'advanced', amount: 1399 }, // Advanced $13.99
+        'price_1RWAVQPBL9IyGFhJuNep8Htw': { tier: 'pro', amount: 799 }        // Pro $7.99
+      };
+
+      for (const oldSub of activeSubscriptions) {
+        const oldPriceId = oldSub.items.data[0]?.price.id;
+        const oldPriceInfo = priceHierarchy[oldPriceId as keyof typeof priceHierarchy];
+        const newPriceInfo = priceHierarchy[session.mode === 'subscription' ? 
+          (await stripe.subscriptions.retrieve(newSubscriptionId)).items.data[0].price.id as keyof typeof priceHierarchy
+          : 'price_1RWAVQPBL9IyGFhJuNep8Htw'];
+
+        if (oldPriceInfo && newPriceInfo) {
+          // Cancel the older/cheaper subscription
+          if (newPriceInfo.amount >= oldPriceInfo.amount) {
+            console.log(`[DUPLICATE CHECK] Canceling old ${oldPriceInfo.tier} subscription: ${oldSub.id}`);
+            
+            try {
+              await stripe.subscriptions.cancel(oldSub.id, {
+                prorate: false, // Don't prorate when canceling
+                invoice_now: false // Don't create invoice
+              });
+              
+              console.log(`[DUPLICATE CHECK] Successfully canceled subscription: ${oldSub.id}`);
+            } catch (cancelError) {
+              console.error(`[DUPLICATE CHECK] Error canceling subscription ${oldSub.id}:`, cancelError);
+            }
+          } else {
+            console.log(`[DUPLICATE CHECK] New subscription is cheaper/same, keeping old one: ${oldSub.id}`);
+          }
+        }
+      }
+    } else {
+      console.log('[DUPLICATE CHECK] No duplicate subscriptions found');
+    }
+  } catch (error) {
+    console.error('[DUPLICATE CHECK] Error handling duplicate subscriptions:', error);
+    // Don't throw - we don't want to fail the webhook if duplicate handling fails
+  }
+}
+
 export async function POST(req: Request) {
   const supabase = supabaseAdmin;
 
@@ -176,6 +257,9 @@ export async function POST(req: Request) {
           console.error('Error updating user subscription:', error);
           throw error;
         }
+
+        // **NEW: Auto-cancel duplicate subscriptions**
+        await handleDuplicateSubscriptions(session, userId, newStatus);
 
         break;
       }
