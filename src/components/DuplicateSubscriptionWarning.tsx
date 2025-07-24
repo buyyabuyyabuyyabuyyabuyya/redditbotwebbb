@@ -25,7 +25,9 @@ interface DuplicateInfo {
 export default function DuplicateSubscriptionWarning() {
   const [duplicateInfo, setDuplicateInfo] = useState<DuplicateInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [cleanupLoading, setCleanupLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cleanupSuccess, setCleanupSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     checkForDuplicates();
@@ -49,12 +51,75 @@ export default function DuplicateSubscriptionWarning() {
     }
   };
 
+  const handleCleanupDuplicates = async () => {
+    if (!duplicateInfo?.customers?.[0]?.email) {
+      setError('No email found for cleanup');
+      return;
+    }
+
+    const confirmMessage = `This will automatically cancel ${duplicateInfo.customerCount - 1} duplicate subscriptions and keep only the newest one. This action cannot be undone.\n\nEstimated monthly savings: $${((duplicateInfo.customerCount - 1) * 13.99).toFixed(2)}\n\nContinue?`;
+    
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      setCleanupLoading(true);
+      setError(null);
+      setCleanupSuccess(null);
+      
+      const response = await fetch('/api/stripe/cleanup-duplicates', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: duplicateInfo.customers[0].email
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to cleanup duplicates');
+      }
+
+      const result = await response.json();
+      
+      if (result.totalCanceled > 0) {
+        setCleanupSuccess(`Successfully canceled ${result.totalCanceled} duplicate subscriptions! Monthly savings: $${result.monthlySavings.toFixed(2)}`);
+        
+        // Refresh the duplicate check after cleanup
+        setTimeout(() => {
+          checkForDuplicates();
+        }, 2000);
+      } else {
+        setError('No duplicates were found to cancel');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to cleanup duplicates');
+    } finally {
+      setCleanupLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4 mb-6">
         <div className="flex items-center gap-2">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-400"></div>
           <span className="text-yellow-400 text-sm">Checking for duplicate subscriptions...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (cleanupSuccess) {
+    return (
+      <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-4 mb-6">
+        <div className="flex items-center gap-2">
+          <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          </svg>
+          <span className="text-green-400 text-sm">{cleanupSuccess}</span>
         </div>
       </div>
     );
@@ -144,6 +209,13 @@ export default function DuplicateSubscriptionWarning() {
           </div>
 
           <div className="mt-4 flex flex-wrap gap-3">
+            <button
+              onClick={handleCleanupDuplicates}
+              disabled={cleanupLoading}
+              className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white text-sm rounded-md transition-colors font-semibold"
+            >
+              {cleanupLoading ? 'Canceling Duplicates...' : '🚀 Auto-Cancel All Duplicates'}
+            </button>
             <button
               onClick={checkForDuplicates}
               className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-md transition-colors"
