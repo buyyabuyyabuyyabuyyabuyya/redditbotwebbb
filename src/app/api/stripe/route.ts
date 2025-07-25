@@ -7,8 +7,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
 });
 
-const PRO_PRICE_ID = 'price_1RWAVQPBL9IyGFhJuNep8Htw';
-const ADVANCED_PRICE_ID = 'price_1RWAeqPBL9IyGFhJCnaG18Gi';
+const PRO_PRICE_ID = 'price_1RnS6AAehUCi64ia6YW4N2jI';
+const ADVANCED_PRICE_ID = 'price_1RnS6AAehUCi64iaK4i0FXNp';
 
 // Using the imported createServerSupabaseClient function
 

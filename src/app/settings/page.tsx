@@ -151,7 +151,7 @@ export default async function Settings() {
                   </h3>
                   <div className="mt-5">
                     <Link
-                      href="https://billing.stripe.com/p/login/test_9B6cN76L34NO5MoeYigYU00"
+                      href="https://billing.stripe.com/p/login/eVq28q2C70PF1OJaxg2wU00"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
