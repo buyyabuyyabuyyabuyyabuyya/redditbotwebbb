@@ -223,9 +223,9 @@ export async function POST(req: Request) {
           }
         }
 
-        if (priceId === 'price_1RWAeqPBL9IyGFhJCnaG18Gi') {
+        if (priceId === 'price_1RnS6AAehUCi64iaK4i0FXNp') {
           newStatus = 'advanced';
-        } else if (priceId === 'price_1RWAVQPBL9IyGFhJuNep8Htw') {
+        } else if (priceId === 'price_1RnS6AAehUCi64ia6YW4N2jI') {
           newStatus = 'pro';
         }
 
