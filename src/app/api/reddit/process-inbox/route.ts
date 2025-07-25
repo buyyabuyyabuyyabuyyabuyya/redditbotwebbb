@@ -28,12 +28,15 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       process.env.SUPABASE_SERVICE_ROLE_KEY || ''
     );
 
-    // Fetch Reddit account(s) that are not banned
+    // Fetch Reddit account(s) that are not banned or have recent credential errors
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+    
     const { data: accounts, error: accErr } = await supabase
       .from('reddit_accounts')
       .select('*')
       .eq('user_id', userId)
       .neq('status', 'banned') // Skip banned accounts
+      .or(`status.neq.credential_error,credential_error_at.lt.${fifteenMinutesAgo}`) // Skip accounts with recent credential errors
       .order('created_at');
     if (accErr) {
       console.error('process-inbox supabase error', accErr);
@@ -72,6 +75,12 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
                                errorMsg.includes('suspended') ||
                                errorMsg.includes('banned');
           
+          // Check if this is a 401 Unauthorized error (password changed, incorrect credentials)
+          const isCredentialError = errorMsg.includes('401') || 
+                                   errorMsg.includes('Unauthorized') ||
+                                   errorMsg.includes('invalid_grant') ||
+                                   errorMsg.includes('authentication failed');
+          
           if (isBannedError) {
             console.log(`Account ${account.username} (ID: ${account.id}) appears to be banned/suspended, marking as banned`);
             
@@ -91,6 +100,31 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
             });
             
             accountErrors.push({ accountId: account.id, username: account.username, error: 'banned' });
+            continue; // Skip this account but continue with others
+          }
+          
+          if (isCredentialError) {
+            console.log(`Account ${account.username} (ID: ${account.id}) has incorrect credentials (401 Unauthorized), marking as credential_error`);
+            
+            // Mark account as having credential error
+            await supabase
+              .from('reddit_accounts')
+              .update({ 
+                status: 'credential_error', 
+                credential_error_at: new Date().toISOString() 
+              })
+              .eq('id', account.id);
+            
+            // Log the credential error
+            await supabase.from('bot_logs').insert({
+              user_id: userId,
+              action: 'account_credential_error',
+              subreddit: '_system',
+              status: 'error',
+              error_message: `Reddit account ${account.username} (ID: ${account.id}) has incorrect credentials: ${errorMsg.slice(0, 200)}`,
+            });
+            
+            accountErrors.push({ accountId: account.id, username: account.username, error: 'credential_error' });
             continue; // Skip this account but continue with others
           }
           

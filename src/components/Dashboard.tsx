@@ -23,6 +23,7 @@ interface RedditAccount {
   is_validated: boolean | null;
   status?: string;
   banned_at?: string;
+  credential_error_at?: string;
 }
 
 interface MessageTemplate {
@@ -468,7 +469,8 @@ export default function Dashboard() {
                       >
                         <div className="flex items-center space-x-3">
                           <span className={`font-medium ${
-                            account.status === 'banned' ? 'text-red-400 line-through' : 'text-white'
+                            account.status === 'banned' ? 'text-red-400 line-through' : 
+                            account.status === 'credential_error' ? 'text-orange-400' : 'text-white'
                           }`}>
                             {account.username}
                           </span>
@@ -476,6 +478,11 @@ export default function Dashboard() {
                             <div className="flex items-center space-x-1">
                               <XCircleIcon className="h-5 w-5 text-red-500" />
                               <span className="text-xs text-red-400">BANNED</span>
+                            </div>
+                          ) : account.status === 'credential_error' ? (
+                            <div className="flex items-center space-x-1">
+                              <XCircleIcon className="h-5 w-5 text-orange-500" />
+                              <span className="text-xs text-orange-400">INVALID CREDENTIALS</span>
                             </div>
                           ) : account.is_validated ? (
                             <CheckCircleIcon className="h-5 w-5 text-green-500" />
