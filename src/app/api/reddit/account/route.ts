@@ -148,7 +148,7 @@ export async function GET(req: Request) {
     // If accountId is provided, get a specific account
     if (accountId) {
       // Determine which fields to select based on whether credentials are requested
-      let selectFields = 'id, username, is_validated, status, banned_at';
+      let selectFields = 'id, username, is_validated, status, banned_at, credential_error_at';
       if (includeCredentials) {
         selectFields = '*'; // Include all fields including password, client_id, client_secret
       }
@@ -182,7 +182,7 @@ export async function GET(req: Request) {
     // Otherwise, get all Reddit accounts for the authenticated user (without sensitive credentials)
     const { data, error } = await supabaseAdmin
       .from('reddit_accounts')
-      .select('id, username, is_validated, status, banned_at')
+      .select('id, username, is_validated, status, banned_at, credential_error_at')
       .eq('user_id', userId);
 
     if (error) {

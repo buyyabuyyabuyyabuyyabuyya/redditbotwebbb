@@ -28,15 +28,13 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       process.env.SUPABASE_SERVICE_ROLE_KEY || ''
     );
 
-    // Fetch Reddit account(s) that are not banned or have recent credential errors
-    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
-    
+    // Fetch Reddit account(s) that are not banned or have credential errors
     const { data: accounts, error: accErr } = await supabase
       .from('reddit_accounts')
       .select('*')
       .eq('user_id', userId)
       .neq('status', 'banned') // Skip banned accounts
-      .or(`status.neq.credential_error,credential_error_at.lt.${fifteenMinutesAgo}`) // Skip accounts with recent credential errors
+      .neq('status', 'credential_error') // Skip accounts with credential errors (permanently)
       .order('created_at');
     if (accErr) {
       console.error('process-inbox supabase error', accErr);
