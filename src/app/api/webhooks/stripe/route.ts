@@ -70,8 +70,8 @@ async function handleDuplicateSubscriptions(
     if (activeSubscriptions.length > 0) {
       // Get price information for comparison
       const priceHierarchy = {
-        'price_1RWAeqPBL9IyGFhJCnaG18Gi': { tier: 'advanced', amount: 1399 }, // Advanced $13.99
-        'price_1RWAVQPBL9IyGFhJuNep8Htw': { tier: 'pro', amount: 799 }        // Pro $7.99
+        'price_1RnS6AAehUCi64iaK4i0FXNp': { tier: 'advanced', amount: 1399 }, // ✅ NEW
+        'price_1RnS6AAehUCi64ia6YW4N2jI': { tier: 'pro', amount: 799 }        // ✅ NEW
       };
 
       for (const oldSub of activeSubscriptions) {
