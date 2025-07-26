@@ -42,7 +42,7 @@ export default function Navigation() {
                 href={user ? '/dashboard' : '/'}
                 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-red-400 hover:from-purple-400 hover:to-red-300 transition-all duration-300"
               >
-                Reddit Bot
+                RedditOutreach
               </Link>
             </div>
             {showNavItems && (
