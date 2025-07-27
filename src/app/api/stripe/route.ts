@@ -154,8 +154,13 @@ export async function POST(req: Request) {
           },
         ],
         mode: 'subscription',
-        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
+        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}&plan=${selectedPlan}`,
         cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?canceled=true`,
+        custom_text: {
+          submit: {
+            message: 'Welcome to RedditOutreach! Your subscription will be activated immediately after payment.'
+          },
+        },
         client_reference_id: userId,
         metadata: {
           userId: userId,
