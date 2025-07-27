@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs';
+import { auth, clerkClient } from '@clerk/nextjs';
 import Stripe from 'stripe';
 import { createServerSupabaseClient } from '../../../utils/supabase-server';
 
@@ -27,10 +27,14 @@ export async function POST(req: Request) {
       const selectedPlan = plan === 'advanced' ? 'advanced' : 'pro';
       const priceId = selectedPlan === 'advanced' ? ADVANCED_PRICE_ID : PRO_PRICE_ID;
 
-      // Fetch user info (email + any saved stripe_customer_id)
+      // Fetch user info from Clerk (more reliable for email)
+      const clerkUser = await clerkClient.users.getUser(userId);
+      const customerEmail = clerkUser.emailAddresses[0]?.emailAddress || undefined;
+      
+      // Fetch any saved stripe_customer_id from database
       const { data: userRow, error: userErr } = await supabase
         .from('users')
-        .select('email, stripe_customer_id')
+        .select('stripe_customer_id')
         .eq('user_id', userId)
         .single();
 
@@ -38,8 +42,9 @@ export async function POST(req: Request) {
         console.error('Error fetching user row:', userErr);
       }
 
-      const customerEmail = userRow?.email || undefined;
       let customerId = userRow?.stripe_customer_id || undefined;
+      
+      console.log('Customer email from Clerk:', customerEmail);
 
       // If we don't have a customer ID stored, try to look it up in Stripe via email
       if (!customerId && customerEmail) {
@@ -154,20 +159,15 @@ export async function POST(req: Request) {
           },
         ],
         mode: 'subscription',
-        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}&plan=${selectedPlan}`,
+        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
         cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?canceled=true`,
-        custom_text: {
-          submit: {
-            message: 'Welcome to RedditOutreach! Your subscription will be activated immediately after payment.'
-          },
-        },
         client_reference_id: userId,
         metadata: {
           userId: userId,
           plan: selectedPlan
         },
         customer: customerId, // reuse existing customer if we have one
-        customer_email: customerEmail,
+        customer_email: customerEmail, // This will prefill the email field in checkout
         ...(customerId && {
           customer_update: {
             name: 'auto',
