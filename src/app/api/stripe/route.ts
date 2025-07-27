@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth, clerkClient } from '@clerk/nextjs';
+import { auth } from '@clerk/nextjs';
 import Stripe from 'stripe';
 import { createServerSupabaseClient } from '../../../utils/supabase-server';
 
@@ -27,14 +27,10 @@ export async function POST(req: Request) {
       const selectedPlan = plan === 'advanced' ? 'advanced' : 'pro';
       const priceId = selectedPlan === 'advanced' ? ADVANCED_PRICE_ID : PRO_PRICE_ID;
 
-      // Fetch user info from Clerk (more reliable for email)
-      const clerkUser = await clerkClient.users.getUser(userId);
-      const customerEmail = clerkUser.emailAddresses[0]?.emailAddress || undefined;
-      
-      // Fetch any saved stripe_customer_id from database
+      // Fetch user info (email + any saved stripe_customer_id)
       const { data: userRow, error: userErr } = await supabase
         .from('users')
-        .select('stripe_customer_id')
+        .select('email, stripe_customer_id')
         .eq('user_id', userId)
         .single();
 
@@ -42,9 +38,8 @@ export async function POST(req: Request) {
         console.error('Error fetching user row:', userErr);
       }
 
+      const customerEmail = userRow?.email || undefined;
       let customerId = userRow?.stripe_customer_id || undefined;
-      
-      console.log('Customer email from Clerk:', customerEmail);
 
       // If we don't have a customer ID stored, try to look it up in Stripe via email
       if (!customerId && customerEmail) {
