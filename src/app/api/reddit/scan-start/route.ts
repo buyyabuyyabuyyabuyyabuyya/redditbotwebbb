@@ -341,7 +341,7 @@ export async function POST(req: Request) {
     }
     const consumerUrl = `${normalizedBase}/api/reddit/scan-post`;
 
-    const SPACING_SECONDS = 160; // 2 min 40 s between messages
+    const SPACING_SECONDS = 200; // 3 min 20 s between messages
     const nowSec = Math.floor(Date.now() / 1000);
     let i = 0;
     for (const post of candidatePosts) {
