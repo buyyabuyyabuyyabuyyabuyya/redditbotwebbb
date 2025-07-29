@@ -1,6 +1,10 @@
+'use client';
 import Link from 'next/link';
+import { useUser } from '@clerk/nextjs';
 
 export default function Footer() {
+  const { isSignedIn } = useUser();
+  const safe = (path: string) => (isSignedIn ? path : '/');
   return (
     <footer className="bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
@@ -13,7 +17,7 @@ export default function Footer() {
               Scan subreddits, analyze content with AI, and send targeted messages efficiently.
             </p>
             <p className="text-gray-400 text-sm">
-              © {new Date().getFullYear()} RedditOutreach. All rights reserved.
+              {new Date().getFullYear()} RedditOutreach. All rights reserved.
             </p>
           </div>
 
@@ -26,21 +30,24 @@ export default function Footer() {
                   Home
                 </Link>
               </li>
-              <li>
-                <Link href="/pricing" className="text-gray-400 hover:text-white transition-colors">
-                  Pricing
-                </Link>
-              </li>
-              <li>
-                <Link href="/tutorial" className="text-gray-400 hover:text-white transition-colors">
-                  Tutorial
-                </Link>
-              </li>
-              <li>
-                <Link href="/dashboard" className="text-gray-400 hover:text-white transition-colors">
-                  Dashboard
-                </Link>
-              </li>
+              
+                <li>
+                  <Link href={safe('/pricing')} className="text-gray-400 hover:text-white transition-colors">
+                        Pricing
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href={safe('/tutorial')} className="text-gray-400 hover:text-white transition-colors">
+                        Tutorial
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href={safe('/dashboard')} className="text-gray-400 hover:text-white transition-colors">
+                        Dashboard
+                      </Link>
+                    </li>
+                
+              
             </ul>
           </div>
 
