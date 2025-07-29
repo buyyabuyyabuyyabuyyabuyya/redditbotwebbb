@@ -360,7 +360,14 @@ export default async function Home() {
                     </li>
                   ))}
                 </ul>
-                <div className="mt-8 text-5xl font-bold tracking-tight text-white">$7.99</div>
+                <div className="mt-8">
+                  <div className="flex items-baseline gap-x-2 mb-2">
+                    <span className="text-lg font-semibold text-gray-400 line-through">$12.99</span>
+                    <span className="text-sm text-red-400 font-medium">🔥 Save 38%</span>
+                  </div>
+                  <div className="text-5xl font-bold tracking-tight text-white">$7.99</div>
+                  <p className="mt-2 text-sm text-red-400 font-medium">Limited Time: Discount expires August 30</p>
+                </div>
                 <div className="mt-6 w-full"><AuthButtons pricing /></div>
               </div>
 
@@ -375,7 +382,14 @@ export default async function Home() {
                     </li>
                   ))}
                 </ul>
-                <div className="mt-8 text-5xl font-bold tracking-tight text-white">$13.99</div>
+                <div className="mt-8">
+                  <div className="flex items-baseline gap-x-2 mb-2">
+                    <span className="text-lg font-semibold text-gray-400 line-through">$18.99</span>
+                    <span className="text-sm text-red-400 font-medium">🔥 Save 26%</span>
+                  </div>
+                  <div className="text-5xl font-bold tracking-tight text-white">$13.99</div>
+                  <p className="mt-2 text-sm text-red-400 font-medium">Limited Time: Discount expires August 30</p>
+                </div>
                 <div className="mt-6 w-full"><AuthButtons pricing /></div>
               </div>
             </div>
@@ -502,12 +516,18 @@ export default async function Home() {
                     Monthly
                   </p>
                   <p className="mt-6 flex items-baseline justify-center gap-x-2">
+                    <span className="text-lg font-semibold text-gray-400 line-through mr-2">
+                      $12.99
+                    </span>
                     <span className="text-5xl font-bold tracking-tight text-white">
                       $7.99
                     </span>
                     <span className="text-sm font-semibold leading-6 tracking-wide text-gray-400">
                       /month
                     </span>
+                  </p>
+                  <p className="mt-2 text-sm text-red-400 font-medium">
+                    🔥 Limited Time: Discount expires August 30
                   </p>
                   <div className="mt-10 w-full">
                     <AuthButtons pricing={true} />

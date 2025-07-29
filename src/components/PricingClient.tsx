@@ -7,6 +7,9 @@ import { useState } from 'react';
 interface Plan {
   name: string;
   price: string;
+  originalPrice?: string;
+  discount?: boolean;
+  discountExpiry?: string;
   description: string;
   features: string[];
   cta: string;
@@ -116,20 +119,37 @@ export default function PricingClient({ plans, userSubscriptionStatus }: Pricing
             <p className="mt-4 text-sm leading-6 text-gray-300">
               {plan.description}
             </p>
-            <p className="mt-6 flex items-baseline gap-x-1">
-              <span
-                className={`text-4xl font-bold tracking-tight ${
-                  plan.popular ? 'text-purple-300' : 'text-white'
-                }`}
-              >
-                {plan.price}
-              </span>
-              {plan.price !== 'Free' && (
-                <span className="text-sm font-semibold leading-6 text-gray-300">
-                  /month
-                </span>
+            <div className="mt-6">
+              {plan.discount && plan.originalPrice && (
+                <p className="flex items-baseline gap-x-2 mb-2">
+                  <span className="text-lg font-semibold text-gray-400 line-through">
+                    {plan.originalPrice}
+                  </span>
+                  <span className="text-sm text-red-400 font-medium">
+                    🔥 Save {Math.round((parseFloat(plan.originalPrice.replace('$', '')) - parseFloat(plan.price.replace('$', ''))) / parseFloat(plan.originalPrice.replace('$', '')) * 100)}%
+                  </span>
+                </p>
               )}
-            </p>
+              <p className="flex items-baseline gap-x-1">
+                <span
+                  className={`text-4xl font-bold tracking-tight ${
+                    plan.popular ? 'text-purple-300' : 'text-white'
+                  }`}
+                >
+                  {plan.price}
+                </span>
+                {plan.price !== 'Free' && (
+                  <span className="text-sm font-semibold leading-6 text-gray-300">
+                    /month
+                  </span>
+                )}
+              </p>
+              {plan.discount && plan.discountExpiry && (
+                <p className="mt-2 text-sm text-red-400 font-medium">
+                  Limited Time: Discount expires {plan.discountExpiry}
+                </p>
+              )}
+            </div>
             <ul role="list" className="mt-8 space-y-3 text-sm leading-6 text-gray-300">
               {plan.features.map((feature) => (
                 <li key={feature} className="flex gap-x-3">

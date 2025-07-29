@@ -61,6 +61,9 @@ export default async function Pricing() {
     {
       name: 'Pro',
       price: '$7.99',
+      originalPrice: '$12.99',
+      discount: true,
+      discountExpiry: 'August 30',
       description: 'For serious outreach',
       features: [
         '3 Reddit accounts',
@@ -76,6 +79,9 @@ export default async function Pricing() {
     {
       name: 'Advanced',
       price: '$13.99',
+      originalPrice: '$18.99',
+      discount: true,
+      discountExpiry: 'August 30',
       description: 'Unlimited capabilities',
       features: [
         'Unlimited accounts',
