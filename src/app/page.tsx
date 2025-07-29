@@ -19,8 +19,8 @@ export default async function Home() {
       {/* Site navigation */}
       <header className="fixed inset-x-0 top-0 z-50 border-b border-gray-800 bg-gray-900/70 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <Link href="/" className="text-xl font-semibold tracking-tight text-white">
-            Reddit <span className="text-purple-400">Bot</span>
+          <Link href="/" className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-red-400 hover:from-purple-400 hover:to-red-300 transition-all duration-300">
+            RedditOutreach
           </Link>
           <nav className="hidden md:flex gap-8 text-sm font-medium">
             <a href="#features" className="hover:text-purple-300">Features</a>
