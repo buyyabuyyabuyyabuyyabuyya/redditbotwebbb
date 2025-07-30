@@ -286,8 +286,8 @@ export async function POST(req: Request) {
         );
       }
 
-      // Release the API key after successful processing
-      await apiKeyManager.releaseApiKey(apiKey, userId);
+      // Release the API key after successful processing (no await to avoid blocking)
+      apiKeyManager.releaseApiKey(apiKey, userId);
 
       return NextResponse.json({
         success: true,
@@ -300,7 +300,7 @@ export async function POST(req: Request) {
       console.error('API processing error:', apiError);
       // Release the API key on error
       if (apiKey) {
-        await apiKeyManager.releaseApiKey(apiKey, userId);
+        apiKeyManager.releaseApiKey(apiKey, userId);
       }
       return NextResponse.json(
         { error: `API error: ${apiError.message || 'Unknown API error'}` },

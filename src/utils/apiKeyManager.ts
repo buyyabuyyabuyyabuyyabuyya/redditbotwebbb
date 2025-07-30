@@ -47,7 +47,7 @@ export class ApiKeyManager {
     try {
       console.log(`[${userId}] Acquiring API key for provider: ${provider}`);
 
-      // Find the first available key that's not being used and not rate limited
+      // Retrieve a pool of available keys that are not being used or rate-limited
       const { data: availableKeys, error } = await supabaseAdmin
         .from('api_keys')
         .select('*')
@@ -55,8 +55,8 @@ export class ApiKeyManager {
         .eq('is_active', true)
         .eq('being_used', false)
         .or(`rate_limit_reset.is.null,rate_limit_reset.lt.${new Date().toISOString()}`)
-        .order('id', { ascending: true })
-        .limit(1);
+        // Limit the candidate set to keep the payload small (adjust as needed)
+        .limit(100);
 
       if (error) {
         console.error(`[${userId}] Error fetching available API keys:`, error);
@@ -68,7 +68,10 @@ export class ApiKeyManager {
         return null;
       }
 
-      const apiKey = availableKeys[0] as ApiKey;
+      // Randomly choose one key from the available pool so that the same
+      // key is not always picked first.
+      const randomIndex = Math.floor(Math.random() * availableKeys.length);
+      const apiKey = availableKeys[randomIndex] as ApiKey;
 
       // Mark the key as being used
       const { data: updateData, error: updateError } = await supabaseAdmin
@@ -115,13 +118,18 @@ export class ApiKeyManager {
    */
   async releaseApiKey(apiKey: string, userId: string): Promise<void> {
     try {
-      console.log(`[${userId}] Releasing API key`);
+      // Hold the key for a short grace period (5 s) *synchronously* so that rapid
+      // successive requests do not grab the exact same key immediately. This is
+      // preferred over setTimeout in a serverless context where the execution
+      // environment may be frozen as soon as the handler returns.
+      console.log(`[${userId}] Waiting 5 seconds before releasing API key`);
+      await new Promise((resolve) => setTimeout(resolve, 5000));
 
       const { error } = await supabaseAdmin
         .from('api_keys')
         .update({
           being_used: false,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('key', apiKey);
 
@@ -131,7 +139,7 @@ export class ApiKeyManager {
         console.log(`[${userId}] API key released successfully`);
       }
     } catch (error) {
-      console.error(`[${userId}] Error in releaseApiKey:`, error);
+      console.error(`[${userId}] Error scheduling releaseApiKey:`, error);
     }
   }
 
