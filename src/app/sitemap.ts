@@ -1,35 +1,33 @@
 import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://redditoutreach.com'
-  
   return [
     {
-      url: baseUrl,
+      url: 'https://redditoutreach.com',
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 1,
     },
     {
-      url: `${baseUrl}/pricing`,
+      url: 'https://redditoutreach.com/pricing',
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/tutorial`,
+      url: 'https://redditoutreach.com/tutorial',
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.7,
     },
     {
-      url: `${baseUrl}/privacy`,
+      url: 'https://redditoutreach.com/terms',
       lastModified: new Date(),
       changeFrequency: 'yearly',
       priority: 0.3,
     },
     {
-      url: `${baseUrl}/terms`,
+      url: 'https://redditoutreach.com/privacy',
       lastModified: new Date(),
       changeFrequency: 'yearly',
       priority: 0.3,
