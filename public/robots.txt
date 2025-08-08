@@ -1,0 +1,25 @@
+User-agent: *
+Allow: /
+
+# Allow search engines to crawl the main pages
+Allow: /
+Allow: /pricing
+Allow: /tutorial
+Allow: /terms
+Allow: /privacy
+
+# Disallow sensitive areas that shouldn't be indexed
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /api/
+Disallow: /messages
+Disallow: /file-logs
+Disallow: /bot-logs
+Disallow: /settings
+Disallow: /payment-success
+
+# Sitemap location
+Sitemap: https://redditoutreach.com/sitemap.xml
+
+# Crawl delay (optional - helps with server load)
+Crawl-delay: 1 
