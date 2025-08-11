@@ -51,7 +51,7 @@ export default async function Pricing() {
       features: [
         '1 Reddit account',
         '15 message limit',
-        '2 templates',
+        '1 templates',
         '1 scan config',
         'Basic analytics',
       ],
