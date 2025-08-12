@@ -370,16 +370,14 @@ export async function POST(req: Request) {
       }
       const consumerUrl = `${normalizedBase}/api/reddit/scan-post`;
 
-      const SPACING_SECONDS = 200; // 3 min 20 s between messages
-      const nowSec = Math.floor(Date.now() / 1000);
+      // Queue posts immediately - scan-post will handle proper spacing with atomic counter
       let i = 0;
       for (const post of candidatePosts) {
         if (scheduledCount >= BATCH_SIZE || scheduledCount >= remaining) break;
-        const notBefore = nowSec + i * SPACING_SECONDS;
         await scheduleQStashMessage({
           destination: consumerUrl,
           body: { configId, postId: post.id },
-          notBefore,
+          delaySeconds: 0, // No delay here - scan-post handles spacing
           headers: {
             'X-Internal-API': 'true',
           },
@@ -392,7 +390,7 @@ export async function POST(req: Request) {
 
       // If more posts remain, schedule the next scan-start job after the last scheduled item + buffer
       if (newRemaining > 0) {
-        const nextNotBefore = nowSec + i * SPACING_SECONDS + 10; // 10-second buffer
+        const nextDelay = 10; // 10-second buffer
         await scheduleQStashMessage({
           destination: `${normalizedBase}/api/reddit/scan-start`,
           body: {
@@ -400,7 +398,7 @@ export async function POST(req: Request) {
             remaining: newRemaining,
             after: rawPosts[rawPosts.length - 1]?.name,
           },
-          notBefore: nextNotBefore,
+          delaySeconds: nextDelay,
           headers: {
             'X-Internal-API': 'true',
           },

@@ -48,59 +48,87 @@ export async function GET(request: NextRequest) {
 
     // Use the Reddit API to fetch actual messages
     try {
-      // Create a Reddit API client with the account credentials
-      const userAgent = `web:reddit-bot-saas:v1.0.0 (by /u/${account.username})`;
+      // Apply proxy for this request if configured
+      const prevHttp = process.env.HTTP_PROXY;
+      const prevHttps = process.env.HTTPS_PROXY;
+      const prevNoProxy = process.env.NO_PROXY;
+      
+      try {
+        if (account.proxy_enabled && account.proxy_host && account.proxy_port && account.proxy_type) {
+          const auth = account.proxy_username
+            ? `${encodeURIComponent(account.proxy_username)}${account.proxy_password ? ':' + encodeURIComponent(account.proxy_password) : ''}@`
+            : '';
+          const proxyUrl = `${account.proxy_type}://${auth}${account.proxy_host}:${account.proxy_port}`;
+          process.env.HTTP_PROXY = proxyUrl;
+          process.env.HTTPS_PROXY = proxyUrl;
+          if (process.env.NO_PROXY !== undefined) delete process.env.NO_PROXY;
+          console.log('private-messages: proxy_enabled', `${account.proxy_type}://${account.proxy_host}:${account.proxy_port}`);
+        } else {
+          delete process.env.HTTP_PROXY;
+          delete process.env.HTTPS_PROXY;
+          process.env.NO_PROXY = '*';
+          console.log('private-messages: proxy_disabled');
+        }
 
-      const reddit = new Snoowrap({
-        userAgent,
-        clientId: account.client_id,
-        clientSecret: account.client_secret,
-        username: account.username,
-        password: account.password,
-      });
+        // Create a Reddit API client with the account credentials
+        const userAgent = `web:reddit-bot-saas:v1.0.0 (by /u/${account.username})`;
 
-      console.log(`Fetching messages for Reddit account: ${account.username}`);
+        const reddit = new Snoowrap({
+          userAgent,
+          clientId: account.client_id,
+          clientSecret: account.client_secret,
+          username: account.username,
+          password: account.password,
+        });
 
-      // Get limit parameter from query string or use default (100 is typically the Reddit API max)
-      const limit = parseInt(
-        request.nextUrl.searchParams.get('limit') || '100'
-      );
-      console.log(
-        `Fetching up to ${limit} messages for each category (inbox & sent)`
-      );
+        console.log(`Fetching messages for Reddit account: ${account.username}`);
 
-      // Fetch both inbox and sent messages with increased limit
-      // Use type assertion since the Snoowrap type definitions might be incomplete
-      const inbox = await reddit.getInbox({ limit } as any);
-      const sent = await reddit.getSentMessages({ limit } as any);
+        // Get limit parameter from query string or use default (100 is typically the Reddit API max)
+        const limit = parseInt(
+          request.nextUrl.searchParams.get('limit') || '100'
+        );
+        console.log(
+          `Fetching up to ${limit} messages for each category (inbox & sent)`
+        );
 
-      // Process and combine the messages
-      const inboxMessages = inbox.map((msg: any) => ({
-        id: msg.id,
-        subject: msg.subject || 'No Subject',
-        body: msg.body,
-        author: msg.author?.name || 'Unknown',
-        created_utc: msg.created_utc,
-        isIncoming: true,
-        wasRead: !msg.new,
-      }));
+        // Fetch both inbox and sent messages with increased limit
+        // Use type assertion since the Snoowrap type definitions might be incomplete
+        const inbox = await reddit.getInbox({ limit } as any);
+        const sent = await reddit.getSentMessages({ limit } as any);
 
-      const sentMessages = sent.map((msg: any) => ({
-        id: msg.id,
-        subject: msg.subject || 'No Subject',
-        body: msg.body,
-        author: msg.dest || 'Unknown',
-        created_utc: msg.created_utc,
-        isIncoming: false,
-        wasRead: true,
-      }));
+        // Process and combine the messages
+        const inboxMessages = inbox.map((msg: any) => ({
+          id: msg.id,
+          subject: msg.subject || 'No Subject',
+          body: msg.body,
+          author: msg.author?.name || 'Unknown',
+          created_utc: msg.created_utc,
+          isIncoming: true,
+          wasRead: !msg.new,
+        }));
 
-      // Combine and sort by creation time (newest first)
-      const allMessages = [...inboxMessages, ...sentMessages].sort(
-        (a, b) => b.created_utc - a.created_utc
-      );
+        const sentMessages = sent.map((msg: any) => ({
+          id: msg.id,
+          subject: msg.subject || 'No Subject',
+          body: msg.body,
+          author: msg.dest || 'Unknown',
+          created_utc: msg.created_utc,
+          isIncoming: false,
+          wasRead: true,
+        }));
 
-      return NextResponse.json({ messages: allMessages });
+        // Combine and sort by creation time (newest first)
+        const allMessages = [...inboxMessages, ...sentMessages].sort(
+          (a, b) => b.created_utc - a.created_utc
+        );
+
+        return NextResponse.json({ messages: allMessages });
+      } finally {
+        process.env.HTTP_PROXY = prevHttp;
+        process.env.HTTPS_PROXY = prevHttps;
+        if (prevNoProxy !== undefined) process.env.NO_PROXY = prevNoProxy; else delete process.env.NO_PROXY;
+        console.log('private-messages: proxy_envs_restored');
+      }
     } catch (redditError) {
       console.error('Error fetching Reddit messages:', redditError);
       return NextResponse.json(
@@ -154,54 +182,82 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      // Use the Reddit API to actually send the reply
+      // Apply proxy for this request if configured
+      const prevHttp = process.env.HTTP_PROXY;
+      const prevHttps = process.env.HTTPS_PROXY;
+      const prevNoProxy = process.env.NO_PROXY;
+      
       try {
-        // Create a Reddit API client with the account credentials
-        const userAgent = `web:reddit-bot-saas:v1.0.0 (by /u/${account.username})`;
-
-        const reddit = new Snoowrap({
-          userAgent,
-          clientId: account.client_id,
-          clientSecret: account.client_secret,
-          username: account.username,
-          password: account.password,
-        });
-
-        console.log(
-          `Sending reply to message ${messageId} from account ${account.username}`
-        );
-
-        // Get the message and then reply to it
-        const message = await (reddit.getMessage(messageId) as any);
-        await message.reply(body);
-
-        // Update user's message count
-        const { data: userData, error: userError } = await supabaseAdmin
-          .from('users')
-          .select('message_count')
-          .eq('id', userId)
-          .single();
-
-        if (!userError && userData) {
-          await supabaseAdmin
-            .from('users')
-            .update({ message_count: (userData.message_count || 0) + 1 })
-            .eq('id', userId);
+        if (account.proxy_enabled && account.proxy_host && account.proxy_port && account.proxy_type) {
+          const auth = account.proxy_username
+            ? `${encodeURIComponent(account.proxy_username)}${account.proxy_password ? ':' + encodeURIComponent(account.proxy_password) : ''}@`
+            : '';
+          const proxyUrl = `${account.proxy_type}://${auth}${account.proxy_host}:${account.proxy_port}`;
+          process.env.HTTP_PROXY = proxyUrl;
+          process.env.HTTPS_PROXY = proxyUrl;
+          if (process.env.NO_PROXY !== undefined) delete process.env.NO_PROXY;
+          console.log('private-messages: proxy_enabled', `${account.proxy_type}://${account.proxy_host}:${account.proxy_port}`);
+        } else {
+          delete process.env.HTTP_PROXY;
+          delete process.env.HTTPS_PROXY;
+          process.env.NO_PROXY = '*';
+          console.log('private-messages: proxy_disabled');
         }
 
-        return NextResponse.json({ success: true });
-      } catch (redditError) {
-        console.error('Error sending message reply on Reddit:', redditError);
-        return NextResponse.json(
-          {
-            error: 'Failed to send reply on Reddit',
-            details:
-              redditError instanceof Error
-                ? redditError.message
-                : 'Unknown error',
-          },
-          { status: 500 }
-        );
+        // Use the Reddit API to actually send the reply
+        try {
+          // Create a Reddit API client with the account credentials
+          const userAgent = `web:reddit-bot-saas:v1.0.0 (by /u/${account.username})`;
+
+          const reddit = new Snoowrap({
+            userAgent,
+            clientId: account.client_id,
+            clientSecret: account.client_secret,
+            username: account.username,
+            password: account.password,
+          });
+
+          console.log(
+            `Sending reply to message ${messageId} from account ${account.username}`
+          );
+
+          // Get the message and then reply to it
+          const message = await (reddit.getMessage(messageId) as any);
+          await message.reply(body);
+
+          // Update user's message count
+          const { data: userData, error: userError } = await supabaseAdmin
+            .from('users')
+            .select('message_count')
+            .eq('id', userId)
+            .single();
+
+          if (!userError && userData) {
+            await supabaseAdmin
+              .from('users')
+              .update({ message_count: (userData.message_count || 0) + 1 })
+              .eq('id', userId);
+          }
+
+          return NextResponse.json({ success: true });
+        } catch (redditError) {
+          console.error('Error sending message reply on Reddit:', redditError);
+          return NextResponse.json(
+            {
+              error: 'Failed to send reply on Reddit',
+              details:
+                redditError instanceof Error
+                  ? redditError.message
+                  : 'Unknown error',
+            },
+            { status: 500 }
+          );
+        }
+      } finally {
+        process.env.HTTP_PROXY = prevHttp;
+        process.env.HTTPS_PROXY = prevHttps;
+        if (prevNoProxy !== undefined) process.env.NO_PROXY = prevNoProxy; else delete process.env.NO_PROXY;
+        console.log('private-messages: proxy_envs_restored');
       }
     } catch (error) {
       console.error('Error sending message reply:', error);

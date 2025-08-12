@@ -380,7 +380,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
         console.error('scan-post: increment_message_counter error, falling back to 1', e?.message || e);
         index = 1;
       }
-      const delaySeconds = BASE_DELAY_SEC * (index - 1); // 0 for first, then spaced
+      const delaySeconds = Math.max(1, BASE_DELAY_SEC * (index - 1)); // Ensure minimum 1 second delay
 
       // Log schedule after we know delay
       await supabase.from('bot_logs').insert([
