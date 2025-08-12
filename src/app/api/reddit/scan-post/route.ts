@@ -90,6 +90,9 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
           subreddit: config.subreddit,
           message: `${account.proxy_type}://${account.proxy_host}:${account.proxy_port}`,
         });
+      } else {
+        delete process.env.HTTP_PROXY;
+        delete process.env.HTTPS_PROXY;
       }
 
       const reddit = new snoowrap({
