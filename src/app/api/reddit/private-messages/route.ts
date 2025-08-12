@@ -172,7 +172,7 @@ export async function POST(request: NextRequest) {
         );
 
         // Get the message and then reply to it
-        const message = await reddit.getMessage(messageId);
+        const message = await (reddit.getMessage(messageId) as any);
         await message.reply(body);
 
         // Update user's message count

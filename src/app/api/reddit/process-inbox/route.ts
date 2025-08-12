@@ -52,6 +52,25 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       if (accountId && account.id !== accountId) continue; // if specific account requested
       
       try {
+        const prevHttp = process.env.HTTP_PROXY;
+        const prevHttps = process.env.HTTPS_PROXY;
+        try {
+          if (account.proxy_enabled && account.proxy_host && account.proxy_port && account.proxy_type) {
+            const auth = account.proxy_username
+              ? `${encodeURIComponent(account.proxy_username)}${account.proxy_password ? ':' + encodeURIComponent(account.proxy_password) : ''}@`
+              : '';
+            const proxyUrl = `${account.proxy_type}://${auth}${account.proxy_host}:${account.proxy_port}`;
+            process.env.HTTP_PROXY = proxyUrl;
+            process.env.HTTPS_PROXY = proxyUrl;
+            await supabase.from('bot_logs').insert({
+              user_id: userId,
+              action: 'proxy_enabled_for_request',
+              status: 'info',
+              subreddit: '_system',
+              message: `${account.proxy_type}://${account.proxy_host}:${account.proxy_port}`,
+            });
+          }
+
         const reddit = new snoowrap({
           userAgent: 'Reddit Bot SaaS - inbox processor',
           clientId: account.client_id,
@@ -137,7 +156,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
           if (isOptOut) {
             const { error: insertErr } = await supabase
               .from('opt_outs')
-              .insert({ id: crypto.randomUUID(), user_id: userId, recipient: msg.author.name.toLowerCase() }, { ignoreDuplicates: true });
+              .insert({ id: crypto.randomUUID(), user_id: userId, recipient: msg.author.name.toLowerCase() });
             if (insertErr) {
               console.error('opt_outs insert error', insertErr);
               // fire-and-forget diagnostic log, ignore failure
@@ -156,7 +175,15 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
               console.log(`Recorded opt-out from ${msg.author.name} via account ${account.username}`);
             }
           }
-          try { await msg.markAsRead(); } catch {}
+          try {
+            await (msg as any).markAsRead();
+          } catch (_e) {
+            // ignore markAsRead failures
+          }
+        }
+        } finally {
+          process.env.HTTP_PROXY = prevHttp;
+          process.env.HTTPS_PROXY = prevHttps;
         }
       } catch (accountError) {
         // Log account-specific errors but don't fail the whole process

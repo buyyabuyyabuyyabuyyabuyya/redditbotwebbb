@@ -1,19 +1,17 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs'
 import { createClient } from '@supabase/supabase-js'
+import snoowrap from 'snoowrap'
 
-// This handler now just proxies the request to our Supabase Edge Function
 export async function POST(req: Request) {
   try {
     const internal = req.headers.get('X-Internal-API') === 'true';
     const { userId } = auth();
 
-    // If not an internal call, ensure the user is authenticated
     if (!internal && !userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Parse body
     const body = (await req.json()) as {
       userId?: string;
       recipientUsername: string;
@@ -21,16 +19,13 @@ export async function POST(req: Request) {
       message: string;
       subject?: string;
       configId?: string;
+      postId?: string;
     };
 
-    // For client-side calls attach the authenticated user ID
-    if (!internal) {
-      body.userId = userId!;
-    }
+    if (!internal) body.userId = userId!;
 
-    const { recipientUsername, accountId, message, configId } = body;
+    const { recipientUsername, accountId, message, configId, postId } = body;
 
-    // Admin Supabase client for logging
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY || ''
@@ -47,7 +42,6 @@ export async function POST(req: Request) {
       subreddit = cfg?.subreddit || null;
     }
 
-    // Log attempt
     await supabaseAdmin.from('bot_logs').insert({
       user_id: body.userId || userId,
       config_id: configId,
@@ -56,14 +50,12 @@ export async function POST(req: Request) {
       subreddit,
       recipient: recipientUsername,
     });
+
     if (!recipientUsername || !accountId || !message) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // ----- Quota enforcement (final gate uses message_count) -----
+    // Quota gate
     const PLAN_LIMITS: Record<string, number | null> = { free: 15, pro: 200, advanced: null };
     const { data: userRow } = await supabaseAdmin
       .from('users')
@@ -71,14 +63,10 @@ export async function POST(req: Request) {
       .eq('id', body.userId || userId)
       .single();
     const planStatus = userRow?.subscription_status || 'free';
-    const planLimit = Object.prototype.hasOwnProperty.call(PLAN_LIMITS, planStatus)
-      ? PLAN_LIMITS[planStatus]
-      : 15;
+    const planLimit = Object.prototype.hasOwnProperty.call(PLAN_LIMITS, planStatus) ? PLAN_LIMITS[planStatus] : 15;
     if (planLimit !== null) {
       const used = userRow?.message_count || 0;
-      console.log('send-message quota check', { userId: body.userId || userId, planStatus, planLimit, used });
       if (used >= planLimit) {
-        // Deactivate bot (if a config context is provided)
         if (configId) {
           await supabaseAdmin.from('scan_configs').update({ is_active: false }).eq('id', configId);
           await supabaseAdmin.from('bot_logs').insert({
@@ -102,26 +90,95 @@ export async function POST(req: Request) {
       }
     }
 
-    // Use explicit Edge Function URL if provided, otherwise construct it from the main Supabase URL
-    const funcUrl =
-      process.env.NEXT_PUBLIC_SUPABASE_EDGE_FUNCTION_URL ||
-      process.env.NEXT_PUBLIC_SUPABASE_URL!.replace(
-        '.supabase.co',
-        '.functions.supabase.co'
-      ) + '/send-message'
+    // Load account with proxy settings
+    const { data: account } = await supabaseAdmin
+      .from('reddit_accounts')
+      .select('*')
+      .eq('id', accountId)
+      .eq('user_id', body.userId || userId)
+      .single();
+    if (!account) {
+      return NextResponse.json({ error: 'Reddit account not found' }, { status: 404 });
+    }
 
-    const edgeResp = await fetch(funcUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
-      },
-      body: JSON.stringify(body),
-    })
+    // Apply per-request proxy via env vars (scoped)
+    const prevHttp = process.env.HTTP_PROXY;
+    const prevHttps = process.env.HTTPS_PROXY;
+    try {
+      if (account.proxy_enabled && account.proxy_host && account.proxy_port && account.proxy_type) {
+        const auth = account.proxy_username
+          ? `${encodeURIComponent(account.proxy_username)}${account.proxy_password ? ':' + encodeURIComponent(account.proxy_password) : ''}@`
+          : '';
+        const proxyUrl = `${account.proxy_type}://${auth}${account.proxy_host}:${account.proxy_port}`;
+        process.env.HTTP_PROXY = proxyUrl;
+        process.env.HTTPS_PROXY = proxyUrl;
+        await supabaseAdmin.from('bot_logs').insert({
+          user_id: body.userId || userId,
+          config_id: configId,
+          action: 'proxy_enabled_for_request',
+          status: 'info',
+          subreddit,
+          message: `${account.proxy_type}://${account.proxy_host}:${account.proxy_port}`,
+        });
+      }
 
-    const text = await edgeResp.text();
+      const reddit = new snoowrap({
+        userAgent: 'Reddit Bot SaaS',
+        clientId: account.client_id,
+        clientSecret: account.client_secret,
+        username: account.username,
+        password: account.password,
+      });
 
-    if (edgeResp.ok) {
+      const OPT_OUT_FOOTER = 'Reply STOP to never hear from me again.';
+      const finalText = message + OPT_OUT_FOOTER;
+
+      // Send the message
+      try {
+        await reddit.composeMessage({
+          to: recipientUsername,
+          subject: body.subject || `Message from Reddit Bot SaaS`,
+          text: finalText,
+        } as any);
+      } catch (err: any) {
+        const msg = err instanceof Error ? err.message : String(err);
+        const privacyErr = msg.includes('NOT_WHITELISTED_BY_USER_MESSAGE') || msg.includes("can't send a message to that user");
+        if (privacyErr) {
+          await supabaseAdmin.from('bot_logs').insert({
+            user_id: body.userId || userId,
+            action: 'recipient_not_whitelisted',
+            status: 'info',
+            recipient: recipientUsername,
+          });
+          return NextResponse.json({ skipped: true, reason: 'recipient_not_whitelisted' });
+        }
+        await supabaseAdmin.from('bot_logs').insert({
+          user_id: body.userId || userId,
+          action: 'reddit_api_error',
+          status: 'error',
+          recipient: recipientUsername,
+          error_message: msg.slice(0, 250),
+        });
+        return NextResponse.json({ error: 'reddit_send_failed' }, { status: 502 });
+      }
+
+      // Update counters and store record
+      await supabaseAdmin
+        .from('users')
+        .update({ message_count: (userRow?.message_count ?? 0) + 1 })
+        .eq('id', body.userId || userId);
+
+      await supabaseAdmin.from('sent_messages').insert([
+        {
+          user_id: body.userId || userId,
+          account_id: accountId,
+          recipient: recipientUsername,
+          content: message,
+          post_id: postId ?? null,
+          config_id: configId ?? null,
+        },
+      ]);
+
       await supabaseAdmin.from('bot_logs').insert({
         user_id: body.userId || userId,
         config_id: configId,
@@ -130,39 +187,15 @@ export async function POST(req: Request) {
         subreddit,
         recipient: recipientUsername,
       });
-    } else {
-      await supabaseAdmin.from('bot_logs').insert({
-        user_id: body.userId || userId,
-        config_id: configId,
-        action: 'message_send_error',
-        status: 'error',
-        subreddit,
-        recipient: recipientUsername,
-        error_message: text.slice(0, 250),
-      });
+
+      return NextResponse.json({ success: true });
+    } finally {
+      // Restore envs
+      process.env.HTTP_PROXY = prevHttp;
+      process.env.HTTPS_PROXY = prevHttps;
     }
-
-    // Echo the edge-function status for logging
-    console.log('Edge send-message response', edgeResp.status, text);
-    return new NextResponse(text, { status: edgeResp.status, headers: { 'Content-Type': 'application/json' } });
   } catch (err) {
-    console.error('Proxy error (send-message):', err);
-    try {
-      const supabaseAdmin = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-      );
-      await supabaseAdmin.from('bot_logs').insert({
-        user_id: userId,
-        action: 'message_send_error',
-        status: 'error',
-        error_message: err instanceof Error ? err.message : String(err),
-      });
-    } catch (_) {}
-
-    return NextResponse.json(
-      { error: 'Failed to call edge function' },
-      { status: 500 }
-    )
+    console.error('send-message error', err);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

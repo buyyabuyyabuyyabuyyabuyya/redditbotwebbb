@@ -333,21 +333,44 @@ export default function AddRedditAccount({
               <div className="mt-3 flex items-center space-x-3">
                 <button
                   type="button"
-                  disabled
+                  disabled={!proxyEnabled}
                   onClick={async () => {
-                    // Placeholder for future proxy test endpoint
                     setProxyTesting(true);
                     setProxyTestResult(null);
                     try {
-                      // To be implemented in server routes step
+                      const resp = await fetch('/api/proxy/test', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          accountId: (account as any)?.id,
+                          proxy: {
+                            enabled: proxyEnabled,
+                            type: proxyType as any,
+                            host: proxyHost,
+                            port: proxyPort === '' ? undefined : Number(proxyPort),
+                            username: proxyUsername,
+                            password: proxyPassword || undefined,
+                          },
+                          credentials: isEdit
+                            ? undefined
+                            : { username, password, clientId, clientSecret },
+                        }),
+                      });
+                      const data = await resp.json();
+                      if (resp.ok) {
+                        setProxyTestResult(`OK • ${data.latencyMs ?? '?'}ms${data.ip ? ` • IP ${data.ip}` : ''}`);
+                      } else {
+                        setProxyTestResult(`Failed: ${data.error || 'Unknown error'}`);
+                      }
+                    } catch (e: any) {
+                      setProxyTestResult(`Failed: ${e?.message || String(e)}`);
                     } finally {
                       setProxyTesting(false);
                     }
                   }}
-                  className="px-3 py-1.5 rounded-md text-sm bg-gray-700 text-gray-300 cursor-not-allowed"
-                  title="Will be enabled after server routes are added"
+                  className={`px-3 py-1.5 rounded-md text-sm ${proxyEnabled ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-gray-700 text-gray-300 cursor-not-allowed'}`}
                 >
-                  Test Proxy
+                  {proxyTesting ? 'Testing…' : 'Test Proxy'}
                 </button>
                 {proxyTestResult && (
                   <span className="text-sm text-gray-300">{proxyTestResult}</span>

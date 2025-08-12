@@ -26,6 +26,8 @@ interface RedditAccount {
   credential_error_at?: string;
   proxy_enabled?: boolean;
   proxy_status?: string | null;
+  proxy_last_checked?: string | null;
+  proxy_type?: string | null;
 }
 
 interface MessageTemplate {
@@ -62,6 +64,9 @@ export default function Dashboard() {
   const [activeBots, setActiveBots] = useState<
     Array<{ configId: string; scanInterval: number }>
   >([]);
+  // Proxy test UI state
+  const [proxyTestingId, setProxyTestingId] = useState<string | null>(null);
+  const [proxyTestMsg, setProxyTestMsg] = useState<Record<string, string>>({});
 
   // Function to handle stopping a bot from the logs view
   const handleStopBot = async (subreddit: string, configId?: string) => {
@@ -290,6 +295,33 @@ export default function Dashboard() {
     }
   };
 
+  const handleTestProxyQuick = async (accountId: string) => {
+    try {
+      setProxyTestingId(accountId);
+      setProxyTestMsg((m) => ({ ...m, [accountId]: '' }));
+      const resp = await fetch('/api/proxy/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountId }),
+      });
+      const data = await resp.json();
+      if (resp.ok) {
+        const msg = `OK • ${data.latencyMs ?? '?'}ms${data.ip ? ` • IP ${data.ip}` : ''}`;
+        setProxyTestMsg((m) => ({ ...m, [accountId]: msg }));
+      } else {
+        setProxyTestMsg((m) => ({ ...m, [accountId]: `Failed: ${data.error || 'error'}` }));
+      }
+      // Refresh account row to update status/last-checked
+      await loadAccounts();
+    } catch (e: any) {
+      setProxyTestMsg((m) => ({ ...m, [accountId]: `Failed: ${e?.message || String(e)}` }));
+    } finally {
+      setProxyTestingId(null);
+      // Auto-clear the message after a few seconds
+      setTimeout(() => setProxyTestMsg((m) => ({ ...m, [accountId]: '' })), 5000);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto">
       {/* AutoScanPoller is a headless component that manages automatic scanning */}
@@ -477,9 +509,25 @@ export default function Dashboard() {
                           }`}>
                             {account.username}
                           </span>
-                          {/* Proxy badge (only show hint; actual enablement is paid-gated in form) */}
+                          {/* Proxy badge with status and last-checked */}
                           {isProUser && (account as any)?.proxy_enabled && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-700/60 text-emerald-200 border border-emerald-600/50">PROXY</span>
+                            <button
+                              onClick={() => handleTestProxyQuick(account.id)}
+                              disabled={proxyTestingId === account.id}
+                              title={`Click to test via proxy\nStatus: ${account.proxy_status || 'unknown'}${account.proxy_last_checked ? ` • Checked ${new Date(account.proxy_last_checked).toLocaleString()}` : ''}${account.proxy_type ? ` • ${account.proxy_type.toUpperCase()}` : ''}`}
+                              className={`text-[10px] px-2 py-0.5 rounded-full border transition-colors ${
+                                account.proxy_status === 'ok'
+                                  ? 'bg-emerald-700/60 text-emerald-200 border-emerald-600/50 hover:bg-emerald-700'
+                                  : account.proxy_status === 'error'
+                                  ? 'bg-red-700/60 text-red-200 border-red-600/50 hover:bg-red-700'
+                                  : 'bg-gray-700/60 text-gray-200 border-gray-600/50 hover:bg-gray-700'
+                              } ${proxyTestingId === account.id ? 'opacity-60 cursor-wait' : 'cursor-pointer'}`}
+                            >
+                              {proxyTestingId === account.id ? 'TESTING…' : 'PROXY'}
+                            </button>
+                          )}
+                          {!!proxyTestMsg[account.id] && (
+                            <span className="ml-2 text-xs text-gray-300">{proxyTestMsg[account.id]}</span>
                           )}
                           {account.status === 'banned' ? (
                             <div className="flex items-center space-x-1">

@@ -220,183 +220,208 @@ export async function POST(req: Request) {
       );
     }
 
-    // Minimal snoowrap instance
-    const reddit = new snoowrap({
-      userAgent: 'Reddit Bot SaaS',
-      clientId: account.client_id,
-      clientSecret: account.client_secret,
-      username: account.username,
-      password: account.password,
-    });
-
-    // ----- Reddit auth + fetch with detailed logs -----
-    await supabaseAdmin.from('bot_logs').insert({
-      user_id: userId,
-      config_id: configId,
-      action: 'reddit_auth_attempt',
-      status: 'info',
-      subreddit: config.subreddit,
-    });
-
-    let rawPosts: any[] = [];
+    // Apply per-request proxy via env vars when configured
+    const prevHttp = process.env.HTTP_PROXY;
+    const prevHttps = process.env.HTTPS_PROXY;
+    let scheduledCount = 0;
+    let newRemaining = remaining;
     try {
-      // Log API request
+      if (account.proxy_enabled && account.proxy_host && account.proxy_port && account.proxy_type) {
+        const auth = account.proxy_username
+          ? `${encodeURIComponent(account.proxy_username)}${account.proxy_password ? ':' + encodeURIComponent(account.proxy_password) : ''}@`
+          : '';
+        const proxyUrl = `${account.proxy_type}://${auth}${account.proxy_host}:${account.proxy_port}`;
+        process.env.HTTP_PROXY = proxyUrl;
+        process.env.HTTPS_PROXY = proxyUrl;
+        await supabaseAdmin.from('bot_logs').insert({
+          user_id: userId,
+          config_id: configId,
+          action: 'proxy_enabled_for_request',
+          status: 'info',
+          subreddit: config.subreddit,
+          message: `${account.proxy_type}://${account.proxy_host}:${account.proxy_port}`,
+        });
+      }
+
+      // Minimal snoowrap instance
+      const reddit = new snoowrap({
+        userAgent: 'Reddit Bot SaaS',
+        clientId: account.client_id,
+        clientSecret: account.client_secret,
+        username: account.username,
+        password: account.password,
+      });
+
+      // ----- Reddit auth + fetch with detailed logs -----
       await supabaseAdmin.from('bot_logs').insert({
         user_id: userId,
         config_id: configId,
-        action: 'reddit_api_request',
+        action: 'reddit_auth_attempt',
         status: 'info',
         subreddit: config.subreddit,
-        message: 'getNew posts',
       });
 
-      rawPosts = await reddit
-        .getSubreddit(config.subreddit)
-        .getNew({ limit: MAX_TOTAL_POSTS, after: afterCursor });
-
-      await supabaseAdmin.from('bot_logs').insert([
-        {
+      let rawPosts: any[] = [];
+      try {
+        // Log API request
+        await supabaseAdmin.from('bot_logs').insert({
           user_id: userId,
           config_id: configId,
-          action: 'reddit_api_success',
+          action: 'reddit_api_request',
+          status: 'info',
+          subreddit: config.subreddit,
+          message: 'getNew posts',
+        });
+
+        rawPosts = await (reddit.getSubreddit(config.subreddit) as any)
+          .getNew({ limit: MAX_TOTAL_POSTS, after: afterCursor });
+
+        await supabaseAdmin.from('bot_logs').insert([
+          {
+            user_id: userId,
+            config_id: configId,
+            action: 'reddit_api_success',
+            status: 'success',
+            subreddit: config.subreddit,
+          },
+          {
+            user_id: userId,
+            config_id: configId,
+            action: 'reddit_auth_success',
+            status: 'success',
+            subreddit: config.subreddit,
+          },
+        ]);
+      } catch (err: any) {
+        const errMsg = err instanceof Error ? err.message : String(err);
+        await supabaseAdmin.from('bot_logs').insert([
+          {
+            user_id: userId,
+            config_id: configId,
+            action: 'reddit_api_error',
+            status: 'error',
+            subreddit: config.subreddit,
+            error_message: errMsg,
+          },
+          {
+            user_id: userId,
+            config_id: configId,
+            action: 'reddit_auth_error',
+            status: 'error',
+            subreddit: config.subreddit,
+            error_message: errMsg,
+          },
+        ]);
+        throw err;
+      }
+
+      // Determine which posts need a message (keyword match & not already messaged)
+      const candidatePosts: any[] = [];
+      const seenAuthors = new Set<string>();
+      const keywords = (config.keywords || []) as string[];
+
+      for (const post of rawPosts) {
+        const titleLower = (post.title || '').toLowerCase();
+        if (!keywords.some((kw) => titleLower.includes(kw.toLowerCase()))) continue;
+
+        // Skip if we have already queued a message for this author in this batch
+        if (seenAuthors.has(post.author.name)) continue;
+
+        const { data: existingMsg } = await supabaseAdmin
+          .from('sent_messages')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('account_id', config.reddit_account_id)
+          .eq('post_id', post.id)
+          .maybeSingle();
+        if (existingMsg) continue; // already messaged historically
+
+        candidatePosts.push(post);
+        seenAuthors.add(post.author.name);
+      }
+
+      if (candidatePosts.length === 0) {
+        return NextResponse.json({ queued: false, reason: 'No new posts' });
+      }
+      //pous test
+
+      // Publish one message per post with increasing delay
+      // Determine base host for consumer endpoint (should not include protocol)
+      let rawBase = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL || '';
+      // Fallback to request host if env vars are missing (e.g., preview deployments)
+      if (!rawBase) {
+        rawBase = new URL(req.url).host; // host comes without protocol
+      }
+      // If the env var already contains a protocol, keep it; otherwise prepend https://
+      const normalizedBase = rawBase.startsWith('http://') || rawBase.startsWith('https://')
+        ? rawBase.replace(/\/$/, '')
+        : `https://${rawBase.replace(/\/$/, '')}`;
+
+      if (!normalizedBase || !/^https?:\/\//.test(normalizedBase)) {
+        throw new Error('Invalid or missing NEXT_PUBLIC_APP_URL / VERCEL_URL env var');
+      }
+      const consumerUrl = `${normalizedBase}/api/reddit/scan-post`;
+
+      const SPACING_SECONDS = 200; // 3 min 20 s between messages
+      const nowSec = Math.floor(Date.now() / 1000);
+      let i = 0;
+      for (const post of candidatePosts) {
+        if (scheduledCount >= BATCH_SIZE || scheduledCount >= remaining) break;
+        const notBefore = nowSec + i * SPACING_SECONDS;
+        await scheduleQStashMessage({
+          destination: consumerUrl,
+          body: { configId, postId: post.id },
+          notBefore,
+          headers: {
+            'X-Internal-API': 'true',
+          },
+        });
+        scheduledCount += 1;
+        i += 1;
+      }
+
+      newRemaining = remaining - scheduledCount;
+
+      // If more posts remain, schedule the next scan-start job after the last scheduled item + buffer
+      if (newRemaining > 0) {
+        const nextNotBefore = nowSec + i * SPACING_SECONDS + 10; // 10-second buffer
+        await scheduleQStashMessage({
+          destination: `${normalizedBase}/api/reddit/scan-start`,
+          body: {
+            configId,
+            remaining: newRemaining,
+            after: rawPosts[rawPosts.length - 1]?.name,
+          },
+          notBefore: nextNotBefore,
+          headers: {
+            'X-Internal-API': 'true',
+          },
+        });
+      } else {
+        // All required posts processed in this run – mark completion
+        await supabaseAdmin.from('bot_logs').insert({
+          user_id: userId,
+          config_id: configId,
+          action: 'scan_complete',
           status: 'success',
           subreddit: config.subreddit,
-        },
-        {
-          user_id: userId,
-          config_id: configId,
-          action: 'reddit_auth_success',
-          status: 'success',
-          subreddit: config.subreddit,
-        },
-      ]);
-    } catch (err: any) {
-      const errMsg = err instanceof Error ? err.message : String(err);
-      await supabaseAdmin.from('bot_logs').insert([
-        {
-          user_id: userId,
-          config_id: configId,
-          action: 'reddit_api_error',
-          status: 'error',
-          subreddit: config.subreddit,
-          error_message: errMsg,
-        },
-        {
-          user_id: userId,
-          config_id: configId,
-          action: 'reddit_auth_error',
-          status: 'error',
-          subreddit: config.subreddit,
-          error_message: errMsg,
-        },
-      ]);
-      throw err;
-    }
+          message: `Processed ${scheduledCount} posts`,
+        });
 
-    // Determine which posts need a message (keyword match & not already messaged)
-    const candidatePosts: any[] = [];
-    const seenAuthors = new Set<string>();
-    const keywords = (config.keywords || []) as string[];
-    let scheduledCount = 0;
-
-    for (const post of rawPosts) {
-      const titleLower = (post.title || '').toLowerCase();
-      if (!keywords.some((kw) => titleLower.includes(kw.toLowerCase()))) continue;
-
-      // Skip if we have already queued a message for this author in this batch
-      if (seenAuthors.has(post.author.name)) continue;
-
-      const { data: existingMsg } = await supabaseAdmin
-        .from('sent_messages')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('account_id', config.reddit_account_id)
-        .eq('post_id', post.id)
-        .maybeSingle();
-      if (existingMsg) continue; // already messaged historically
-
-      candidatePosts.push(post);
-      seenAuthors.add(post.author.name);
-    }
-
-    if (candidatePosts.length === 0) {
-      return NextResponse.json({ queued: false, reason: 'No new posts' });
-    }
-    //pous test
-
-    // Publish one message per post with increasing delay
-    // Determine base host for consumer endpoint (should not include protocol)
-    let rawBase = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL || '';
-    // Fallback to request host if env vars are missing (e.g., preview deployments)
-    if (!rawBase) {
-      rawBase = new URL(req.url).host; // host comes without protocol
-    }
-    // If the env var already contains a protocol, keep it; otherwise prepend https://
-    const normalizedBase = rawBase.startsWith('http://') || rawBase.startsWith('https://')
-      ? rawBase.replace(/\/$/, '')
-      : `https://${rawBase.replace(/\/$/, '')}`;
-
-    if (!normalizedBase || !/^https?:\/\//.test(normalizedBase)) {
-      throw new Error('Invalid or missing NEXT_PUBLIC_APP_URL / VERCEL_URL env var');
-    }
-    const consumerUrl = `${normalizedBase}/api/reddit/scan-post`;
-
-    const SPACING_SECONDS = 200; // 3 min 20 s between messages
-    const nowSec = Math.floor(Date.now() / 1000);
-    let i = 0;
-    for (const post of candidatePosts) {
-      if (scheduledCount >= BATCH_SIZE || scheduledCount >= remaining) break;
-      const notBefore = nowSec + i * SPACING_SECONDS;
-      await scheduleQStashMessage({
-        destination: consumerUrl,
-        body: { configId, postId: post.id },
-        notBefore,
-        headers: {
-          'X-Internal-API': 'true',
-        },
-      });
-      scheduledCount += 1;
-      i += 1;
-    }
-
-    const newRemaining = remaining - scheduledCount;
-
-    // If more posts remain, schedule the next scan-start job after the last scheduled item + buffer
-    if (newRemaining > 0) {
-      const nextNotBefore = nowSec + i * SPACING_SECONDS + 10; // 10-second buffer
-      await scheduleQStashMessage({
-        destination: `${normalizedBase}/api/reddit/scan-start`,
-        body: {
+        // Archive all logs at the end of a scan cycle (keep start_bot & scan_complete)
+        await checkAndArchiveLogs(
+          supabaseAdmin,
+          userId as string,
           configId,
-          remaining: newRemaining,
-          after: rawPosts[rawPosts.length - 1]?.name,
-        },
-        notBefore: nextNotBefore,
-        headers: {
-          'X-Internal-API': 'true',
-        },
-      });
-    } else {
-      // All required posts processed in this run – mark completion
-      await supabaseAdmin.from('bot_logs').insert({
-        user_id: userId,
-        config_id: configId,
-        action: 'scan_complete',
-        status: 'success',
-        subreddit: config.subreddit,
-        message: `Processed ${scheduledCount} posts`,
-      });
-
-      // Archive all logs at the end of a scan cycle (keep start_bot & scan_complete)
-      await checkAndArchiveLogs(
-        supabaseAdmin,
-        userId as string,
-        configId,
-        config.subreddit,
-        true // archiveAll
-      );
+          config.subreddit,
+          true // archiveAll
+        );
+      }
+    } finally {
+      process.env.HTTP_PROXY = prevHttp;
+      process.env.HTTPS_PROXY = prevHttps;
     }
-//[ish tes]
+    //[ish tes]
     return NextResponse.json({ queued: true, batch: scheduledCount, remaining: newRemaining });
   } catch (err) {
     console.error('scan-start error', err);
