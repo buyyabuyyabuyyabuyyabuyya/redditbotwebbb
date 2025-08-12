@@ -84,6 +84,8 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
         process.env.HTTP_PROXY = proxyUrl;
         process.env.HTTPS_PROXY = proxyUrl;
         if (process.env.NO_PROXY !== undefined) delete process.env.NO_PROXY;
+        const safeProxy = `${account.proxy_type}://${account.proxy_host}:${account.proxy_port}`;
+        console.log('scan-post: proxy_enabled', safeProxy);
         await supabase.from('bot_logs').insert({
           user_id: config.user_id,
           config_id: configId,
@@ -96,6 +98,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
         delete process.env.HTTP_PROXY;
         delete process.env.HTTPS_PROXY;
         process.env.NO_PROXY = '*';
+        console.log('scan-post: proxy_disabled');
       }
 
       const reddit = new snoowrap({
@@ -422,6 +425,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       process.env.HTTP_PROXY = prevHttp;
       process.env.HTTPS_PROXY = prevHttps;
       if (prevNoProxy !== undefined) process.env.NO_PROXY = prevNoProxy; else delete process.env.NO_PROXY;
+      console.log('scan-post: proxy_envs_restored');
     }
   } catch (err) {
     console.error('scan-post error', err);

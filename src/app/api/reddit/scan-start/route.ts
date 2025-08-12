@@ -235,6 +235,7 @@ export async function POST(req: Request) {
         process.env.HTTP_PROXY = proxyUrl;
         process.env.HTTPS_PROXY = proxyUrl;
         if (process.env.NO_PROXY !== undefined) delete process.env.NO_PROXY;
+        console.log('scan-start: proxy_enabled', `${account.proxy_type}://${account.proxy_host}:${account.proxy_port}`);
         await supabaseAdmin.from('bot_logs').insert({
           user_id: userId,
           config_id: configId,
@@ -247,6 +248,7 @@ export async function POST(req: Request) {
         delete process.env.HTTP_PROXY;
         delete process.env.HTTPS_PROXY;
         process.env.NO_PROXY = '*';
+        console.log('scan-start: proxy_disabled');
       }
 
       // Minimal snoowrap instance
@@ -427,6 +429,7 @@ export async function POST(req: Request) {
       process.env.HTTP_PROXY = prevHttp;
       process.env.HTTPS_PROXY = prevHttps;
       if (prevNoProxy !== undefined) process.env.NO_PROXY = prevNoProxy; else delete process.env.NO_PROXY;
+      console.log('scan-start: proxy_envs_restored');
     }
     //[ish tes]
     return NextResponse.json({ queued: true, batch: scheduledCount, remaining: newRemaining });

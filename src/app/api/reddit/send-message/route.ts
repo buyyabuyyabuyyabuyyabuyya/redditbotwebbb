@@ -104,6 +104,7 @@ export async function POST(req: Request) {
     // Apply per-request proxy via env vars (scoped)
     const prevHttp = process.env.HTTP_PROXY;
     const prevHttps = process.env.HTTPS_PROXY;
+    const prevNoProxy = process.env.NO_PROXY;
     try {
       if (account.proxy_enabled && account.proxy_host && account.proxy_port && account.proxy_type) {
         const auth = account.proxy_username
@@ -112,6 +113,8 @@ export async function POST(req: Request) {
         const proxyUrl = `${account.proxy_type}://${auth}${account.proxy_host}:${account.proxy_port}`;
         process.env.HTTP_PROXY = proxyUrl;
         process.env.HTTPS_PROXY = proxyUrl;
+        if (process.env.NO_PROXY !== undefined) delete process.env.NO_PROXY;
+        console.log('send-message: proxy_enabled', `${account.proxy_type}://${account.proxy_host}:${account.proxy_port}`);
         await supabaseAdmin.from('bot_logs').insert({
           user_id: body.userId || userId,
           config_id: configId,
@@ -123,6 +126,8 @@ export async function POST(req: Request) {
       } else {
         delete process.env.HTTP_PROXY;
         delete process.env.HTTPS_PROXY;
+        process.env.NO_PROXY = '*';
+        console.log('send-message: proxy_disabled');
       }
 
       const reddit = new snoowrap({
@@ -196,6 +201,8 @@ export async function POST(req: Request) {
       // Restore envs
       process.env.HTTP_PROXY = prevHttp;
       process.env.HTTPS_PROXY = prevHttps;
+      if (prevNoProxy !== undefined) process.env.NO_PROXY = prevNoProxy; else delete process.env.NO_PROXY;
+      console.log('send-message: proxy_envs_restored');
     }
   } catch (err) {
     console.error('send-message error', err);

@@ -64,6 +64,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
             process.env.HTTP_PROXY = proxyUrl;
             process.env.HTTPS_PROXY = proxyUrl;
             if (process.env.NO_PROXY !== undefined) delete process.env.NO_PROXY;
+            console.log('process-inbox: proxy_enabled', `${account.proxy_type}://${account.proxy_host}:${account.proxy_port}`);
             await supabase.from('bot_logs').insert({
               user_id: userId,
               action: 'proxy_enabled_for_request',
@@ -76,6 +77,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
             delete process.env.HTTP_PROXY;
             delete process.env.HTTPS_PROXY;
             process.env.NO_PROXY = '*';
+            console.log('process-inbox: proxy_disabled');
           }
 
         const reddit = new snoowrap({
@@ -192,6 +194,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
           process.env.HTTP_PROXY = prevHttp;
           process.env.HTTPS_PROXY = prevHttps;
           if (prevNoProxy !== undefined) process.env.NO_PROXY = prevNoProxy; else delete process.env.NO_PROXY;
+          console.log('process-inbox: proxy_envs_restored');
         }
       } catch (accountError) {
         // Log account-specific errors but don't fail the whole process
