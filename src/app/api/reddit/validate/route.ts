@@ -24,44 +24,44 @@ export async function POST(req: Request) {
     }
 
     try {
-      // Create a Reddit API client
-      // The bufferutil and utf-8-validate warnings are optional dependencies and can be ignored
-      const reddit: snoowrap = new snoowrap({
-        userAgent: 'Reddit Bot SaaS',
-        clientId,
-        clientSecret,
-        username,
-        password,
-      });
+      // Temporarily disable any global proxy envs so validation is unaffected
+      const prevHttp = process.env.HTTP_PROXY;
+      const prevHttps = process.env.HTTPS_PROXY;
+      try {
+        delete process.env.HTTP_PROXY;
+        delete process.env.HTTPS_PROXY;
 
-      // Test the credentials by making a simple API call
-      // Use a separate function call to get the user info to avoid TypeScript circular reference issues
-      // Create a promise to get user info
-      const userInfoPromise = reddit.getMe().then((me: any) => {
-        return { name: me?.name || 'unknown' };
-      });
+        // Create a Reddit API client
+        const reddit: snoowrap = new snoowrap({
+          userAgent: 'Reddit Bot SaaS',
+          clientId,
+          clientSecret,
+          username,
+          password,
+        });
 
-      const userInfo = await userInfoPromise;
-      console.log(
-        'Reddit account validation successful for user:',
-        userInfo.name
-      );
-
-      // If we get here, the credentials are valid
-      return NextResponse.json({ success: true, username: userInfo.name });
+        // Perform a simple API call to validate
+        const me = await (reddit as any).getMe();
+        const name = me?.name || 'unknown';
+        return NextResponse.json({ success: true, username: name });
+      } finally {
+        if (prevHttp !== undefined) process.env.HTTP_PROXY = prevHttp; else delete process.env.HTTP_PROXY;
+        if (prevHttps !== undefined) process.env.HTTPS_PROXY = prevHttps; else delete process.env.HTTPS_PROXY;
+      }
     } catch (redditError) {
-      console.error('Error validating with Reddit API:', redditError);
+      const rawMsg = redditError instanceof Error ? redditError.message : String(redditError);
+      // Detect proxy/tunnel/network errors explicitly to avoid misreporting as invalid credentials
+      const tunnelErr = /tunneling socket could not be established|ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN/i.test(rawMsg);
+      if (tunnelErr) {
+        return NextResponse.json({ error: 'Network/proxy error while contacting Reddit. Please retry.' }, { status: 502 });
+      }
 
-      // Extract more specific error message if possible
+      // Extract more specific auth error if possible
       let errorMessage = 'Invalid Reddit credentials';
-      if (redditError instanceof Error) {
-        if (redditError.message.includes('401')) {
-          errorMessage =
-            'Reddit authentication failed: Invalid username/password or client ID/secret';
-        } else if (redditError.message.includes('403')) {
-          errorMessage =
-            'Reddit authentication failed: Account may be locked or requires additional verification';
-        }
+      if (rawMsg.includes('401')) {
+        errorMessage = 'Reddit authentication failed: Invalid username/password or client ID/secret';
+      } else if (rawMsg.includes('403')) {
+        errorMessage = 'Reddit authentication failed: Account may be locked or requires additional verification';
       }
 
       return NextResponse.json({ error: errorMessage }, { status: 400 });
