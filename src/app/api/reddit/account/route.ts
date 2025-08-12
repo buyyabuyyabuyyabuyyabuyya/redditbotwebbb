@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
 import { createServerSupabaseClient } from '../../../../utils/supabase-server';
 import { createClient } from '@supabase/supabase-js';
-import { getPlanLimits } from '../../../../utils/planLimits';
 
 // Create a Supabase admin client with service role key for bypassing RLS
 const supabaseAdmin = createClient(
@@ -26,7 +25,19 @@ export async function POST(req: Request) {
     }
 
     // Parse the request body
-    const { username, password, clientId, clientSecret } = await req.json();
+    const {
+      username,
+      password,
+      clientId,
+      clientSecret,
+      // Optional proxy fields
+      proxyEnabled,
+      proxyType,
+      proxyHost,
+      proxyPort,
+      proxyUsername,
+      proxyPassword,
+    } = await req.json();
 
     // Validate the required fields
     if (!username || !password || !clientId || !clientSecret) {
@@ -39,7 +50,7 @@ export async function POST(req: Request) {
     // First, check if the user exists in the users table
     const { data: existingUser, error: userCheckError } = await supabaseAdmin
       .from('users')
-      .select('id')
+      .select('id, subscription_status')
       .eq('id', userId)
       .single();
 
@@ -68,34 +79,18 @@ export async function POST(req: Request) {
       }
     }
 
-    // ---- PLAN LIMIT CHECK ----
-    // Get user's current plan
-    const { data: userRecord } = await supabaseAdmin
-      .from('users')
-      .select('subscription_status')
-      .eq('id', userId)
-      .single();
-
-    const plan = (userRecord?.subscription_status || 'free') as any;
-    const limits = getPlanLimits(plan);
-
-    // Count existing Reddit accounts for this user
-    const { count: accountCount } = await supabaseAdmin
-      .from('reddit_accounts')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId);
-
-    if (
-      limits.maxAccounts !== null &&
-      (accountCount || 0) >= limits.maxAccounts
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            'Reddit account limit reached for your current subscription. Please upgrade your plan to add more accounts.',
-        },
-        { status: 403 }
-      );
+    // Enforce plan: free users cannot add proxy settings
+    const plan = existingUser?.subscription_status || 'free';
+    const tryingToSetProxy = Boolean(
+      proxyEnabled || proxyType || proxyHost || proxyPort || proxyUsername || proxyPassword
+    );
+    if (plan === 'free' || plan === 'trialing') {
+      if (tryingToSetProxy) {
+        return NextResponse.json(
+          { error: 'Proxy is available on paid plans only.' },
+          { status: 403 }
+        );
+      }
     }
 
     // Now insert the Reddit account (the foreign key constraint should be satisfied)
@@ -109,6 +104,16 @@ export async function POST(req: Request) {
           client_id: clientId,
           client_secret: clientSecret,
           is_validated: true,
+          ...(plan !== 'free' && plan !== 'trialing'
+            ? {
+                proxy_enabled: Boolean(proxyEnabled) || false,
+                proxy_type: proxyType ?? null,
+                proxy_host: proxyHost ?? null,
+                proxy_port: proxyPort ?? null,
+                proxy_username: proxyUsername ?? null,
+                ...(proxyPassword ? { proxy_password: proxyPassword } : {}),
+              }
+            : {}),
         },
       ])
       .select();
@@ -148,7 +153,7 @@ export async function GET(req: Request) {
     // If accountId is provided, get a specific account
     if (accountId) {
       // Determine which fields to select based on whether credentials are requested
-      let selectFields = 'id, username, is_validated, status, banned_at, credential_error_at';
+      let selectFields = 'id, username, is_validated, status, banned_at, credential_error_at, proxy_enabled, proxy_type, proxy_status';
       if (includeCredentials) {
         selectFields = '*'; // Include all fields including password, client_id, client_secret
       }
@@ -182,7 +187,7 @@ export async function GET(req: Request) {
     // Otherwise, get all Reddit accounts for the authenticated user (without sensitive credentials)
     const { data, error } = await supabaseAdmin
       .from('reddit_accounts')
-      .select('id, username, is_validated, status, banned_at, credential_error_at')
+      .select('id, username, is_validated, status, banned_at, credential_error_at, proxy_enabled, proxy_status')
       .eq('user_id', userId);
 
     if (error) {
@@ -221,13 +226,40 @@ export async function PUT(req: Request) {
     }
 
     // Parse body
-    const { username, password, clientId, clientSecret } = await req.json();
+    const {
+      username,
+      password,
+      clientId,
+      clientSecret,
+      proxyEnabled,
+      proxyType,
+      proxyHost,
+      proxyPort,
+      proxyUsername,
+      proxyPassword,
+    } = await req.json();
 
     const updates: Record<string, any> = {};
     if (username !== undefined) updates.username = username;
     if (password !== undefined) updates.password = password;
     if (clientId !== undefined) updates.client_id = clientId;
     if (clientSecret !== undefined) updates.client_secret = clientSecret;
+
+    // Enforce plan before applying proxy updates
+    const { data: userRow } = await supabaseAdmin
+      .from('users')
+      .select('subscription_status')
+      .eq('id', userId)
+      .maybeSingle();
+    const plan = userRow?.subscription_status || 'free';
+    if (plan !== 'free' && plan !== 'trialing') {
+      if (proxyEnabled !== undefined) updates.proxy_enabled = !!proxyEnabled;
+      if (proxyType !== undefined) updates.proxy_type = proxyType;
+      if (proxyHost !== undefined) updates.proxy_host = proxyHost;
+      if (proxyPort !== undefined) updates.proxy_port = proxyPort;
+      if (proxyUsername !== undefined) updates.proxy_username = proxyUsername;
+      if (proxyPassword !== undefined && proxyPassword !== '') updates.proxy_password = proxyPassword;
+    }
 
     if (Object.keys(updates).length === 0) {
       return NextResponse.json({ error: 'No fields to update' }, { status: 400 });

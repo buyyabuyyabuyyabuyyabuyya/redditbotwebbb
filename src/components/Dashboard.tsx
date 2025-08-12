@@ -24,6 +24,8 @@ interface RedditAccount {
   status?: string;
   banned_at?: string;
   credential_error_at?: string;
+  proxy_enabled?: boolean;
+  proxy_status?: string | null;
 }
 
 interface MessageTemplate {
@@ -34,6 +36,7 @@ interface MessageTemplate {
 
 export default function Dashboard() {
   const { user } = useUser();
+  const { isProUser } = useUserPlan();
   const [accounts, setAccounts] = useState<RedditAccount[]>([]);
   const [messageTemplates, setMessageTemplates] = useState<MessageTemplate[]>(
     []
@@ -474,6 +477,10 @@ export default function Dashboard() {
                           }`}>
                             {account.username}
                           </span>
+                          {/* Proxy badge (only show hint; actual enablement is paid-gated in form) */}
+                          {isProUser && (account as any)?.proxy_enabled && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-700/60 text-emerald-200 border border-emerald-600/50">PROXY</span>
+                          )}
                           {account.status === 'banned' ? (
                             <div className="flex items-center space-x-1">
                               <XCircleIcon className="h-5 w-5 text-red-500" />

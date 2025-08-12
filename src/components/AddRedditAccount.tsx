@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { useUserPlan } from '../hooks/useUserPlan';
 
 interface AddRedditAccountProps {
   userId: string;
@@ -28,6 +29,16 @@ export default function AddRedditAccount({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showClientSecret, setShowClientSecret] = useState(false);
+  // Proxy state (paid plans only)
+  const { isProUser } = useUserPlan();
+  const [proxyEnabled, setProxyEnabled] = useState<boolean>((account as any)?.proxy_enabled || false);
+  const [proxyType, setProxyType] = useState<string>((account as any)?.proxy_type || 'http');
+  const [proxyHost, setProxyHost] = useState<string>((account as any)?.proxy_host || '');
+  const [proxyPort, setProxyPort] = useState<number | ''>((account as any)?.proxy_port || '');
+  const [proxyUsername, setProxyUsername] = useState<string>((account as any)?.proxy_username || '');
+  const [proxyPassword, setProxyPassword] = useState<string>('');
+  const [proxyTesting, setProxyTesting] = useState<boolean>(false);
+  const [proxyTestResult, setProxyTestResult] = useState<string | null>(null);
 
   // Keep local state in sync if the account prop changes
   useEffect(() => {
@@ -36,6 +47,12 @@ export default function AddRedditAccount({
       setPassword(account.password || '');
       setClientId((account as any)?.client_id || '');
       setClientSecret((account as any)?.client_secret || '');
+      setProxyEnabled((account as any)?.proxy_enabled || false);
+      setProxyType((account as any)?.proxy_type || 'http');
+      setProxyHost((account as any)?.proxy_host || '');
+      setProxyPort((account as any)?.proxy_port || '');
+      setProxyUsername((account as any)?.proxy_username || '');
+      setProxyPassword((account as any)?.proxy_password || '');
     }
   }, [account]);
 
@@ -77,6 +94,16 @@ export default function AddRedditAccount({
           password,
           clientId,
           clientSecret,
+          // Proxy fields (only include when user is paid)
+          ...(isProUser ? {
+            proxyEnabled,
+            proxyType,
+            proxyHost,
+            proxyPort: proxyPort === '' ? null : Number(proxyPort),
+            proxyUsername,
+            // Only send proxyPassword if provided (avoid overwriting with empty)
+            ...(proxyPassword ? { proxyPassword } : {}),
+          } : {}),
         }),
       });
 
@@ -234,6 +261,106 @@ export default function AddRedditAccount({
               {isLoading ? (isEdit ? 'Saving...' : 'Adding...') : isEdit ? 'Save Changes' : 'Add Account'}
             </button>
           </div>
+
+          {/* Proxy configuration (paid plans only) */}
+          {isProUser && (
+            <div className="mt-6 border-t border-gray-700 pt-4">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-md font-semibold text-gray-200">Proxy (per account)</h4>
+                <label className="inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={proxyEnabled}
+                    onChange={(e) => setProxyEnabled(e.target.checked)}
+                  />
+                  <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 relative" />
+                  <span className="ml-3 text-sm text-gray-300">Enable</span>
+                </label>
+              </div>
+              <div className={`${proxyEnabled ? '' : 'opacity-50 pointer-events-none'} grid grid-cols-1 sm:grid-cols-2 gap-4`}>
+                <div>
+                  <label className="block text-sm font-medium text-gray-200">Type</label>
+                  <select
+                    value={proxyType}
+                    onChange={(e) => setProxyType(e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  >
+                    <option value="http">HTTP</option>
+                    <option value="https">HTTPS</option>
+                    <option value="socks5">SOCKS5</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-200">Host</label>
+                  <input
+                    type="text"
+                    value={proxyHost}
+                    onChange={(e) => setProxyHost(e.target.value)}
+                    placeholder="proxy.example.com"
+                    className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm placeholder-gray-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-200">Port</label>
+                  <input
+                    type="number"
+                    value={proxyPort}
+                    onChange={(e) => setProxyPort(e.target.value === '' ? '' : Number(e.target.value))}
+                    placeholder="3128"
+                    className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm placeholder-gray-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-200">Username (optional)</label>
+                  <input
+                    type="text"
+                    value={proxyUsername}
+                    onChange={(e) => setProxyUsername(e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm placeholder-gray-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-200">Password (optional)</label>
+                  <input
+                    type="password"
+                    value={proxyPassword}
+                    onChange={(e) => setProxyPassword(e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm placeholder-gray-400"
+                  />
+                </div>
+              </div>
+              <div className="mt-3 flex items-center space-x-3">
+                <button
+                  type="button"
+                  disabled
+                  onClick={async () => {
+                    // Placeholder for future proxy test endpoint
+                    setProxyTesting(true);
+                    setProxyTestResult(null);
+                    try {
+                      // To be implemented in server routes step
+                    } finally {
+                      setProxyTesting(false);
+                    }
+                  }}
+                  className="px-3 py-1.5 rounded-md text-sm bg-gray-700 text-gray-300 cursor-not-allowed"
+                  title="Will be enabled after server routes are added"
+                >
+                  Test Proxy
+                </button>
+                {proxyTestResult && (
+                  <span className="text-sm text-gray-300">{proxyTestResult}</span>
+                )}
+              </div>
+            </div>
+          )}
+          {!isProUser && (
+            <div className="mt-6 border-t border-gray-700 pt-4">
+              <h4 className="text-md font-semibold text-gray-200">Proxy (Pro feature)</h4>
+              <p className="text-sm text-gray-400">Upgrade to Pro to route account traffic through your own HTTP/HTTPS/SOCKS5 proxy.</p>
+            </div>
+          )}
         </form>
       </div>
     </div>

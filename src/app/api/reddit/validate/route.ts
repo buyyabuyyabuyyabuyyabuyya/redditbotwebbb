@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import snoowrap from 'snoowrap';
 import { createServerSupabaseClient } from '../../../../utils/supabase-server';
+// Note: Proxy validation will be added here when server routes are implemented.
 
 // Using the imported createServerSupabaseClient function
 
