@@ -74,6 +74,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
     // Apply proxy for this request if configured
     const prevHttp = process.env.HTTP_PROXY;
     const prevHttps = process.env.HTTPS_PROXY;
+    const prevNoProxy = process.env.NO_PROXY;
     try {
       if (account.proxy_enabled && account.proxy_host && account.proxy_port && account.proxy_type) {
         const auth = account.proxy_username
@@ -82,6 +83,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
         const proxyUrl = `${account.proxy_type}://${auth}${account.proxy_host}:${account.proxy_port}`;
         process.env.HTTP_PROXY = proxyUrl;
         process.env.HTTPS_PROXY = proxyUrl;
+        if (process.env.NO_PROXY !== undefined) delete process.env.NO_PROXY;
         await supabase.from('bot_logs').insert({
           user_id: config.user_id,
           config_id: configId,
@@ -93,6 +95,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       } else {
         delete process.env.HTTP_PROXY;
         delete process.env.HTTPS_PROXY;
+        process.env.NO_PROXY = '*';
       }
 
       const reddit = new snoowrap({
@@ -418,6 +421,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
     } finally {
       process.env.HTTP_PROXY = prevHttp;
       process.env.HTTPS_PROXY = prevHttps;
+      if (prevNoProxy !== undefined) process.env.NO_PROXY = prevNoProxy; else delete process.env.NO_PROXY;
     }
   } catch (err) {
     console.error('scan-post error', err);

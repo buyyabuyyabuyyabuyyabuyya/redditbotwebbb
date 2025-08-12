@@ -223,6 +223,7 @@ export async function POST(req: Request) {
     // Apply per-request proxy via env vars when configured
     const prevHttp = process.env.HTTP_PROXY;
     const prevHttps = process.env.HTTPS_PROXY;
+    const prevNoProxy = process.env.NO_PROXY;
     let scheduledCount = 0;
     let newRemaining = remaining;
     try {
@@ -233,6 +234,7 @@ export async function POST(req: Request) {
         const proxyUrl = `${account.proxy_type}://${auth}${account.proxy_host}:${account.proxy_port}`;
         process.env.HTTP_PROXY = proxyUrl;
         process.env.HTTPS_PROXY = proxyUrl;
+        if (process.env.NO_PROXY !== undefined) delete process.env.NO_PROXY;
         await supabaseAdmin.from('bot_logs').insert({
           user_id: userId,
           config_id: configId,
@@ -244,6 +246,7 @@ export async function POST(req: Request) {
       } else {
         delete process.env.HTTP_PROXY;
         delete process.env.HTTPS_PROXY;
+        process.env.NO_PROXY = '*';
       }
 
       // Minimal snoowrap instance
@@ -423,6 +426,7 @@ export async function POST(req: Request) {
     } finally {
       process.env.HTTP_PROXY = prevHttp;
       process.env.HTTPS_PROXY = prevHttps;
+      if (prevNoProxy !== undefined) process.env.NO_PROXY = prevNoProxy; else delete process.env.NO_PROXY;
     }
     //[ish tes]
     return NextResponse.json({ queued: true, batch: scheduledCount, remaining: newRemaining });
