@@ -363,21 +363,24 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
         .replace(/\{subreddit\}/g, config.subreddit)
         .replace(/\{post_title\}/g, post.title);
 
-      // ----- Queue send via QStash schedule with staggered delay -----
-      const BASE_DELAY_SEC = 100;
+      // ----- Queue send via QStash schedule with staggered delay using atomic counter -----
+      const BASE_DELAY_SEC = 200; // 3m20s
+      const windowStart = new Date(Math.floor(Date.now() / (60 * 60 * 1000)) * 60 * 60 * 1000); // start of current hour
 
-      // Count queued messages in the last hour to determine offset
-      const sinceIso = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-      const { data: queued } = await supabase
-        .from('bot_logs')
-        .select('id')
-        .eq('user_id', config.user_id)
-        .eq('action', 'message_scheduled')
-        .eq('status', 'queue')
-        .gte('created_at', sinceIso);
-
-      const index = (queued?.length || 0) + 1; // 1-based
-      const delaySeconds = BASE_DELAY_SEC * index;
+      // Call atomic increment function
+      let index = 1;
+      try {
+        const { data: inc, error: incErr } = await supabase.rpc('increment_message_counter', {
+          p_user_id: config.user_id,
+          p_window_start: windowStart.toISOString(),
+        });
+        if (incErr) throw incErr;
+        index = (inc as number) || 1;
+      } catch (e: any) {
+        console.error('scan-post: increment_message_counter error, falling back to 1', e?.message || e);
+        index = 1;
+      }
+      const delaySeconds = BASE_DELAY_SEC * (index - 1); // 0 for first, then spaced
 
       // Log schedule after we know delay
       await supabase.from('bot_logs').insert([
@@ -389,7 +392,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
           subreddit: config.subreddit,
           post_id: postId,
           recipient: post.author.name,
-          message: `Message queued with ~${delaySeconds}s spacing`,
+          message: `Atomic queue index ${index}, delay ~${delaySeconds}s`,
         }
       ]);
 

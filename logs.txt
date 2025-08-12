@@ -1,0 +1,224 @@
+private message the times message sent:
+[direct chat room]
+To: Due_Rip3561 • 8/12/2025, 8:41:39 AM
+
+**Regarding your post in **r/test
+
+****HI Due\_Rip3561,
+
+this is a test from subreddit test, ThanksReply STOP to never hear from me again.
+[direct chat room]
+To: InkAxe_games • 8/12/2025, 8:41:29 AM
+
+**Regarding your post in **r/test
+
+****HI InkAxe\_games,
+
+this is a test from subreddit test, ThanksReply STOP to never hear from me again.
+[direct chat room]
+To: dennislubberscom • 8/12/2025, 8:38:39 AM
+
+**Regarding your post in **r/test
+
+****HI dennislubberscom,
+
+this is a test from subreddit test, ThanksReply STOP to never hear from me again.
+
+
+
+
+Vercel Logs:
+Aug 12 08:38:58.68
+GET200
+redditoutreach.com
+/messages
+Aug 12 08:38:33.38
+POST200
+redditoutreach.com
+/api/reddit/send-message
+2
+send-message: proxy_envs_restored
+Aug 12 08:38:28.13
+GET200
+redditoutreach.com
+/api/reddit/bot-logs
+15
+- start_bot: 2 logs
+Aug 12 08:38:18.15
+GET200
+redditoutreach.com
+/api/reddit/bot-logs
+15
+- start_bot: 2 logs
+Aug 12 08:38:09.22
+POST200
+redditoutreach.com
+/api/reddit/send-message
+2
+send-message: proxy_envs_restored
+Aug 12 08:38:08.15
+GET200
+redditoutreach.com
+/api/reddit/bot-logs
+13
+- start_bot: 2 logs
+Aug 12 08:37:58.14
+GET200
+redditoutreach.com
+/api/reddit/bot-logs
+13
+- start_bot: 2 logs
+Aug 12 08:37:48.14
+GET200
+redditoutreach.com
+/api/reddit/bot-logs
+13
+- start_bot: 2 logs
+Aug 12 08:37:38.15
+GET200
+redditoutreach.com
+/api/reddit/bot-logs
+13
+- start_bot: 2 logs
+Aug 12 08:37:28.14
+GET200
+redditoutreach.com
+/api/reddit/bot-logs
+13
+- start_bot: 2 logs
+Aug 12 08:37:18.15
+GET200
+redditoutreach.com
+/api/reddit/bot-logs
+13
+- start_bot: 2 logs
+Aug 12 08:37:08.13
+GET200
+redditoutreach.com
+/api/reddit/bot-logs
+14
+- start_bot: 2 logs
+Aug 12 08:36:58.14
+GET200
+redditoutreach.com
+/api/reddit/bot-logs
+14
+- start_bot: 2 logs
+Aug 12 08:36:51.36
+POST200
+redditoutreach.com
+/api/gemini/analyze
+16
+[temp_user_id] Waiting 5 seconds before releasing API key
+Aug 12 08:36:48.92
+POST500
+redditoutreach.com
+/api/gemini/analyze
+23
+API processing error: Error: Gemini API error (400): API key not valid. Please pass a valid API key. at d (/var/task/.next/server/app/api/gemini/analyze/route.js:23:44) at process.processTicksAndRejections (node:internal/process/task_queues:105:5) at async /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411 at async e_.execute (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880) at async e_.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943) at async en (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:25592) at async ea.responseCache.get.routeKind (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:1028) at async r9.renderToResponseWithComponentsImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:508) at async r9.renderPageComponent (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5102) at async r9.renderToResponseImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5680) at async r9.pipeImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17727) at async r9.handleCatchallRenderRequest (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:38485) at async r9.runImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17452) at async r9.handleRequestImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:16541) at async Object.handler (/var/task/___next_launcher.cjs:58:5) at async Server.r (/opt/rust/nodejs.js:2:15476) at async Server.<anonymous> (/opt/rust/nodejs.js:16:7329)
+Aug 12 08:36:48.14
+GET200
+redditoutreach.com
+/api/reddit/bot-logs
+13
+- start_bot: 2 logs
+Aug 12 08:36:47.32
+POST500
+redditoutreach.com
+/api/gemini/analyze
+23
+API processing error: Error: Gemini API error (403): Permission denied: Consumer 'api_key:AIzaSyAZm5KvRtMP1_2kBgv-y3DLBXKryp9QFsk' has been suspended. at d (/var/task/.next/server/app/api/gemini/analyze/route.js:23:44) at process.processTicksAndRejections (node:internal/process/task_queues:105:5) at async /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411 at async e_.execute (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880) at async e_.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943) at async en (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:25592) at async ea.responseCache.get.routeKind (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:1028) at async r9.renderToResponseWithComponentsImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:508) at async r9.renderPageComponent (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5102) at async r9.renderToResponseImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5680) at async r9.pipeImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17727) at async r9.handleCatchallRenderRequest (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:38485) at async r9.runImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17452) at async r9.handleRequestImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:16541) at async Object.handler (/var/task/___next_launcher.cjs:58:5) at async Server.r (/opt/rust/nodejs.js:2:15476) at async Server.<anonymous> (/opt/rust/nodejs.js:16:7329)
+Aug 12 08:36:44.46
+POST200
+redditoutreach.com
+/api/reddit/scan-post
+4
+scan-post: proxy_envs_restored
+Aug 12 08:36:38.14
+GET200
+redditoutreach.com
+/api/reddit/bot-logs
+13
+- start_bot: 2 logs
+Aug 12 08:36:28.96
+POST200
+redditoutreach.com
+/api/reddit/bot-logs
+Aug 12 08:36:28.13
+GET200
+redditoutreach.com
+/api/reddit/bot-logs
+12
+- start_bot: 2 logs
+Aug 12 08:36:28.05
+POST200
+redditoutreach.com
+/api/reddit/process-inbox
+7
+Non-ban error for account ngurrala15: t [RequestError]: Error: tunneling socket could not be established, cause=connect ECONNREFUSED 127.0.0.1:80 at new t (/var/task/.next/server/chunks/3698.js:1:395654) at u.callback (/var/task/.next/server/chunks/3698.js:1:397439) at e.callback.t.callback [as _callback] (/var/task/.next/server/chunks/3698.js:1:396881) at t._callback.t.callback.t.callback (/var/task/.next/server/chunks/3698.js:1:420138) at H.emit (node:events:518:28) at H.onRequestError (/var/task/.next/server/chunks/3698.js:1:429035) at ClientRequest.emit (node:events:530:35) at ClientRequest.<anonymous> (/var/task/.next/server/chunks/3698.js:6:119799) at Object.onceWrapper (node:events:633:26) ... 6 lines matching cause stack trace ... at process.processTicksAndRejections (node:internal/process/task_queues:90:21) { cause: Error: tunneling socket could not be established, cause=connect ECONNREFUSED 127.0.0.1:80 at ClientRequest.<anonymous> (/var/task/.next/server/chunks/3698.js:6:119700) at Object.onceWrapper (node:events:633:26) at ClientRequest.emit (node:events:530:35) at emitErrorEvent (node:_http_client:104:11) at Socket.socketErrorListener (node:_http_client:518:5) at Socket.emit (node:events:518:28) at emitErrorNT (node:internal/streams/destroy:170:8) at emitErrorCloseNT (node:internal/streams/destroy:129:3) at process.processTicksAndRejections (node:internal/process/task_queues:90:21) { code: 'ECONNRESET' }, error: Error: tunneling socket could not be established, cause=connect ECONNREFUSED 127.0.0.1:80 at ClientRequest.<anonymous> (/var/task/.next/server/chunks/3698.js:6:119700) at Object.onceWrapper (node:events:633:26) at ClientRequest.emit (node:events:530:35) at emitErrorEvent (node:_http_client:104:11) at Socket.socketErrorListener (node:_http_client:518:5) at Socket.emit (node:events:518:28) at emitErrorNT (node:internal/streams/destroy:170:8) at emitErrorCloseNT (node:internal/streams/destroy:129:3) at process.processTicksAndRejections (node:internal/process/task_queues:90:21) { code: 'ECONNRESET' }, options: { gzip: true, json: true, headers: { 'user-agent': 'Reddit Bot SaaS - inbox processor' }, baseUrl: 'https://oauth.reddit.com', qs: { raw_json: 1, count: 9999, limit: 50 }, auth: { bearer: 'eyJhbGciOiJSUzI1NiIsImtpZCI6IlNIQTI1NjpzS3dsMnlsV0VtMjVmcXhwTU40cWY4MXE2OWFFdWFyMnpLMUdhVGxjdWNZIiwidHlwIjoiSldUIn0.eyJzdWIiOiJ1c2VyIiwiZXhwIjoxNzU1MDk5Mzg5LjEyNTgzNSwiaWF0IjoxNzU1MDEyOTg5LjEyNTgzNSwianRpIjoiZ3ppdGtNejFRQmpYNzlWckNYSE41WGJEZmtFeWFRIiwiY2lkIjoib1lPMlR5ZkxLLWFMa28ySzZ4VnI4USIsImxpZCI6InQyXzFiaXJiYXQ1cWkiLCJhaWQiOiJ0Ml8xYmlyYmF0NXFpIiwibGNhIjoxNzI5NzgzMjg3Mzg5LCJzY3AiOiJlSnlLVnRKU2lnVUVBQURfX3dOekFTYyIsImZsbyI6OX0.bKRvGSvV8eirNm2K0bjsVZ0-Hp80BBokQrWHlYgFTKjXiTU1nRJ-fOOWuKk0YP-CwmtQGsKqsOiSMm0gCMdt4AOhxzrwhmQhnKY2PKeqodg44lqqemha38vXPXp0qjBRzB7eLi-GKYXZr8w_lDwEBVY1fJ3ctzAggn96e6__zf2Cfw6_8pVaOvYRAmOOhPYOL52r6I5nbfQJ5Io_VLbytcxj79ceuwFOeeezb1C3hRT7xDK026o2rx8vUtV6JL_rUhC127Dt_NzM9xkfnGwGDH7N1Escl7e7EtIC_jN035iDIZpmA1wHRimHo8kayQXJYy165rJuXw2Je6A_3yHRYg' }, resolveWithFullResponse: true, timeout: 30000, transform: [Function: transform], uri: 'message/unread', method: 'GET', callback: [Function (anonymous)], simple: true, transform2xxOnly: false }, response: undefined }
+Aug 12 08:36:27.78
+POST500
+redditoutreach.com
+/api/reddit/scan-post
+3
+scan-post error t [RequestError]: Error: tunneling socket could not be established, cause=connect ECONNREFUSED 127.0.0.1:80 at new t (/var/task/.next/server/chunks/3698.js:1:395654) at u.callback (/var/task/.next/server/chunks/3698.js:1:397439) at e.callback.t.callback [as _callback] (/var/task/.next/server/chunks/3698.js:1:396881) at t._callback.t.callback.t.callback (/var/task/.next/server/chunks/3698.js:1:420138) at H.emit (node:events:518:28) at H.onRequestError (/var/task/.next/server/chunks/3698.js:1:429035) at ClientRequest.emit (node:events:530:35) at ClientRequest.<anonymous> (/var/task/.next/server/chunks/3698.js:6:119799) at Object.onceWrapper (node:events:633:26) ... 6 lines matching cause stack trace ... at process.processTicksAndRejections (node:internal/process/task_queues:90:21) { cause: Error: tunneling socket could not be established, cause=connect ECONNREFUSED 127.0.0.1:80 at ClientRequest.<anonymous> (/var/task/.next/server/chunks/3698.js:6:119700) at Object.onceWrapper (node:events:633:26) at ClientRequest.emit (node:events:530:35) at emitErrorEvent (node:_http_client:104:11) at Socket.socketErrorListener (node:_http_client:518:5) at Socket.emit (node:events:518:28) at emitErrorNT (node:internal/streams/destroy:170:8) at emitErrorCloseNT (node:internal/streams/destroy:129:3) at process.processTicksAndRejections (node:internal/process/task_queues:90:21) { code: 'ECONNRESET' }, error: Error: tunneling socket could not be established, cause=connect ECONNREFUSED 127.0.0.1:80 at ClientRequest.<anonymous> (/var/task/.next/server/chunks/3698.js:6:119700) at Object.onceWrapper (node:events:633:26) at ClientRequest.emit (node:events:530:35) at emitErrorEvent (node:_http_client:104:11) at Socket.socketErrorListener (node:_http_client:518:5) at Socket.emit (node:events:518:28) at emitErrorNT (node:internal/streams/destroy:170:8) at emitErrorCloseNT (node:internal/streams/destroy:129:3) at process.processTicksAndRejections (node:internal/process/task_queues:90:21) { code: 'ECONNRESET' }, options: { gzip: true, json: true, headers: { 'user-agent': 'Reddit Bot SaaS' }, baseUrl: 'https://oauth.reddit.com', qs: { raw_json: 1 }, auth: { bearer: 'eyJhbGciOiJSUzI1NiIsImtpZCI6IlNIQTI1NjpzS3dsMnlsV0VtMjVmcXhwTU40cWY4MXE2OWFFdWFyMnpLMUdhVGxjdWNZIiwidHlwIjoiSldUIn0.eyJzdWIiOiJ1c2VyIiwiZXhwIjoxNzU1MDk5MzkwLjU2ODM0MiwiaWF0IjoxNzU1MDEyOTkwLjU2ODM0MiwianRpIjoibHZQMzJYb1FnSEh0aFZhN3Z3SHZ4dkY0Zm5aYy1nIiwiY2lkIjoiMmpvbXBWTHNXSllpOGciLCJsaWQiOiJ0Ml9jd2szMHRjbSIsImFpZCI6InQyX2N3azMwdGNtIiwibGNhIjoxNjI0NTAyMDY3NTAwLCJzY3AiOiJlSnlLVnRKU2lnVUVBQURfX3dOekFTYyIsImZsbyI6OX0.kTcvqVddydxCSNkjaXE1SWg9qd11nsHj6cUzfPkCfi3VIuNAQgRoHNXoJuTnCtfINMTKTIdjnVlo1_Nq-fruvyudyrpkTZzvSfDOkX4E7TSYfExFBDpn5PAeccectlU7uw27_zzRHwRY6dRtIhCzFPsVv9PldJu1P8bLqi13SyT955bTZQa8_Y3XD72s93A29O8UYYHzHOKaUbkqZGxaT0vsWqmJ6nwgrlyiKgzvJaZaWtyl4J38WXX3jld9tEorRd4n8SKyUtlhEmfUTsNjdVrB2xfx5gP9wrVK-scQNGsXsCrBNJJqTePXTb3UQ0c51vO5vZTBhPgBkdFjmunCFA' }, resolveWithFullResponse: true, timeout: 30000, transform: [Function: transform], uri: 'comments/1mo7op8', method: 'GET', callback: [Function (anonymous)], simple: true, transform2xxOnly: false }, response: undefined }
+Aug 12 08:36:27.12
+POST200
+redditoutreach.com
+/api/gemini/analyze
+16
+[temp_user_id] Waiting 5 seconds before releasing API key
+Aug 12 08:36:24.70
+POST500
+redditoutreach.com
+/api/gemini/analyze
+23
+API processing error: Error: Gemini API error (403): Requests to this API generativelanguage.googleapis.com method google.ai.generativelanguage.v1beta.GenerativeService.GenerateContent are blocked. at d (/var/task/.next/server/app/api/gemini/analyze/route.js:23:44) at process.processTicksAndRejections (node:internal/process/task_queues:105:5) at async /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411 at async e_.execute (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880) at async e_.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943) at async en (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:25592) at async ea.responseCache.get.routeKind (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:1028) at async r9.renderToResponseWithComponentsImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:508) at async r9.renderPageComponent (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5102) at async r9.renderToResponseImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5680) at async r9.pipeImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17727) at async r9.handleCatchallRenderRequest (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:38485) at async r9.runImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17452) at async r9.handleRequestImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:16541) at async Object.handler (/var/task/___next_launcher.cjs:58:5) at async Server.r (/opt/rust/nodejs.js:2:15476) at async Server.<anonymous> (/opt/rust/nodejs.js:16:7329)
+Aug 12 08:36:23.04
+POST500
+redditoutreach.com
+/api/gemini/analyze
+23
+API processing error: Error: Gemini API error (400): API Key not found. Please pass a valid API key. at d (/var/task/.next/server/app/api/gemini/analyze/route.js:23:44) at process.processTicksAndRejections (node:internal/process/task_queues:105:5) at async /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411 at async e_.execute (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880) at async e_.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943) at async en (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:25592) at async ea.responseCache.get.routeKind (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:1028) at async r9.renderToResponseWithComponentsImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:508) at async r9.renderPageComponent (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5102) at async r9.renderToResponseImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5680) at async r9.pipeImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17727) at async r9.handleCatchallRenderRequest (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:38485) at async r9.runImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17452) at async r9.handleRequestImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:16541) at async Object.handler (/var/task/___next_launcher.cjs:58:5) at async Server.r (/opt/rust/nodejs.js:2:15476) at async Server.<anonymous> (/opt/rust/nodejs.js:16:7329)
+Aug 12 08:36:19.65
+POST200
+redditoutreach.com
+/api/reddit/scan-start
+8
+scan-start: proxy_envs_restored
+Aug 12 08:36:19.43
+POST200
+redditoutreach.com
+/api/reddit/scan-post
+4
+scan-post: proxy_envs_restored
+Aug 12 08:36:19.35
+GET200
+redditoutreach.com
+/api/reddit/scan-config
+6
+{ "id": "4e1c5092-a706-416b-b17f-635bcbc50493", "user_id": "user_30NEHTCuPLwJ0iK8YzNkarDwiFT", "subreddit": "test", "keywords": [ "test", "this is a test", "testing" ], "message_template_id": "201f3b03-87f8-441c-81cb-4d3ad87f230c", "reddit_account_id": "6eee0bc2-ddf0-4a69-abd6-811893edfab8", "is_active": true, "scan_interval": 10, "last_scan_time": null, "created_at": "2025-08-12T15:15:54.653097+00:00", "updated_at": "2025-08-12T15:15:54.653097+00:00", "use_ai_check": true, "anti_ban_config": {}, "base_delay_minutes": 5, "max_messages_per_hour": 10, "enable_jitter": true, "enable_user_history_check": true, "enable_subreddit_limits": true, "enable_long_pauses": true, "conservative_mode": false, "last_safety_score": 100, "rate_limit_hits": 0, "messages_sent_today": 0, "last_message_time": null }
+Aug 12 08:36:18.12
+GET200
+redditoutreach.com
+/api/reddit/bot-logs
+9
+- start_bot: 1 logs
+Aug 12 08:36:17.98
+GET200
+redditoutreach.com
+/api/reddit/scan-config
+6
+{ "id": "4e1c5092-a706-416b-b17f-635bcbc50493", "user_id": "user_30NEHTCuPLwJ0iK8YzNkarDwiFT", "subreddit": "test", "keywords": [ "test", "this is a test", "testing" ], "message_template_id": "201f3b03-87f8-441c-81cb-4d3ad87f230c", "reddit_account_id": "6eee0bc2-ddf0-4a69-abd6-811893edfab8", "is_active": true, "scan_interval": 10, "last_scan_time": null, "created_at": "2025-08-12T15:15:54.653097+00:00", "updated_at": "2025-08-12T15:15:54.653097+00:00", "use_ai_check": true, "anti_ban_config": {}, "base_delay_minutes": 5, "max_messages_per_hour": 10, "enable_jitter": true, "enable_user_history_check": true, "enable_subreddit_limits": true, "enable_long_pauses": true, "conservative_mode": false, "last_safety_score": 100, "rate_limit_hits": 0, "messages_sent_today": 0, "last_message_time": null }
+Aug 12 08:36:16.36
+GET200
+redditoutreach.com
+/api/reddit/bot-logs
+8
+- start_bot: 1 logs
+Aug 12 08:36:16.03
+GET200
+redditoutreach.com
+/api/reddit/bot-logs
+8
+- start_bot: 1 logs
