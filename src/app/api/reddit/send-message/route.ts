@@ -111,8 +111,20 @@ export async function POST(req: Request) {
           ? `${encodeURIComponent(account.proxy_username)}${account.proxy_password ? ':' + encodeURIComponent(account.proxy_password) : ''}@`
           : '';
         const proxyUrl = `${account.proxy_type}://${auth}${account.proxy_host}:${account.proxy_port}`;
-        process.env.HTTP_PROXY = proxyUrl;
-        process.env.HTTPS_PROXY = proxyUrl;
+        
+        // For HTTP/HTTPS proxies, set environment variables
+        if (account.proxy_type === 'http' || account.proxy_type === 'https') {
+          process.env.HTTP_PROXY = proxyUrl;
+          process.env.HTTPS_PROXY = proxyUrl;
+          // Allow HTTP proxy for HTTPS requests
+          process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+        }
+        // For SOCKS5, use different env vars
+        else if (account.proxy_type === 'socks5') {
+          process.env.HTTP_PROXY = proxyUrl;
+          process.env.HTTPS_PROXY = proxyUrl;
+        }
+        
         if (process.env.NO_PROXY !== undefined) delete process.env.NO_PROXY;
         console.log('send-message: proxy_enabled', `${account.proxy_type}://${account.proxy_host}:${account.proxy_port}`);
         await supabaseAdmin.from('bot_logs').insert({
@@ -131,6 +143,7 @@ export async function POST(req: Request) {
         delete process.env.https_proxy;
         delete process.env.ALL_PROXY;
         delete process.env.all_proxy;
+        delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
         process.env.NO_PROXY = '*';
         process.env.no_proxy = '*';
         console.log('send-message: proxy_disabled');
