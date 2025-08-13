@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       const prevHttp = process.env.HTTP_PROXY;
       const prevHttps = process.env.HTTPS_PROXY;
       const prevNoProxy = process.env.NO_PROXY;
-      
+
       try {
         if (account.proxy_enabled && account.proxy_host && account.proxy_port && account.proxy_type) {
           const auth = account.proxy_username
@@ -64,9 +64,15 @@ export async function GET(request: NextRequest) {
           if (process.env.NO_PROXY !== undefined) delete process.env.NO_PROXY;
           console.log('private-messages: proxy_enabled', `${account.proxy_type}://${account.proxy_host}:${account.proxy_port}`);
         } else {
+          // Aggressively clear ALL proxy environment variables
           delete process.env.HTTP_PROXY;
           delete process.env.HTTPS_PROXY;
+          delete process.env.http_proxy;
+          delete process.env.https_proxy;
+          delete process.env.ALL_PROXY;
+          delete process.env.all_proxy;
           process.env.NO_PROXY = '*';
+          process.env.no_proxy = '*';
           console.log('private-messages: proxy_disabled');
         }
 
@@ -186,7 +192,7 @@ export async function POST(request: NextRequest) {
       const prevHttp = process.env.HTTP_PROXY;
       const prevHttps = process.env.HTTPS_PROXY;
       const prevNoProxy = process.env.NO_PROXY;
-      
+
       try {
         if (account.proxy_enabled && account.proxy_host && account.proxy_port && account.proxy_type) {
           const auth = account.proxy_username
@@ -198,9 +204,15 @@ export async function POST(request: NextRequest) {
           if (process.env.NO_PROXY !== undefined) delete process.env.NO_PROXY;
           console.log('private-messages: proxy_enabled', `${account.proxy_type}://${account.proxy_host}:${account.proxy_port}`);
         } else {
+          // Aggressively clear ALL proxy environment variables
           delete process.env.HTTP_PROXY;
           delete process.env.HTTPS_PROXY;
+          delete process.env.http_proxy;
+          delete process.env.https_proxy;
+          delete process.env.ALL_PROXY;
+          delete process.env.all_proxy;
           process.env.NO_PROXY = '*';
+          process.env.no_proxy = '*';
           console.log('private-messages: proxy_disabled');
         }
 

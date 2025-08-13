@@ -245,9 +245,15 @@ export async function POST(req: Request) {
           message: `${account.proxy_type}://${account.proxy_host}:${account.proxy_port}`,
         });
       } else {
+        // Aggressively clear ALL proxy environment variables
         delete process.env.HTTP_PROXY;
         delete process.env.HTTPS_PROXY;
+        delete process.env.http_proxy;
+        delete process.env.https_proxy;
+        delete process.env.ALL_PROXY;
+        delete process.env.all_proxy;
         process.env.NO_PROXY = '*';
+        process.env.no_proxy = '*';
         console.log('scan-start: proxy_disabled');
       }
 
