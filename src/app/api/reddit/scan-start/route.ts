@@ -349,7 +349,17 @@ export async function POST(req: Request) {
       }
 
       if (candidatePosts.length === 0) {
-        return NextResponse.json({ queued: false, reason: 'No new posts' });
+        // No new posts to process, mark as complete
+        await supabaseAdmin.from('bot_logs').insert({
+          user_id: userId,
+          config_id: configId,
+          action: 'scan_complete',
+          status: 'success',
+          subreddit: config.subreddit,
+          message: 'No new posts found to process',
+        });
+
+        return NextResponse.json({ queued: false, reason: 'No new posts', batch: 0, remaining: 0 });
       }
       //pous test
 
@@ -370,14 +380,18 @@ export async function POST(req: Request) {
       }
       const consumerUrl = `${normalizedBase}/api/reddit/scan-post`;
 
-      // Queue posts immediately - scan-post will handle proper spacing with atomic counter
+      // Use absolute timestamps like the old working version
+      const SPACING_SECONDS = 200; // 3 min 20 s between messages
+      const nowSec = Math.floor(Date.now() / 1000);
       let i = 0;
       for (const post of candidatePosts) {
         if (scheduledCount >= BATCH_SIZE || scheduledCount >= remaining) break;
+
+        const notBefore = nowSec + i * SPACING_SECONDS;
         await scheduleQStashMessage({
           destination: consumerUrl,
           body: { configId, postId: post.id },
-          delaySeconds: 0, // No delay here - scan-post handles spacing
+          notBefore,
           headers: {
             'X-Internal-API': 'true',
           },
@@ -390,7 +404,7 @@ export async function POST(req: Request) {
 
       // If more posts remain, schedule the next scan-start job after the last scheduled item + buffer
       if (newRemaining > 0) {
-        const nextDelay = 10; // 10-second buffer
+        const nextNotBefore = nowSec + i * SPACING_SECONDS + 10; // 10-second buffer
         await scheduleQStashMessage({
           destination: `${normalizedBase}/api/reddit/scan-start`,
           body: {
@@ -398,7 +412,7 @@ export async function POST(req: Request) {
             remaining: newRemaining,
             after: rawPosts[rawPosts.length - 1]?.name,
           },
-          delaySeconds: nextDelay,
+          notBefore: nextNotBefore,
           headers: {
             'X-Internal-API': 'true',
           },

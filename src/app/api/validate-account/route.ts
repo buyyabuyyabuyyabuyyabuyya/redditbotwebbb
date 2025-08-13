@@ -40,16 +40,33 @@ export async function POST(req: Request) {
     // Real Reddit account validation using snoowrap
     let isValid = false;
     try {
-      const reddit = new snoowrap({
-        userAgent: 'Reddit Bot SaaS',
-        clientId,
-        clientSecret,
-        username,
-        password,
-      });
-      // @ts-ignore
-      await reddit.getMe();
-      isValid = true;
+      // Clear any existing proxy environment variables for validation
+      const prevHttp = process.env.HTTP_PROXY;
+      const prevHttps = process.env.HTTPS_PROXY;
+      const prevNoProxy = process.env.NO_PROXY;
+      
+      try {
+        // Ensure no proxy is used during validation
+        delete process.env.HTTP_PROXY;
+        delete process.env.HTTPS_PROXY;
+        process.env.NO_PROXY = '*';
+        
+        const reddit = new snoowrap({
+          userAgent: 'Reddit Bot SaaS',
+          clientId,
+          clientSecret,
+          username,
+          password,
+        });
+        // @ts-ignore
+        await reddit.getMe();
+        isValid = true;
+      } finally {
+        // Restore original proxy environment variables
+        process.env.HTTP_PROXY = prevHttp;
+        process.env.HTTPS_PROXY = prevHttps;
+        if (prevNoProxy !== undefined) process.env.NO_PROXY = prevNoProxy; else delete process.env.NO_PROXY;
+      }
     } catch (err) {
       isValid = false;
     }

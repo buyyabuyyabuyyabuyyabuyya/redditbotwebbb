@@ -138,7 +138,7 @@ export async function POST(req: Request) {
         password: account.password,
       });
 
-      const OPT_OUT_FOOTER = 'Reply STOP to never hear from me again.';
+      const OPT_OUT_FOOTER = '\n\n-----------------\nReply STOP to never hear from me again.';
       const finalText = message + OPT_OUT_FOOTER;
 
       // Send the message

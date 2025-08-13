@@ -27,6 +27,7 @@ export async function POST(req: Request) {
       // Temporarily disable any global proxy envs so validation is unaffected
       const prevHttp = process.env.HTTP_PROXY;
       const prevHttps = process.env.HTTPS_PROXY;
+      const prevNoProxy = process.env.NO_PROXY;
       try {
         delete process.env.HTTP_PROXY;
         delete process.env.HTTPS_PROXY;
@@ -45,8 +46,9 @@ export async function POST(req: Request) {
         const name = me?.name || 'unknown';
         return NextResponse.json({ success: true, username: name });
       } finally {
-        if (prevHttp !== undefined) process.env.HTTP_PROXY = prevHttp; else delete process.env.HTTP_PROXY;
-        if (prevHttps !== undefined) process.env.HTTPS_PROXY = prevHttps; else delete process.env.HTTPS_PROXY;
+        process.env.HTTP_PROXY = prevHttp;
+        process.env.HTTPS_PROXY = prevHttps;
+        if (prevNoProxy !== undefined) process.env.NO_PROXY = prevNoProxy; else delete process.env.NO_PROXY;
       }
     } catch (redditError) {
       const rawMsg = redditError instanceof Error ? redditError.message : String(redditError);

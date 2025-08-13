@@ -94,7 +94,7 @@ export async function scheduleQStashMessage<T>(options: ScheduleOptions<T>) {
   const { destination, body, delaySeconds, notBefore, retries = MAX_QSTASH_RETRIES_SCH, headers: extraHeaders } = options;
   const retriesClamped = Math.min(retries, MAX_QSTASH_RETRIES_SCH);
 
-  if (!delaySeconds && !notBefore) {
+  if (delaySeconds === undefined && notBefore === undefined) {
     throw new Error('Either delaySeconds or notBefore must be provided');
   }
 
@@ -105,8 +105,8 @@ export async function scheduleQStashMessage<T>(options: ScheduleOptions<T>) {
   };
   // Ensure retry attempts header is forwarded for scheduled jobs as well
   headers['Upstash-Retries'] = `${retriesClamped}`;
-  if (delaySeconds) headers['Upstash-Delay'] = `${delaySeconds}s`;
-  if (notBefore) headers['Upstash-Not-Before'] = `${notBefore}`;
+  if (delaySeconds !== undefined) headers['Upstash-Delay'] = `${delaySeconds}s`;
+  if (notBefore !== undefined) headers['Upstash-Not-Before'] = `${notBefore}`;
 
   // Reuse publish path-param style endpoint
   return publishQStashMessage({
