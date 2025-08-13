@@ -71,36 +71,6 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       subreddit: config.subreddit,
     });
 
-    // Apply proxy for this request if configured
-    const prevHttp = process.env.HTTP_PROXY;
-    const prevHttps = process.env.HTTPS_PROXY;
-    const prevNoProxy = process.env.NO_PROXY;
-    try {
-      if (account.proxy_enabled && account.proxy_host && account.proxy_port && account.proxy_type) {
-        const auth = account.proxy_username
-          ? `${encodeURIComponent(account.proxy_username)}${account.proxy_password ? ':' + encodeURIComponent(account.proxy_password) : ''}@`
-          : '';
-        const proxyUrl = `${account.proxy_type}://${auth}${account.proxy_host}:${account.proxy_port}`;
-        process.env.HTTP_PROXY = proxyUrl;
-        process.env.HTTPS_PROXY = proxyUrl;
-        if (process.env.NO_PROXY !== undefined) delete process.env.NO_PROXY;
-        const safeProxy = `${account.proxy_type}://${account.proxy_host}:${account.proxy_port}`;
-        console.log('scan-post: proxy_enabled', safeProxy);
-        await supabase.from('bot_logs').insert({
-          user_id: config.user_id,
-          config_id: configId,
-          action: 'proxy_enabled_for_request',
-          status: 'info',
-          subreddit: config.subreddit,
-          message: `${account.proxy_type}://${account.proxy_host}:${account.proxy_port}`,
-        });
-      } else {
-        delete process.env.HTTP_PROXY;
-        delete process.env.HTTPS_PROXY;
-        process.env.NO_PROXY = '*';
-        console.log('scan-post: proxy_disabled');
-      }
-
     const reddit = new snoowrap({
       userAgent: 'Reddit Bot SaaS',
       clientId: account.client_id,
@@ -109,7 +79,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       password: account.password,
     });
 
-      let post: any;
+    let post;
     try {
       await supabase.from('bot_logs').insert({
         user_id: config.user_id,
@@ -121,7 +91,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
         message: 'fetchSubmission',
       });
 
-        post = await (reddit.getSubmission(postId) as any).fetch();
+      post = await reddit.getSubmission(postId).fetch();
 
       await supabase.from('bot_logs').insert([
         {
@@ -350,10 +320,10 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
           message_template: contentRaw, // non-null
           sent_at: new Date().toISOString(),
         },
-        ]);
+      ], { ignoreDuplicates: true });
 
-      if ((reservation as any)?.error) {
-        console.error('scan-post: reservation insert error', (reservation as any).error);
+    if (reservation.error) {
+      console.error('scan-post: reservation insert error', reservation.error);
     }
 
     // Build message content based on template
@@ -363,24 +333,30 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
       .replace(/\{subreddit\}/g, config.subreddit)
       .replace(/\{post_title\}/g, post.title);
 
-      // ----- Queue send via QStash schedule with staggered delay using atomic counter -----
-      const BASE_DELAY_SEC = 200; // 3m20s
-      const windowStart = new Date(Math.floor(Date.now() / (60 * 60 * 1000)) * 60 * 60 * 1000); // start of current hour
+    // Call Edge Function to send message (no extra delay)
+    // Call our internal proxy route so Vercel logs the request
+    // Prefer same-origin relative URL to avoid DNS lookup / egress if we are already inside the Vercel deployment
+    let funcUrl = '/api/reddit/send-message';
+    // Fallback to absolute URL for local dev or edge cases where relative won’t work (e.g. invoked from Edge Function)
+    if (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_APP_URL) {
+      funcUrl = `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')}/api/reddit/send-message`;
+    }
 
-      // Call atomic increment function
-      let index = 1;
-      try {
-        const { data: inc, error: incErr } = await supabase.rpc('increment_message_counter', {
-          p_user_id: config.user_id,
-          p_window_start: windowStart.toISOString(),
-        });
-        if (incErr) throw incErr;
-        index = (inc as number) || 1;
-      } catch (e: any) {
-        console.error('scan-post: increment_message_counter error, falling back to 1', e?.message || e);
-        index = 1;
-      }
-      const delaySeconds = Math.max(1, BASE_DELAY_SEC * (index - 1)); // Ensure minimum 1 second delay
+    // ----- Queue send via QStash schedule with staggered delay -----
+    const BASE_DELAY_SEC = 100;
+
+    // Count queued messages in the last hour to determine offset
+    const sinceIso = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { data: queued } = await supabase
+      .from('bot_logs')
+      .select('id')
+      .eq('user_id', config.user_id)
+      .eq('action', 'message_scheduled')
+      .eq('status', 'queue')
+      .gte('created_at', sinceIso);
+
+    const index = (queued?.length || 0) + 1; // 1-based
+    const delaySeconds = BASE_DELAY_SEC * index;
 
     // Log schedule after we know delay
     await supabase.from('bot_logs').insert([
@@ -392,9 +368,9 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
         subreddit: config.subreddit,
         post_id: postId,
         recipient: post.author.name,
-          message: `Atomic queue index ${index}, delay ~${delaySeconds}s`,
+        message: `Message queued with ~${delaySeconds}s spacing`,
       }
-      ]);
+    ], { ignoreDuplicates: true });
 
     console.log('scan-post: scheduling send-message via QStash', { delaySeconds });
 
@@ -424,12 +400,6 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
     });
 
     return NextResponse.json({ queued: true, delaySeconds });
-    } finally {
-      process.env.HTTP_PROXY = prevHttp;
-      process.env.HTTPS_PROXY = prevHttps;
-      if (prevNoProxy !== undefined) process.env.NO_PROXY = prevNoProxy; else delete process.env.NO_PROXY;
-      console.log('scan-post: proxy_envs_restored');
-    }
   } catch (err) {
     console.error('scan-post error', err);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
