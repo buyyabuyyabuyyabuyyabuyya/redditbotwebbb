@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "web": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-web"
+      ]
+    }
+  }
+}

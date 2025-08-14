@@ -138,9 +138,6 @@ export default function CreateMessageTemplate({
       {/* Main Form */}
       <div className="bg-gray-800 shadow sm:rounded-lg border border-gray-700">
         <div className="px-4 py-5 sm:p-6">
-          <h3 className="text-lg font-medium leading-6 text-white">
-            {isEditing ? 'Edit' : 'Create'} Message Template
-          </h3>
           <div className="mt-2 max-w-xl text-sm text-gray-300">
             <p>Create a reusable message template for your Reddit outreach.</p>
           </div>
@@ -189,6 +186,18 @@ export default function CreateMessageTemplate({
               Available variables: {'{username}'}, {'{subreddit}'},{' '}
               {'{post_title}'}
             </p>
+            
+            {/* Spam Prevention Tips */}
+            <div className="mt-3 p-3 bg-amber-900/20 border border-amber-800/40 rounded-md">
+              <p className="text-sm font-medium text-amber-300 mb-2">
+                💡 Tips to avoid Reddit spam detection:
+              </p>
+              <ul className="text-xs text-amber-200 space-y-1">
+                <li>• <strong>Don't use URL links in your templates</strong> because Reddit would find this spam</li>
+                <li>• <strong>Don't put NSFW stuff</strong> in your messages</li>
+                <li>• <strong>Don't do repetitive content</strong> - add in {'{username}'}, {'{subreddit}'}, {'{post_title}'} to make each one unique</li>
+              </ul>
+            </div>
           </div>
 
           <div>

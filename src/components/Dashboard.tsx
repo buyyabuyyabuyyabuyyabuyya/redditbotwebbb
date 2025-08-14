@@ -366,16 +366,34 @@ export default function Dashboard() {
             >
               <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
               <div className="fixed inset-0 flex items-center justify-center p-4">
-                <Dialog.Panel className="mx-auto max-w-lg rounded bg-gray-800 border border-gray-700 p-6">
-                  <AddRedditAccount
-                    userId={user?.id || ''}
-                    onSuccess={() => {
-                      setShowAddAccount(false);
-                      loadAccounts();
-                      // Refresh stats when a new account is added
-                      setRefreshTrigger((prev) => prev + 1);
-                    }}
-                  />
+                <Dialog.Panel className="mx-auto w-full max-w-2xl max-h-[90vh] rounded bg-gray-800 border border-gray-700 overflow-hidden">
+                  {/* Header with close button */}
+                  <div className="flex items-center justify-between p-4 border-b border-gray-700">
+                    <h3 className="text-lg font-medium text-white">
+                      Add Reddit Account
+                    </h3>
+                    <button
+                      onClick={() => setShowAddAccount(false)}
+                      className="text-gray-400 hover:text-white transition-colors p-1"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  {/* Scrollable content */}
+                  <div className="p-4 overflow-y-auto max-h-[calc(90vh-80px)]">
+                    <AddRedditAccount
+                      userId={user?.id || ''}
+                      onSuccess={() => {
+                        setShowAddAccount(false);
+                        loadAccounts();
+                        // Refresh stats when a new account is added
+                        setRefreshTrigger((prev) => prev + 1);
+                      }}
+                    />
+                  </div>
                 </Dialog.Panel>
               </div>
             </Dialog>
@@ -387,16 +405,34 @@ export default function Dashboard() {
             >
               <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
               <div className="fixed inset-0 flex items-center justify-center p-4">
-                <Dialog.Panel className="mx-auto max-w-lg rounded bg-gray-800 border border-gray-700 p-6">
-                  <CreateMessageTemplate
-                    userId={user?.id || ''}
-                    onSuccess={() => {
-                      setShowCreateTemplate(false);
-                      loadMessageTemplates();
-                      // Refresh stats when a new template is created
-                      setRefreshTrigger((prev) => prev + 1);
-                    }}
-                  />
+                <Dialog.Panel className="mx-auto w-full max-w-2xl max-h-[90vh] rounded bg-gray-800 border border-gray-700 overflow-hidden">
+                  {/* Header with close button */}
+                  <div className="flex items-center justify-between p-4 border-b border-gray-700">
+                    <h3 className="text-lg font-medium text-white">
+                      Create Message Template
+                    </h3>
+                    <button
+                      onClick={() => setShowCreateTemplate(false)}
+                      className="text-gray-400 hover:text-white transition-colors p-1"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  {/* Scrollable content */}
+                  <div className="p-4 overflow-y-auto max-h-[calc(90vh-80px)]">
+                    <CreateMessageTemplate
+                      userId={user?.id || ''}
+                      onSuccess={() => {
+                        setShowCreateTemplate(false);
+                        loadMessageTemplates();
+                        // Refresh stats when a new template is created
+                        setRefreshTrigger((prev) => prev + 1);
+                      }}
+                    />
+                  </div>
                 </Dialog.Panel>
               </div>
             </Dialog>
@@ -409,18 +445,36 @@ export default function Dashboard() {
             >
               <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
               <div className="fixed inset-0 flex items-center justify-center p-4">
-                <Dialog.Panel className="mx-auto max-w-lg rounded bg-gray-800 border border-gray-700 p-6">
-                  {templateToEdit && (
-                    <CreateMessageTemplate
-                      userId={user?.id || ''}
-                      existingTemplate={templateToEdit}
-                      onSuccess={() => {
-                        setShowEditTemplate(false);
-                        setTemplateToEdit(null);
-                        loadMessageTemplates();
-                      }}
-                    />
-                  )}
+                <Dialog.Panel className="mx-auto w-full max-w-2xl max-h-[90vh] rounded bg-gray-800 border border-gray-700 overflow-hidden">
+                  {/* Header with close button */}
+                  <div className="flex items-center justify-between p-4 border-b border-gray-700">
+                    <h3 className="text-lg font-medium text-white">
+                      Edit Message Template
+                    </h3>
+                    <button
+                      onClick={() => setShowEditTemplate(false)}
+                      className="text-gray-400 hover:text-white transition-colors p-1"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  {/* Scrollable content */}
+                  <div className="p-4 overflow-y-auto max-h-[calc(90vh-80px)]">
+                    {templateToEdit && (
+                      <CreateMessageTemplate
+                        userId={user?.id || ''}
+                        existingTemplate={templateToEdit}
+                        onSuccess={() => {
+                          setShowEditTemplate(false);
+                          setTemplateToEdit(null);
+                          loadMessageTemplates();
+                        }}
+                      />
+                    )}
+                  </div>
                 </Dialog.Panel>
               </div>
             </Dialog>
@@ -433,18 +487,36 @@ export default function Dashboard() {
             >
               <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
               <div className="fixed inset-0 flex items-center justify-center p-4">
-                <Dialog.Panel className="mx-auto max-w-lg rounded bg-gray-800 border border-gray-700 p-6">
-                  {accountToEdit && (
-                    <AddRedditAccount
-                      userId={user?.id || ''}
-                      account={accountToEdit}
-                      onSuccess={() => {
-                        setShowEditAccount(false);
-                        loadAccounts();
-                        setRefreshTrigger((prev) => prev + 1);
-                      }}
-                    />
-                  )}
+                <Dialog.Panel className="mx-auto w-full max-w-2xl max-h-[90vh] rounded bg-gray-800 border border-gray-700 overflow-hidden">
+                  {/* Header with close button */}
+                  <div className="flex items-center justify-between p-4 border-b border-gray-700">
+                    <h3 className="text-lg font-medium text-white">
+                      Edit Reddit Account
+                    </h3>
+                    <button
+                      onClick={() => setShowEditAccount(false)}
+                      className="text-gray-400 hover:text-white transition-colors p-1"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  {/* Scrollable content */}
+                  <div className="p-4 overflow-y-auto max-h-[calc(90vh-80px)]">
+                    {accountToEdit && (
+                      <AddRedditAccount
+                        userId={user?.id || ''}
+                        account={accountToEdit}
+                        onSuccess={() => {
+                          setShowEditAccount(false);
+                          loadAccounts();
+                          setRefreshTrigger((prev) => prev + 1);
+                        }}
+                      />
+                    )}
+                  </div>
                 </Dialog.Panel>
               </div>
             </Dialog>

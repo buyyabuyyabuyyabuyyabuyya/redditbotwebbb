@@ -27,6 +27,13 @@ interface Message {
   wasRead: boolean;
 }
 
+interface ConversationGroup {
+  otherUser: string;
+  messages: Message[];
+  lastMessageTime: number;
+  hasUnread: boolean;
+}
+
 interface MessageInboxProps {
   accounts: RedditAccount[];
   userId: string;
@@ -38,6 +45,7 @@ export default function MessageInbox({ accounts, userId }: MessageInboxProps) {
   );
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [conversationGroups, setConversationGroups] = useState<ConversationGroup[]>([]);
   const [filter, setFilter] = useState<'all' | 'received' | 'sent'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -52,6 +60,57 @@ export default function MessageInbox({ accounts, userId }: MessageInboxProps) {
   }, [selectedAccount]);
 
   const [error, setError] = useState<string | null>(null);
+
+  // Function to group messages by conversation
+  const groupMessagesByConversation = (messages: Message[]): ConversationGroup[] => {
+    const groups: { [key: string]: ConversationGroup } = {};
+    
+    messages.forEach((message) => {
+      // For each message, determine the "other user" in the conversation
+      // If it's incoming, the other user is the author
+      // If it's outgoing, the other user is the recipient (author field for sent messages)
+      const otherUser = message.author;
+      
+      if (!groups[otherUser]) {
+        groups[otherUser] = {
+          otherUser,
+          messages: [],
+          lastMessageTime: message.created_utc,
+          hasUnread: false
+        };
+      }
+      
+      groups[otherUser].messages.push(message);
+      
+      // Update last message time
+      if (message.created_utc > groups[otherUser].lastMessageTime) {
+        groups[otherUser].lastMessageTime = message.created_utc;
+      }
+      
+      // Check if any message in this conversation is unread
+      if (message.isIncoming && !message.wasRead) {
+        groups[otherUser].hasUnread = true;
+      }
+    });
+    
+    // Convert to array and sort by last message time (newest first)
+    return Object.values(groups).sort((a, b) => b.lastMessageTime - a.lastMessageTime);
+  };
+
+  // Function to get conversation start time
+  const getConversationStartTime = (messages: Message[]): number => {
+    return Math.min(...messages.map(msg => msg.created_utc));
+  };
+
+  // Update conversation groups when messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      const groups = groupMessagesByConversation(messages);
+      setConversationGroups(groups);
+    } else {
+      setConversationGroups([]);
+    }
+  }, [messages]);
 
   const fetchMessages = async (account: RedditAccount) => {
     setLoading(true);
@@ -100,16 +159,28 @@ export default function MessageInbox({ accounts, userId }: MessageInboxProps) {
   const [sendingReply, setSendingReply] = useState(false);
   const [replyError, setReplyError] = useState<string | null>(null);
 
-  const handleSendReply = async (messageId: string) => {
+  const handleSendReply = async (otherUser: string) => {
     if (!selectedAccount || !replyMessage.trim()) return;
 
     setSendingReply(true);
     setReplyError(null);
 
     try {
+      // For now, we'll reply to the most recent message from this user
+      // In the future, we could implement a proper "send new message" API
+      const mostRecentMessage = conversationGroups
+        .find(group => group.otherUser === otherUser)
+        ?.messages
+        .filter(msg => msg.isIncoming)
+        .sort((a, b) => b.created_utc - a.created_utc)[0];
+
+      if (!mostRecentMessage) {
+        throw new Error('No message found to reply to');
+      }
+
       // Call the API to send the reply
       console.log(
-        `Sending reply to message ${messageId} from account ${selectedAccount.username}`
+        `Sending reply to user ${otherUser} from account ${selectedAccount.username}`
       );
 
       const response = await fetch('/api/reddit/private-messages', {
@@ -119,7 +190,7 @@ export default function MessageInbox({ accounts, userId }: MessageInboxProps) {
         },
         body: JSON.stringify({
           accountId: selectedAccount.id,
-          messageId,
+          messageId: mostRecentMessage.id,
           body: replyMessage,
         }),
       });
@@ -151,15 +222,21 @@ export default function MessageInbox({ accounts, userId }: MessageInboxProps) {
     }
   };
 
-  const filteredMessages = messages.filter((message) => {
+  const filteredConversationGroups = conversationGroups.filter((group) => {
     // Apply filter (all, received, sent)
-    if (filter === 'received' && !message.isIncoming) return false;
-    if (filter === 'sent' && message.isIncoming) return false;
+    if (filter === 'received') {
+      // Only show groups that have incoming messages
+      return group.messages.some(msg => msg.isIncoming);
+    }
+    if (filter === 'sent') {
+      // Only show groups that have outgoing messages
+      return group.messages.some(msg => !msg.isIncoming);
+    }
 
     // Apply search term
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      return (
+      return group.messages.some(message => 
         message.subject.toLowerCase().includes(term) ||
         message.body.toLowerCase().includes(term) ||
         message.author.toLowerCase().includes(term)
@@ -311,45 +388,79 @@ export default function MessageInbox({ accounts, userId }: MessageInboxProps) {
                 Try Again
               </button>
             </div>
-          ) : filteredMessages.length > 0 ? (
+          ) : filteredConversationGroups.length > 0 ? (
             <div className="space-y-4">
-              {filteredMessages.map((message) => (
+              {filteredConversationGroups.map((group) => (
                 <div
-                  key={message.id}
+                  key={group.otherUser}
                   className={`bg-gray-800 rounded-lg p-4 border ${
-                    message.isIncoming
-                      ? message.wasRead
-                        ? 'border-gray-700'
-                        : 'border-purple-500'
-                      : 'border-blue-500'
+                    group.hasUnread
+                      ? 'border-purple-500'
+                      : 'border-gray-700'
                   }`}
                 >
                   <div className="flex justify-between items-start">
                     <div>
                       <h3 className="text-lg font-medium text-white">
-                        {message.subject}
+                        {group.otherUser}
                       </h3>
                       <p className="text-sm text-gray-400">
-                        {message.isIncoming ? 'From' : 'To'}: {message.author} •{' '}
-                        {formatDate(message.created_utc)}
+                        Started: {formatDate(getConversationStartTime(group.messages))} • Last: {formatDate(group.lastMessageTime)} • {group.messages.length} message{group.messages.length !== 1 ? 's' : ''}
                       </p>
+                      {/* Conversation preview */}
+                      <div className="mt-2 text-sm text-gray-400">
+                        <span className="text-gray-500">Latest:</span> {group.messages[0]?.body.substring(0, 80)}{group.messages[0]?.body.length > 80 ? '...' : ''}
+                      </div>
                     </div>
-                    {message.isIncoming && (
+                    <div className="flex items-center space-x-2">
+                      {group.hasUnread && (
+                        <span className="bg-purple-600 text-white text-xs font-medium px-2 py-1 rounded-full">
+                          New
+                        </span>
+                      )}
                       <button
                         className="bg-purple-600 hover:bg-purple-700 text-white rounded-md px-3 py-1 text-sm flex items-center"
-                        onClick={() => setReplyingTo(message.id)}
+                        onClick={() => setReplyingTo(group.otherUser)}
                         disabled={sendingReply}
                       >
                         <FaReply className="mr-1" /> Reply
                       </button>
-                    )}
+                    </div>
                   </div>
-                  <div className="mt-2 text-gray-300 whitespace-pre-wrap">
-                    {message.body}
-                  </div>
+                  <div className="mt-2 space-y-2">
+                      {group.messages.map((message, index) => (
+                        <div
+                          key={message.id}
+                          className={`p-3 rounded-lg ${
+                            message.isIncoming
+                              ? 'bg-gray-700/50 border-l-4 border-gray-500'
+                              : 'bg-blue-900/30 border-l-4 border-blue-500'
+                          }`}
+                        >
+                          <div className="flex justify-between items-start mb-1">
+                            <span className={`text-sm font-medium ${
+                              message.isIncoming ? 'text-gray-300' : 'text-blue-300'
+                            }`}>
+                              {message.isIncoming ? 'From' : 'To'}: {message.author}
+                            </span>
+                            <span className="text-xs text-gray-400">
+                              {formatDate(message.created_utc)}
+                            </span>
+                          </div>
+                          {message.subject && message.subject !== 'No Subject' && (
+                            <div className="text-sm font-medium text-gray-200 mb-1">
+                              {message.subject}
+                            </div>
+                          )}
+                          <div className="text-sm text-gray-300 whitespace-pre-wrap">
+                            {message.body}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
 
                   {/* Reply Form */}
-                  {replyingTo === message.id && (
+                  {replyingTo === group.otherUser && (
                     <div className="mt-4 border-t border-gray-700 pt-4">
                       {replyError && (
                         <div className="mb-3 text-red-400 text-sm bg-red-900/30 p-2 rounded border border-red-700/50">
@@ -378,7 +489,7 @@ export default function MessageInbox({ accounts, userId }: MessageInboxProps) {
                         </button>
                         <button
                           className="bg-purple-600 hover:bg-purple-700 text-white rounded-md px-3 py-1 text-sm flex items-center"
-                          onClick={() => handleSendReply(message.id)}
+                          onClick={() => handleSendReply(group.otherUser)}
                           disabled={sendingReply || !replyMessage.trim()}
                         >
                           {sendingReply ? (
