@@ -272,11 +272,20 @@ export async function POST(req: Request) {
       }
 
       // Create Reddit API client with custom User Agent
+      console.log('scan-start: Account User Agent settings:', {
+        enabled: account.user_agent_enabled,
+        type: account.user_agent_type,
+        custom: account.user_agent_custom
+      });
+      
       const customUserAgent = generateUserAgent({
         enabled: account.user_agent_enabled || false,
         type: account.user_agent_type || 'default',
         custom: account.user_agent_custom || undefined
       });
+      
+      console.log(`scan-start: Generated User Agent: ${customUserAgent}`);
+      
       const reddit = new snoowrap({
         userAgent: customUserAgent,
         clientId: account.client_id,

@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     if (accountId) {
       const { data: account, error } = await supabaseAdmin
         .from('reddit_accounts')
-        .select('user_agent_enabled, user_agent_type, user_agent_custom, client_id, client_secret, username, password')
+        .select('user_agent_enabled, user_agent_type, user_agent_custom, client_id, client_secret, username, password, proxy_enabled, proxy_type, proxy_host, proxy_port, proxy_username, proxy_password')
         .eq('id', accountId)
         .eq('user_id', userId)
         .single();
@@ -33,6 +33,12 @@ export async function POST(req: Request) {
       if (error || !account) {
         return NextResponse.json({ error: 'Account not found' }, { status: 404 });
       }
+
+      console.log('Account User Agent settings:', {
+        enabled: account.user_agent_enabled,
+        type: account.user_agent_type,
+        custom: account.user_agent_custom
+      });
 
       if (account.user_agent_enabled) {
         testUserAgent = generateUserAgent({
@@ -44,9 +50,47 @@ export async function POST(req: Request) {
         testUserAgent = 'Reddit Bot SaaS'; // Default
       }
 
+      console.log('Generated User Agent:', testUserAgent);
+
       // Test with actual Reddit API if we have account credentials
       if (account.client_id && account.client_secret && account.username && account.password) {
+        // Apply proxy settings for testing (similar to other routes)
+        const prevHttp = process.env.HTTP_PROXY;
+        const prevHttps = process.env.HTTPS_PROXY;
+        const prevNoProxy = process.env.NO_PROXY;
+
         try {
+          if (account.proxy_enabled && account.proxy_host && account.proxy_port && account.proxy_type) {
+            const auth = account.proxy_username
+              ? `${encodeURIComponent(account.proxy_username)}${account.proxy_password ? ':' + encodeURIComponent(account.proxy_password) : ''}@`
+              : '';
+            const proxyUrl = `${account.proxy_type}://${auth}${account.proxy_host}:${account.proxy_port}`;
+
+            if (account.proxy_type === 'http' || account.proxy_type === 'https') {
+              process.env.HTTP_PROXY = proxyUrl;
+              process.env.HTTPS_PROXY = proxyUrl;
+              process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+            } else if (account.proxy_type === 'socks5') {
+              process.env.HTTP_PROXY = proxyUrl;
+              process.env.HTTPS_PROXY = proxyUrl;
+            }
+
+            if (process.env.NO_PROXY !== undefined) delete process.env.NO_PROXY;
+            console.log('test-user-agent: proxy_enabled', `${account.proxy_type}://${account.proxy_host}:${account.proxy_port}`);
+          } else {
+            // Clear proxy settings
+            delete process.env.HTTP_PROXY;
+            delete process.env.HTTPS_PROXY;
+            delete process.env.http_proxy;
+            delete process.env.https_proxy;
+            delete process.env.ALL_PROXY;
+            delete process.env.all_proxy;
+            delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+            process.env.NO_PROXY = '*';
+            process.env.no_proxy = '*';
+            console.log('test-user-agent: proxy_disabled');
+          }
+
           const reddit = new snoowrap({
             userAgent: testUserAgent,
             clientId: account.client_id,
@@ -79,10 +123,18 @@ export async function POST(req: Request) {
             tested: true
           });
         } catch (error: any) {
+          console.error('Reddit API test error:', error);
           return NextResponse.json({
             error: `Reddit API test failed: ${error.message}`,
-            userAgent: testUserAgent
+            userAgent: testUserAgent,
+            details: error.toString()
           }, { status: 400 });
+        } finally {
+          // Restore proxy environment variables
+          process.env.HTTP_PROXY = prevHttp;
+          process.env.HTTPS_PROXY = prevHttps;
+          if (prevNoProxy !== undefined) process.env.NO_PROXY = prevNoProxy; else delete process.env.NO_PROXY;
+          console.log('test-user-agent: proxy_envs_restored');
         }
       }
     }
