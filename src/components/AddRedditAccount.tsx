@@ -3,6 +3,20 @@ import { useUser } from '@clerk/nextjs';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { useUserPlan } from '../hooks/useUserPlan';
 
+// User Agent presets
+const USER_AGENT_PRESETS = {
+  default: 'Reddit Bot SaaS',
+  chrome_windows: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  chrome_mac: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  firefox_windows: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
+  firefox_mac: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0',
+  safari_mac: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15',
+  edge_windows: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0',
+  mobile_ios: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1',
+  mobile_android: 'Mozilla/5.0 (Linux; Android 14; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+  custom: ''
+};
+
 interface AddRedditAccountProps {
   userId: string;
   onSuccess: () => void;
@@ -40,6 +54,13 @@ export default function AddRedditAccount({
   const [proxyTesting, setProxyTesting] = useState<boolean>(false);
   const [proxyTestResult, setProxyTestResult] = useState<string | null>(null);
 
+  // User Agent state
+  const [userAgentEnabled, setUserAgentEnabled] = useState<boolean>((account as any)?.user_agent_enabled || false);
+  const [userAgentType, setUserAgentType] = useState<string>((account as any)?.user_agent_type || 'chrome_windows');
+  const [userAgentCustom, setUserAgentCustom] = useState<string>((account as any)?.user_agent_custom || '');
+  const [userAgentTesting, setUserAgentTesting] = useState<boolean>(false);
+  const [userAgentTestResult, setUserAgentTestResult] = useState<string | null>(null);
+
   // Keep local state in sync if the account prop changes
   useEffect(() => {
     if (account) {
@@ -53,6 +74,9 @@ export default function AddRedditAccount({
       setProxyPort((account as any)?.proxy_port || '');
       setProxyUsername((account as any)?.proxy_username || '');
       setProxyPassword((account as any)?.proxy_password || '');
+      setUserAgentEnabled((account as any)?.user_agent_enabled || false);
+      setUserAgentType((account as any)?.user_agent_type || 'chrome_windows');
+      setUserAgentCustom((account as any)?.user_agent_custom || '');
     }
   }, [account]);
 
@@ -104,6 +128,10 @@ export default function AddRedditAccount({
             // Only send proxyPassword if provided (avoid overwriting with empty)
             ...(proxyPassword ? { proxyPassword } : {}),
           } : {}),
+          // User Agent fields
+          userAgentEnabled,
+          userAgentType,
+          userAgentCustom,
         }),
       });
 
@@ -381,6 +409,105 @@ export default function AddRedditAccount({
               <p className="text-sm text-gray-400">Upgrade to Pro to route account traffic through your own HTTP/HTTPS/SOCKS5 proxy.</p>
             </div>
           )}
+
+          {/* User Agent configuration */}
+          <div className="mt-6 border-t border-gray-700 pt-4">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-md font-semibold text-gray-200">User Agent</h4>
+              <label className="inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={userAgentEnabled}
+                  onChange={(e) => setUserAgentEnabled(e.target.checked)}
+                />
+                <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 relative" />
+                <span className="ml-3 text-sm text-gray-300">Enable</span>
+              </label>
+            </div>
+            <div className={`${userAgentEnabled ? '' : 'opacity-50 pointer-events-none'} space-y-4`}>
+              <div>
+                <label className="block text-sm font-medium text-gray-200">User Agent Type</label>
+                <select
+                  value={userAgentType}
+                  onChange={(e) => setUserAgentType(e.target.value)}
+                  className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                >
+                  <option value="default">Default (Reddit Bot SaaS)</option>
+                  <option value="chrome_windows">Chrome - Windows</option>
+                  <option value="chrome_mac">Chrome - macOS</option>
+                  <option value="firefox_windows">Firefox - Windows</option>
+                  <option value="firefox_mac">Firefox - macOS</option>
+                  <option value="safari_mac">Safari - macOS</option>
+                  <option value="edge_windows">Edge - Windows</option>
+                  <option value="mobile_ios">Mobile - iOS Safari</option>
+                  <option value="mobile_android">Mobile - Android Chrome</option>
+                  <option value="custom">Custom</option>
+                </select>
+              </div>
+              
+              {userAgentType === 'custom' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-200">Custom User Agent</label>
+                  <textarea
+                    value={userAgentCustom}
+                    onChange={(e) => setUserAgentCustom(e.target.value)}
+                    placeholder="Enter your custom User Agent string..."
+                    rows={3}
+                    className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm placeholder-gray-400"
+                  />
+                </div>
+              )}
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-200 mb-2">Preview</label>
+                <div className="bg-gray-900 border border-gray-600 rounded-md p-3">
+                  <code className="text-xs text-gray-300 break-all">
+                    {userAgentType === 'custom' ? userAgentCustom || 'Enter custom User Agent above...' : USER_AGENT_PRESETS[userAgentType as keyof typeof USER_AGENT_PRESETS]}
+                  </code>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <button
+                  type="button"
+                  disabled={!userAgentEnabled}
+                  onClick={async () => {
+                    setUserAgentTesting(true);
+                    setUserAgentTestResult(null);
+                    try {
+                      const testUserAgent = userAgentType === 'custom' ? userAgentCustom : USER_AGENT_PRESETS[userAgentType as keyof typeof USER_AGENT_PRESETS];
+                      const resp = await fetch('/api/reddit/test-user-agent', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          userAgent: testUserAgent,
+                          credentials: isEdit ? undefined : { username, password, clientId, clientSecret },
+                          accountId: (account as any)?.id,
+                        }),
+                      });
+                      const data = await resp.json();
+                      if (resp.ok) {
+                        setUserAgentTestResult(`✅ Valid - ${data.browser || 'Unknown browser'}`);
+                      } else {
+                        setUserAgentTestResult(`❌ ${data.error || 'Test failed'}`);
+                      }
+                    } catch (e: any) {
+                      setUserAgentTestResult(`❌ ${e?.message || 'Network error'}`);
+                    } finally {
+                      setUserAgentTesting(false);
+                    }
+                  }}
+                  className={`px-3 py-1.5 rounded-md text-sm ${userAgentEnabled ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-gray-700 text-gray-300 cursor-not-allowed'}`}
+                >
+                  {userAgentTesting ? 'Testing...' : 'Test User Agent'}
+                </button>
+                {userAgentTestResult && (
+                  <span className="text-sm text-gray-300">{userAgentTestResult}</span>
+                )}
+              </div>
+            </div>
+          </div>
         </form>
       </div>
     </div>

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { verifySignatureAppRouter } from '@upstash/qstash/nextjs';
 import { createClient } from '@supabase/supabase-js';
 import snoowrap from 'snoowrap';
+import { generateUserAgent } from '../../../../utils/userAgents';
 
 export const runtime = 'nodejs'; // uses snoowrap
 
@@ -98,8 +99,14 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
             console.log('process-inbox: proxy_disabled');
           }
 
+        // Create Reddit API client with custom User Agent
+        const customUserAgent = generateUserAgent({
+          enabled: account.user_agent_enabled || false,
+          type: account.user_agent_type || 'default',
+          custom: account.user_agent_custom || undefined
+        });
         const reddit = new snoowrap({
-          userAgent: 'Reddit Bot SaaS - inbox processor',
+          userAgent: customUserAgent,
           clientId: account.client_id,
           clientSecret: account.client_secret,
           username: account.username,

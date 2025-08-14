@@ -14,6 +14,7 @@ import UserStats from './UserStats';
 import AutoScanPoller from './AutoScanPoller';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
 import { Dialog } from '@headlessui/react';
+import { getUserAgentBadgeText } from '../utils/userAgents';
 
 const supabase = createClientSupabaseClient();
 
@@ -28,6 +29,10 @@ interface RedditAccount {
   proxy_status?: string | null;
   proxy_last_checked?: string | null;
   proxy_type?: string | null;
+  user_agent_enabled?: boolean;
+  user_agent_type?: string | null;
+  user_agent_custom?: string | null;
+  user_agent_last_checked?: string | null;
 }
 
 interface MessageTemplate {
@@ -67,6 +72,10 @@ export default function Dashboard() {
   // Proxy test UI state
   const [proxyTestingId, setProxyTestingId] = useState<string | null>(null);
   const [proxyTestMsg, setProxyTestMsg] = useState<Record<string, string>>({});
+  
+  // User Agent test UI state
+  const [userAgentTestingId, setUserAgentTestingId] = useState<string | null>(null);
+  const [userAgentTestMsg, setUserAgentTestMsg] = useState<Record<string, string>>({});
 
   // Function to handle stopping a bot from the logs view
   const handleStopBot = async (subreddit: string, configId?: string) => {
@@ -319,6 +328,33 @@ export default function Dashboard() {
       setProxyTestingId(null);
       // Auto-clear the message after a few seconds
       setTimeout(() => setProxyTestMsg((m) => ({ ...m, [accountId]: '' })), 5000);
+    }
+  };
+
+  const handleTestUserAgentQuick = async (accountId: string) => {
+    try {
+      setUserAgentTestingId(accountId);
+      setUserAgentTestMsg((m) => ({ ...m, [accountId]: '' }));
+      const resp = await fetch('/api/reddit/test-user-agent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountId }),
+      });
+      const data = await resp.json();
+      if (resp.ok) {
+        const msg = `✅ ${data.browser || 'Valid'}`;
+        setUserAgentTestMsg((m) => ({ ...m, [accountId]: msg }));
+      } else {
+        setUserAgentTestMsg((m) => ({ ...m, [accountId]: `❌ ${data.error || 'Failed'}` }));
+      }
+      // Refresh account row to update status/last-checked
+      await loadAccounts();
+    } catch (e: any) {
+      setUserAgentTestMsg((m) => ({ ...m, [accountId]: `❌ ${e?.message || 'Error'}` }));
+    } finally {
+      setUserAgentTestingId(null);
+      // Auto-clear the message after a few seconds
+      setTimeout(() => setUserAgentTestMsg((m) => ({ ...m, [accountId]: '' })), 5000);
     }
   };
 
@@ -600,6 +636,25 @@ export default function Dashboard() {
                           )}
                           {!!proxyTestMsg[account.id] && (
                             <span className="ml-2 text-xs text-gray-300">{proxyTestMsg[account.id]}</span>
+                          )}
+                          
+                          {/* User Agent badge */}
+                          {(account as any)?.user_agent_enabled && (
+                            <button
+                              onClick={() => handleTestUserAgentQuick(account.id)}
+                              disabled={userAgentTestingId === account.id}
+                              title={`Click to test User Agent\nType: ${(account as any)?.user_agent_type || 'default'}${(account as any)?.user_agent_last_checked ? ` • Checked ${new Date((account as any).user_agent_last_checked).toLocaleString()}` : ''}`}
+                              className={`text-[10px] px-2 py-0.5 rounded-full border transition-colors ${
+                                'bg-purple-700/60 text-purple-200 border-purple-600/50 hover:bg-purple-700'
+                              } ${userAgentTestingId === account.id ? 'opacity-60 cursor-wait' : 'cursor-pointer'}`}
+                            >
+                              {userAgentTestingId === account.id ? 'TESTING…' : 
+                                getUserAgentBadgeText((account as any)?.user_agent_type || 'default')
+                              }
+                            </button>
+                          )}
+                          {!!userAgentTestMsg[account.id] && (
+                            <span className="ml-2 text-xs text-gray-300">{userAgentTestMsg[account.id]}</span>
                           )}
                           {account.status === 'banned' ? (
                             <div className="flex items-center space-x-1">

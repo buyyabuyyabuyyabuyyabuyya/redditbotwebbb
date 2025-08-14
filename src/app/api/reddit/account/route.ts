@@ -37,6 +37,10 @@ export async function POST(req: Request) {
       proxyPort,
       proxyUsername,
       proxyPassword,
+      // User Agent fields
+      userAgentEnabled,
+      userAgentType,
+      userAgentCustom,
     } = await req.json();
 
     // Validate the required fields
@@ -114,6 +118,10 @@ export async function POST(req: Request) {
                 ...(proxyPassword ? { proxy_password: proxyPassword } : {}),
               }
             : {}),
+          // User Agent fields (available to all users)
+          user_agent_enabled: Boolean(userAgentEnabled) || false,
+          user_agent_type: userAgentType || 'default',
+          user_agent_custom: userAgentCustom || null,
         },
       ])
       .select();
@@ -153,7 +161,7 @@ export async function GET(req: Request) {
     // If accountId is provided, get a specific account
     if (accountId) {
       // Determine which fields to select based on whether credentials are requested
-      let selectFields = 'id, username, is_validated, status, banned_at, credential_error_at, proxy_enabled, proxy_type, proxy_status, proxy_last_checked';
+      let selectFields = 'id, username, is_validated, status, banned_at, credential_error_at, proxy_enabled, proxy_type, proxy_status, proxy_last_checked, user_agent_enabled, user_agent_type, user_agent_custom, user_agent_last_checked';
       if (includeCredentials) {
         selectFields = '*'; // Include all fields including password, client_id, client_secret
       }
@@ -187,7 +195,7 @@ export async function GET(req: Request) {
     // Otherwise, get all Reddit accounts for the authenticated user (without sensitive credentials)
     const { data, error } = await supabaseAdmin
       .from('reddit_accounts')
-      .select('id, username, is_validated, status, banned_at, credential_error_at, proxy_enabled, proxy_status, proxy_last_checked, proxy_type')
+      .select('id, username, is_validated, status, banned_at, credential_error_at, proxy_enabled, proxy_status, proxy_last_checked, proxy_type, user_agent_enabled, user_agent_type, user_agent_custom, user_agent_last_checked')
       .eq('user_id', userId);
 
     if (error) {
@@ -237,6 +245,10 @@ export async function PUT(req: Request) {
       proxyPort,
       proxyUsername,
       proxyPassword,
+      // User Agent fields
+      userAgentEnabled,
+      userAgentType,
+      userAgentCustom,
     } = await req.json();
 
     const updates: Record<string, any> = {};
@@ -260,6 +272,11 @@ export async function PUT(req: Request) {
       if (proxyUsername !== undefined) updates.proxy_username = proxyUsername;
       if (proxyPassword !== undefined && proxyPassword !== '') updates.proxy_password = proxyPassword;
     }
+
+    // User Agent fields (available to all users)
+    if (userAgentEnabled !== undefined) updates.user_agent_enabled = !!userAgentEnabled;
+    if (userAgentType !== undefined) updates.user_agent_type = userAgentType;
+    if (userAgentCustom !== undefined) updates.user_agent_custom = userAgentCustom;
 
     if (Object.keys(updates).length === 0) {
       return NextResponse.json({ error: 'No fields to update' }, { status: 400 });

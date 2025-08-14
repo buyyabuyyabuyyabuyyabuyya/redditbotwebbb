@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { auth } from '@clerk/nextjs/server';
 import Snoowrap from 'snoowrap';
+import { generateUserAgent } from '../../../../utils/userAgents';
 
 // Initialize Supabase client with admin privileges
 const supabaseAdmin = createClient(
@@ -89,11 +90,14 @@ export async function GET(request: NextRequest) {
           console.log('private-messages: proxy_disabled');
         }
 
-        // Create a Reddit API client with the account credentials
-        const userAgent = `web:reddit-bot-saas:v1.0.0 (by /u/${account.username})`;
-
+        // Create a Reddit API client with custom User Agent
+        const customUserAgent = generateUserAgent({
+          enabled: account.user_agent_enabled || false,
+          type: account.user_agent_type || 'default',
+          custom: account.user_agent_custom || undefined
+        });
         const reddit = new Snoowrap({
-          userAgent,
+          userAgent: customUserAgent,
           clientId: account.client_id,
           clientSecret: account.client_secret,
           username: account.username,
@@ -244,11 +248,14 @@ export async function POST(request: NextRequest) {
 
         // Use the Reddit API to actually send the reply
         try {
-          // Create a Reddit API client with the account credentials
-          const userAgent = `web:reddit-bot-saas:v1.0.0 (by /u/${account.username})`;
-
+          // Create a Reddit API client with custom User Agent
+          const customUserAgent = generateUserAgent({
+            enabled: account.user_agent_enabled || false,
+            type: account.user_agent_type || 'default',
+            custom: account.user_agent_custom || undefined
+          });
           const reddit = new Snoowrap({
-            userAgent,
+            userAgent: customUserAgent,
             clientId: account.client_id,
             clientSecret: account.client_secret,
             username: account.username,

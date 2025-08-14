@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import snoowrap from 'snoowrap';
 import { callGemini } from '../../../../utils/gemini';
 import { scheduleQStashMessage } from '../../../../utils/qstash';
+import { generateUserAgent } from '../../../../utils/userAgents';
 
 export const runtime = 'nodejs'; // we need node modules (snoowrap)
 
@@ -120,13 +121,21 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
         console.log('scan-post: proxy_disabled');
       }
 
+      // Create Reddit API client with custom User Agent
+      const customUserAgent = generateUserAgent({
+        enabled: account.user_agent_enabled || false,
+        type: account.user_agent_type || 'default',
+        custom: account.user_agent_custom || undefined
+      });
       const reddit = new snoowrap({
-        userAgent: 'Reddit Bot SaaS',
+        userAgent: customUserAgent,
         clientId: account.client_id,
         clientSecret: account.client_secret,
         username: account.username,
         password: account.password,
       });
+      // Log User Agent usage for debugging
+      console.log(`scan-post: using User Agent - ${account.user_agent_enabled ? 'Custom' : 'Default'}: ${customUserAgent.substring(0, 50)}...`);
 
       let post: any;
       try {

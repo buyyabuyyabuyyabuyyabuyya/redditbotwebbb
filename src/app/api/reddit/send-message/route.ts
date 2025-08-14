@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs'
 import { createClient } from '@supabase/supabase-js'
 import snoowrap from 'snoowrap'
+import { generateUserAgent } from '../../../../utils/userAgents'
 
 export async function POST(req: Request) {
   try {
@@ -111,7 +112,7 @@ export async function POST(req: Request) {
           ? `${encodeURIComponent(account.proxy_username)}${account.proxy_password ? ':' + encodeURIComponent(account.proxy_password) : ''}@`
           : '';
         const proxyUrl = `${account.proxy_type}://${auth}${account.proxy_host}:${account.proxy_port}`;
-        
+
         // For HTTP/HTTPS proxies, set environment variables
         if (account.proxy_type === 'http' || account.proxy_type === 'https') {
           process.env.HTTP_PROXY = proxyUrl;
@@ -124,7 +125,7 @@ export async function POST(req: Request) {
           process.env.HTTP_PROXY = proxyUrl;
           process.env.HTTPS_PROXY = proxyUrl;
         }
-        
+
         if (process.env.NO_PROXY !== undefined) delete process.env.NO_PROXY;
         console.log('send-message: proxy_enabled', `${account.proxy_type}://${account.proxy_host}:${account.proxy_port}`);
         await supabaseAdmin.from('bot_logs').insert({
@@ -149,13 +150,21 @@ export async function POST(req: Request) {
         console.log('send-message: proxy_disabled');
       }
 
+      // Create Reddit API client with custom User Agent
+      const customUserAgent = generateUserAgent({
+        enabled: account.user_agent_enabled || false,
+        type: account.user_agent_type || 'default',
+        custom: account.user_agent_custom || undefined
+      });
       const reddit = new snoowrap({
-        userAgent: 'Reddit Bot SaaS',
+        userAgent: customUserAgent,
         clientId: account.client_id,
         clientSecret: account.client_secret,
         username: account.username,
         password: account.password,
       });
+      // Log User Agent usage for debugging
+      console.log(`send-message: using User Agent - ${account.user_agent_enabled ? 'Custom' : 'Default'}: ${customUserAgent.substring(0, 50)}...`);
 
       const OPT_OUT_FOOTER = '\n\n-----------------\nReply STOP to never hear from me again.';
       const finalText = message + OPT_OUT_FOOTER;

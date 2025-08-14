@@ -6,6 +6,7 @@ import { publishQStashMessage, scheduleQStashMessage } from '../../../../utils/q
 import snoowrap from 'snoowrap';
 import { ensureInboxSchedule } from '../../../../utils/inboxScheduler';
 import { checkAndArchiveLogs } from '../auto-archive-helper';
+import { generateUserAgent } from '../../../../utils/userAgents';
 
 // Inter-message delay (ms)
 const DELAY_INTERVAL_MS = 200_000; // 200 s ≈ 3.3 min – safe for Reddit
@@ -270,14 +271,21 @@ export async function POST(req: Request) {
         console.log('scan-start: proxy_disabled');
       }
 
-      // Minimal snoowrap instance
+      // Create Reddit API client with custom User Agent
+      const customUserAgent = generateUserAgent({
+        enabled: account.user_agent_enabled || false,
+        type: account.user_agent_type || 'default',
+        custom: account.user_agent_custom || undefined
+      });
       const reddit = new snoowrap({
-        userAgent: 'Reddit Bot SaaS',
+        userAgent: customUserAgent,
         clientId: account.client_id,
         clientSecret: account.client_secret,
         username: account.username,
         password: account.password,
       });
+      // Log User Agent usage for debugging
+      console.log(`scan-start: using User Agent - ${account.user_agent_enabled ? 'Custom' : 'Default'}: ${customUserAgent.substring(0, 50)}...`);
 
       // ----- Reddit auth + fetch with detailed logs -----
       await supabaseAdmin.from('bot_logs').insert({
