@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { RippleButton, Button3D } from '../components/ui/Button';
 import AuthButtons from '../components/AuthButtons';
+import { Analytics } from "@vercel/analytics/next"
 
 export default async function Home() {
   const { userId } = await auth();
@@ -16,6 +17,7 @@ export default async function Home() {
 
   return (
     <div className="bg-gray-900 text-white">
+      <Analytics />
       {/* Site navigation */}
       <header className="fixed inset-x-0 top-0 z-50 border-b border-gray-800 bg-gray-900/70 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
@@ -32,6 +34,7 @@ export default async function Home() {
           </div>
         </div>
       </header>
+      
       <main className="pt-20">
       {/* Hero section */}
       <div className="relative isolate px-6 lg:px-8">
@@ -230,7 +233,7 @@ export default async function Home() {
                   <ul className="text-sm text-gray-300 space-y-2">
                     <li className="flex items-start gap-2">
                       <span className="text-amber-400 mt-1">•</span>
-                      <span><strong>Use established accounts:</strong> 7+ days old, positive karma, verified email</span>
+                      <span><strong>Use established accounts:</strong> couple months old, positive karma, verified email</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-amber-400 mt-1">•</span>

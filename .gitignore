@@ -15,6 +15,14 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 *.log
+*.logs
+
+.log
+.logs
+logs/
+log/
+
+log.txt
 
 # Runtime data
 pids
@@ -49,3 +57,6 @@ jest-html-reporters-*.html
 # Output folders
 dist/
 build/
+
+# Reddit Chrome Extension (keep private)
+reddit-chrome-extension/

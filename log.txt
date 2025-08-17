@@ -1,417 +1,190 @@
-Jun 16 20:33:42.75
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:33:32.52
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:33:22.28
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:33:12.23
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:33:02.08
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:32:52.06
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:32:41.81
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:32:40.67
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-13
-Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": "web app", "projectName": "BigIdeas...
-Jun 16 20:32:39.36
-POST200
-redditbotwebbb.vercel.app
-/api/reddit/scan-post
-Jun 16 20:32:31.61
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:32:21.35
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:32:11.11
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:32:00.90
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:31:50.02
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:31:39.75
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:31:29.49
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:31:19.31
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:31:09.30
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:31:00.08
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-13
-Cleaned JSON text: { "isRelevant": true, "confidence": 0.9, "projectType": "SaaS", "projectName": null, "keyw...
-Jun 16 20:30:59.06
-POST200
-redditbotwebbb.vercel.app
-/api/reddit/scan-post
-Jun 16 20:30:59.03
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:30:48.71
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:30:38.51
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:30:28.48
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:30:17.19
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:30:10.27
-POST401
-redditbotwebbb.vercel.app
-/api/reddit/scan-start
-Jun 16 20:30:07.09
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:29:56.85
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:29:46.80
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:29:36.39
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:29:26.21
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:29:20.57
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-13
-Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": "web app", "projectName": "Peel", ...
-Jun 16 20:29:19.61
-POST200
-redditbotwebbb.vercel.app
-/api/reddit/scan-post
-Jun 16 20:29:16.01
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:29:05.77
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:28:55.64
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:28:44.68
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:28:34.43
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:28:24.23
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:28:13.92
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:28:03.50
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:27:53.42
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:27:45.82
-POST401
-redditbotwebbb.vercel.app
-/api/reddit/scan-start
-Jun 16 20:27:42.58
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-10
-- start_bot: 1 logs
-Jun 16 20:27:41.34
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-8
-- start_bot: 1 logs
-Jun 16 20:27:41.07
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-8
-- start_bot: 1 logs
-Jun 16 20:27:41.07
-GET200
-redditbotwebbb.vercel.app
-/api/user/stats
-Jun 16 20:27:40.31
-POST200
-redditbotwebbb.vercel.app
-/api/gemini/analyze
-13
-Cleaned JSON text: { "isRelevant": true, "confidence": 0.95, "projectType": "developer tools", "projectName": n...
-Jun 16 20:27:40.11
-POST200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-Jun 16 20:27:39.39
-POST200
-redditbotwebbb.vercel.app
-/api/reddit/scan-post
-Jun 16 20:27:37.31
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-8
-- start_bot: 1 logs
-Jun 16 20:27:34.59
-POST200
-redditbotwebbb.vercel.app
-/api/reddit/scan-start
-Jun 16 20:27:34.27
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/scan-config
-6
-{ "id": "0273a893-bd79-4a44-aed8-98f26df8bf6d", "user_id": "user_2xFMxQyD7YOoaVfVCTg2Du0DzJY", "subreddit": "Saas", "keywords": [ "project", "app", "application", "website", "webapp", "web app", "mobile app", "portfolio", "showcase", "demo", "launch", "deploy", "deployment", "released", "just launched", "just finished", "just completed", "just built", "side project", "personal project" ], "message_template_id": "ca64fdd4-c0b1-4f84-9b64-a6c171727725", "reddit_account_id": "af25ddda-f19a-4e44-9186-ec0addaf0811", "is_active": true, "scan_interval": 15, "last_scan_time": "2025-06-10T00:13:14.98+00:00", "created_at": "2025-05-24T22:17:16.701327+00:00", "updated_at": "2025-06-03T22:44:06.448+00:00", "use_ai_check": true }
-Jun 16 20:27:32.93
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/scan-config
-6
-{ "id": "0273a893-bd79-4a44-aed8-98f26df8bf6d", "user_id": "user_2xFMxQyD7YOoaVfVCTg2Du0DzJY", "subreddit": "Saas", "keywords": [ "project", "app", "application", "website", "webapp", "web app", "mobile app", "portfolio", "showcase", "demo", "launch", "deploy", "deployment", "released", "just launched", "just finished", "just completed", "just built", "side project", "personal project" ], "message_template_id": "ca64fdd4-c0b1-4f84-9b64-a6c171727725", "reddit_account_id": "af25ddda-f19a-4e44-9186-ec0addaf0811", "is_active": true, "scan_interval": 15, "last_scan_time": "2025-06-10T00:13:14.98+00:00", "created_at": "2025-05-24T22:17:16.701327+00:00", "updated_at": "2025-06-03T22:44:06.448+00:00", "use_ai_check": true }
-Jun 16 20:27:32.15
-POST401
-redditbotwebbb.vercel.app
-/api/reddit/scan-start
-Jun 16 20:27:27.87
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/scan-config
-GET scan-config request with userId: user_2xFMxQyD7YOoaVfVCTg2Du0DzJY, configId: null
-Jun 16 20:27:27.30
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/scan-config
-GET scan-config request with userId: user_2xFMxQyD7YOoaVfVCTg2Du0DzJY, configId: null
-Jun 16 20:27:27.30
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-8
-- start_bot: 1 logs
-Jun 16 20:27:27.12
-POST200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-Jun 16 20:27:26.82
-PATCH200
-redditbotwebbb.vercel.app
-/api/reddit/scan-config
-Jun 16 20:27:23.74
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-7
-Grouped logs by action:
-Jun 16 20:27:23.32
-GET200
-redditbotwebbb.vercel.app
-/api/user/stats
-Jun 16 20:27:23.32
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/scan-config
-GET scan-config request with userId: user_2xFMxQyD7YOoaVfVCTg2Du0DzJY, configId: null
-Jun 16 20:27:23.32
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/bot-logs
-7
-Grouped logs by action:
-Jun 16 20:27:23.32
-GET200
-redditbotwebbb.vercel.app
-/api/user/stats
-Jun 16 20:27:23.30
-GET200
-redditbotwebbb.vercel.app
-/api/user/stats
-Jun 16 20:27:15.67
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/scan-config
-GET scan-config request with userId: user_2xFMxQyD7YOoaVfVCTg2Du0DzJY, configId: null
-Jun 16 20:27:15.43
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/templates
-Jun 16 20:27:15.18
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/account
-Jun 16 20:27:15.13
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/templates
-Jun 16 20:27:15.13
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/account
-Jun 16 20:27:15.13
-GET200
-redditbotwebbb.vercel.app
-/api/reddit/scan-config
-GET scan-config request with userId: user_2xFMxQyD7YOoaVfVCTg2Du0DzJY, configId: null
-Jun 16 20:27:15.13
-GET200
-redditbotwebbb.vercel.app
-/api/user/stats
-Jun 16 20:27:15.06
-GET200
-redditbotwebbb.vercel.app
-/settings
-Jun 16 20:27:14.91
-GET200
-redditbotwebbb.vercel.app
-/file-logs
-Jun 16 20:27:14.91
-GET200
-redditbotwebbb.vercel.app
-/tutorial
-Jun 16 20:27:14.90
-GET200
-redditbotwebbb.vercel.app
-/
-Jun 16 20:27:14.90
-GET200
-redditbotwebbb.vercel.app
-/pricing
-Jun 16 20:27:14.90
-GET200
-redditbotwebbb.vercel.app
-/messages
+ok i want you to see the emails between me and a clinet that wants to work with me and just tell me what to say next and tell him i added proxy support and User Agent changing support:
+
+
+Buyya sam <buyyav20@gmail.com>
+
+Fri, Aug 8, 11:23 PM (6 days ago)
+
+
+
+
+Hi there,If Reddit is part of your growth mix, you’ll like this. I’ve built RedditOutreach — a simple way to scale targeted Reddit messaging without the manual grind. In a few minutes you can connect an account, pick subreddits and keywords, and start sending personalized DMs automatically.What you get:
+
+Being able to connect multiple bot accounts to parallelize safely
+
+Custom message templates with dynamic variables like {username} and {subreddit}
+
+AI-powered content analysis to match keywords and sentiment for higher relevance
+
+Instant subreddit scan to message fresh posts immediately
+
+Bot-specific live logs and detailed analytics to track performance
+
+Pricing is simple with a free tier to try:
+
+Free: 1 account, 15 messages (one-time), 1 template, 1 scan config
+
+Pro: 3 accounts, 200 messages/month, advanced analytics (limited-time $7.99/mo)
+
+Advanced: Unlimited accounts, messages, templates, and scan configs (limited-time $13.99/mo)
+
+See how it works and get started free here: https://RedditOutreach.com
+
+
+
+Hey Buyya, Thanks for reaching out! We might be interested in working with you. Internally in Gentura we have been also experimenting with Reddit outreach, I'd say quite successfully, most of our beta clients came from Reddit. For outreach we used Reddit's new chat feature, I made a script locally that spinned up the headless browser and sent out custom messages to those who left their business domains in r/Saas. As I understand you are using Reddit's API to send out the PM's right? Would it be of interest to you to work on creating bots that send out messages through chats? I would be willing to pay base 500-1000 USD for such custom plan + bonuses.  Looking forward to hearing what you think.
+
+Cheers, Vlad
+
+
+
+
+
+
+
+Buyya sam <buyyav20@gmail.com>
+
+Sat, Aug 9, 10:37 AM (5 days ago)
+
+
+to Lennar
+
+
+Hi Lennar, Quick notes: - Reddit removed private messages; we use Chats only. - Accounts: I can use your account, or supply aged accounts (1–4 years) and give you access. I still recommend using a single account so prospects see a consistent identity. - Risk: any account can be flagged. Using older/high‑karma accounts and conservative daily limits keeps risk low. To scope and price within your $500–$1,000 base (+ bonus), could you confirm: - Messages per day and pilot length (e.g., 2–4 weeks) - Target subreddits and keywords; copy: yours or should I draft 2 variants?   • How keywords work: we scan new posts in your chosen subreddits and open a chat when the title/body matches. An AI filter does a final relevance check before sending. - Where should replies go (email/Slack/CRM)?   • You can also manage all chats in the RedditOutreach dashboard; I can provision one account for you with full access. - What counts as a qualified reply/meeting/signup for the bonus? Best, Buyya 
+
+
+
+
+
+
+Lennar Lehestik
+
+Mon, Aug 11, 2:01 AM (3 days ago)
+
+
+to me
+
+
+Hey Buyya,  Thanks for the quick reply!  I would like to use around 10 accounts. With my personal account I was able to send around 100 messages per day without hitting the limit. I guess less "real" accounts would hit the limit faster.  Ideally I would like to send around 1000 messages per day. Many different subreddits. Strategy I used previously was to target users who left a comment with a link to their businesses' landing page. Then my bot went to their landing page, scraped the page, and made a custom message complimenting their business, that was the start of the chat. I'm open to different strategies.  Not sure yet what's the best way to manage the replies. Planning to find a person who would be responsible for customer support.  Signup would count as a bonus. We'd be willing to pay 20%-30% if somebody subs through your system. Our subs cost 200 USD.  What if we then start with just one account, I will test your system/dashboard, and then we'll see if we can scale it? If you think that's a good idea please provide me with one aged account, feel free to charge whatever you think is fair.  Cheers, Vlad
+
+
+
+
+
+
+Hi Lennar,
+
+Thanks for the thoughtful note — starting with one account sounds perfect, then we’ll scale.
+
+How we’ll run
+
+We only target new subreddit posts (not comments). We scan posts and use AI to decide if they’re a fit, then open a chat using your template.
+
+Avoid links in the first chat — Reddit often flags/obscures them. Let’s prompt a reply first, then share links later.
+
+Account + limits: 9‑year account (~4k karma), throttled around 17.8 msgs/hour. Your RedditOutreach Plan is on the Unlimited plan, so you won’t hit app limits.
+
+Login into Redditoutreach.com: Email- buyyav19@gmail.com /  password - buyya123456789
+
+Replies: we’ll keep all reply handling inside RedditOutreach/messages .
+
+Scaling later
+
+To run 10 accounts concurrently, we’ll attach a dedicated proxy per account. I’m adding proxy support Soon; we can start with this single account immediately and expand as soon as it’s live.
+
+You can keep any account we dedicate to you. For comparable aged accounts, a reasonable ballpark is $60–$150 each depending on age/karma/history; I’ll confirm specifics before we add more.
+
+Could you send me a few things so I can personalize and launch?
+
+3–4 sentences on Gentura: what you do, ideal customer, website link, and your CTA (book a call, signup, demo), when I get this info I will make the Template.
+
+Subreddits you want to target (you choose).
+
+5–10 positive keywords and any to avoid, or if you want to send a message to every user that is possible(we can just use normal words like: the, a, App).
+
+And what should the user have for us to send a message to them? talking about their APP, Asking for a solution with their problem?. This will be for the AI relevance check in RedditOutreach
+
+A starter opener you like (or I can draft two options for approval).
+
+Pilot volume and length (e.g., 100/day for 7–14 days).
+
+Once I have those, I’ll load everything into your dashboard and kick off the pilot.
+
+Best, Buyya
+
+
+
+Hey Buyya, great stuff! Please find the info below: 
+
+1. 3–4 sentences on Gentura Gentura is an autonomous AI marketing platform that helps businesses scale their online presence without hiring a team. Our AI agents create and distribute SEO-optimized, lead-generating content across multiple channels—automatically. Ideal customers are SaaS founders, B2B businesses, and agencies looking to grow traffic and leads without manual effort. Learn more at https://www.gentura.ai — book a free strategy call today to see Gentura in action.
+
+2. Subreddits to target
+
+r/SaaS
+
+r/SaaSMarketing
+
+r/seo_saas
+
+r/GrowthHacking
+
+r/content_marketing
+
+r/indiehackers
+
+r/B2BSaaS
+
+3. Positive keywords (focus terms for relevance filtering)
+
+AI marketing
+
+lead generation
+
+SEO content
+
+automation
+
+SaaS growth
+
+B2B marketing
+
+content marketing
+
+growth hacking
+
+marketing automation
+
+autonomous agents
+
+Negative keywords (to avoid irrelevant outreach)
+
+crypto scams
+
+adult content
+
+gambling
+
+political debates
+
+4. AI relevance trigger We should message users who:
+
+Mention struggling with content creation or not enough traffic/leads
+
+Talk about marketing for their SaaS or B2B product
+
+Ask for automated marketing tools or SEO help
+
+Share growth struggles or how to scale without hiring
+
+5. Starter opener suggestion "Hey [Name], saw your post about [their topic/problem]. I’m working on autonomous AI marketing agents that automate variety of marketing services, basically we're replacing the need for a marketing team. Would you like to know more about how our AI agents could help your business?"
+
+6. Pilot volume and length 100/day for 7 days to start.
+
+Cheers,Vlad
+
+
+
+
+
+also tell him we can do the Pilot Volume what are the next steps and for payment idk really
+

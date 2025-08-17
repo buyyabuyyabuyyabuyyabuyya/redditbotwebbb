@@ -167,7 +167,7 @@ export default async function TutorialPage() {
                         <ul className="text-sm text-gray-300 space-y-2">
                           <li className="flex items-start gap-2">
                             <span className="text-amber-400 mt-1">•</span>
-                            <span><strong>Use established accounts:</strong> 7+ days old, positive karma, verified email</span>
+                            <span><strong>Use established accounts:</strong> couple months old, positive karma, verified email</span>
                           </li>
                           <li className="flex items-start gap-2">
                             <span className="text-amber-400 mt-1">•</span>
