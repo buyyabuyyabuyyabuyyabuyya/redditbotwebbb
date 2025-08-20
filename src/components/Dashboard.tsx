@@ -12,6 +12,7 @@ import ScanConfig from './ScanConfig';
 import LogViewer from './LogViewer';
 import UserStats from './UserStats';
 import AutoScanPoller from './AutoScanPoller';
+import { BenoOneWorkflow } from './beno-one';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
 import { Dialog } from '@headlessui/react';
 import { getUserAgentBadgeText } from '../utils/userAgents';
@@ -391,6 +392,9 @@ export default function Dashboard() {
             </Tab>
             <Tab className="w-full rounded-lg py-2.5 text-sm font-medium leading-5 text-gray-300 ring-gray-700 ring-opacity-60 ring-offset-2 ring-offset-blue-500 focus:outline-none focus:ring-2 ui-selected:bg-blue-600 ui-selected:shadow-lg ui-selected:text-white ui-not-selected:text-gray-400 ui-not-selected:hover:bg-gray-700 ui-not-selected:hover:text-white transition-all">
               Subreddits
+            </Tab>
+            <Tab className="w-full rounded-lg py-2.5 text-sm font-medium leading-5 text-gray-300 ring-gray-700 ring-opacity-60 ring-offset-2 ring-offset-blue-500 focus:outline-none focus:ring-2 ui-selected:bg-blue-600 ui-selected:shadow-lg ui-selected:text-white ui-not-selected:text-gray-400 ui-not-selected:hover:bg-gray-700 ui-not-selected:hover:text-white transition-all">
+              Discussion Engagement
             </Tab>
           </Tab.List>
 
@@ -817,6 +821,18 @@ export default function Dashboard() {
                   setRefreshTrigger((prev) => prev + 1);
                 }}
               />
+            </Tab.Panel>
+
+            <Tab.Panel>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold">Discussion Engagement</h2>
+                  <div className="text-sm text-gray-400">
+                    AI-powered Reddit discussion monitoring and engagement
+                  </div>
+                </div>
+                <BenoOneWorkflow />
+              </div>
             </Tab.Panel>
           </Tab.Panels>
         </Tab.Group>
