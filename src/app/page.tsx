@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { RippleButton, Button3D } from '../components/ui/Button';
 import AuthButtons from '../components/AuthButtons';
+import WebsiteAnalysisSection from '../components/WebsiteAnalysisSection';
 import { Analytics } from "@vercel/analytics/next"
 
 export default async function Home() {
@@ -62,137 +63,8 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* URL Input & Outreach Method Selection */}
-      <div className="bg-gray-800 py-24 sm:py-32">
-        <div className="mx-auto max-w-4xl px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl mb-6">
-              Choose Your Outreach Strategy
-            </h2>
-            <p className="text-lg leading-8 text-gray-300 max-w-2xl mx-auto">
-              Enter your website URL and select how you want to reach potential customers on Reddit
-            </p>
-          </div>
-
-          <div className="bg-gray-700/40 rounded-2xl p-8 border border-gray-600/30 backdrop-blur-lg">
-            {/* URL Input */}
-            <div className="mb-8">
-              <label htmlFor="website-url" className="block text-sm font-medium text-purple-300 mb-3">
-                Your Website URL
-              </label>
-              <div className="flex gap-3">
-                <input
-                  type="url"
-                  id="website-url"
-                  placeholder="https://yourwebsite.com"
-                  className="flex-1 px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                />
-                <button className="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-medium rounded-lg transition-all hover:shadow-lg">
-                  Analyze
-                </button>
-              </div>
-            </div>
-
-            {/* Outreach Method Selection */}
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Discussion Engagement Option */}
-              <div className="bg-gray-800/60 rounded-xl p-6 border border-gray-600/30 hover:border-purple-500/50 transition-all cursor-pointer group">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-semibold text-white">Discussion Engagement</h3>
-                </div>
-                <p className="text-gray-300 mb-4">
-                  AI finds relevant Reddit discussions and posts helpful replies using your managed accounts. 
-                  Perfect for building brand awareness and driving organic traffic.
-                </p>
-                <ul className="text-sm text-gray-400 space-y-2 mb-6">
-                  <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
-                    </svg>
-                    AI-powered relevance scoring
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
-                    </svg>
-                    Public discussion replies
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
-                    </svg>
-                    No personal account risk
-                  </li>
-                </ul>
-                <button className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-medium rounded-lg transition-all hover:shadow-lg">
-                  Start Discussion Engagement
-                </button>
-              </div>
-
-              {/* Private Messaging Option */}
-              <div className="bg-gray-800/60 rounded-xl p-6 border border-gray-600/30 hover:border-purple-500/50 transition-all cursor-pointer group">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-semibold text-white">Private Messaging</h3>
-                </div>
-                <p className="text-gray-300 mb-4">
-                  Send personalized private messages to Reddit users based on their posts and activity. 
-                  Ideal for direct outreach and lead generation campaigns.
-                </p>
-                <ul className="text-sm text-gray-400 space-y-2 mb-6">
-                  <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
-                    </svg>
-                    Targeted user outreach
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
-                    </svg>
-                    Custom message templates
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
-                    </svg>
-                    Automated scheduling
-                  </li>
-                </ul>
-                <button className="w-full py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 text-white font-medium rounded-lg transition-all hover:shadow-lg">
-                  Start Private Messaging
-                </button>
-              </div>
-            </div>
-
-            {/* Info Box */}
-            <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <svg className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                </svg>
-                <div>
-                  <h4 className="text-blue-400 font-semibold mb-2">How It Works</h4>
-                  <p className="text-sm text-gray-300">
-                    Enter your website URL above and our AI will analyze it to understand your business. 
-                    Then choose your preferred outreach method. Both options use your managed Reddit accounts 
-                    to ensure safety and compliance with Reddit's terms of service.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Website Analysis Section */}
+      <WebsiteAnalysisSection />
 
       {/* Features section */}
       <div id="features" className="bg-gray-800 py-24 sm:py-32 scroll-mt-28">

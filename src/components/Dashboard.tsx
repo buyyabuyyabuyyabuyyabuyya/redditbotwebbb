@@ -78,6 +78,24 @@ export default function Dashboard() {
   const [userAgentTestingId, setUserAgentTestingId] = useState<string | null>(null);
   const [userAgentTestMsg, setUserAgentTestMsg] = useState<Record<string, string>>({});
 
+  // State for Discussion Engagement workflow
+  const [selectedTab, setSelectedTab] = useState(0);
+  const [websiteUrl, setWebsiteUrl] = useState<string | null>(null);
+
+  // Check for URL parameters and auto-switch to Discussion Engagement tab
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    const urlParam = urlParams.get('url');
+    
+    if (tabParam === 'discussion-engagement') {
+      setSelectedTab(4); // Switch to Discussion Engagement tab (index 4)
+      if (urlParam) {
+        setWebsiteUrl(decodeURIComponent(urlParam));
+      }
+    }
+  }, []);
+
   // Function to handle stopping a bot from the logs view
   const handleStopBot = async (subreddit: string, configId?: string) => {
     try {
@@ -379,7 +397,7 @@ export default function Dashboard() {
           <UserStats userId={user?.id || ''} refreshTrigger={refreshTrigger} />
         </div>
 
-        <Tab.Group>
+        <Tab.Group selectedIndex={selectedTab} onChange={setSelectedTab}>
           <Tab.List className="flex space-x-1 rounded-xl bg-gray-800 p-1 mb-6">
             <Tab className="w-full rounded-lg py-2.5 text-sm font-medium leading-5 text-gray-300 ring-gray-700 ring-opacity-60 ring-offset-2 ring-offset-blue-500 focus:outline-none focus:ring-2 ui-selected:bg-blue-600 ui-selected:shadow-lg ui-selected:text-white ui-not-selected:text-gray-400 ui-not-selected:hover:bg-gray-700 ui-not-selected:hover:text-white transition-all">
               Accounts
@@ -831,7 +849,22 @@ export default function Dashboard() {
                     AI-powered Reddit discussion monitoring and engagement
                   </div>
                 </div>
-                <BenoOneWorkflow />
+                {websiteUrl && (
+                  <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-4">
+                    <div className="flex items-center gap-3">
+                      <svg className="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      <div>
+                        <h4 className="text-blue-400 font-semibold mb-1">Website Analysis Started</h4>
+                        <p className="text-sm text-gray-300">
+                          Analyzing: <span className="text-blue-300 font-mono">{websiteUrl}</span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <BenoOneWorkflow initialUrl={websiteUrl} />
               </div>
             </Tab.Panel>
           </Tab.Panels>

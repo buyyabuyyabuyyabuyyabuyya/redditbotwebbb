@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ScrapedWebsiteData } from '../../types/beno-one';
 import WebsiteInputForm from './WebsiteInputForm';
 import DescriptionReview from './DescriptionReview';
@@ -15,14 +15,30 @@ interface WorkflowData {
   customerSegments: string[];
 }
 
-export default function BenoOneWorkflow() {
+interface BenoOneWorkflowProps {
+  initialUrl?: string | null;
+}
+
+export default function BenoOneWorkflow({ initialUrl }: BenoOneWorkflowProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [workflowData, setWorkflowData] = useState<WorkflowData>({
-    url: '',
+    url: initialUrl || '',
     scrapedData: {} as ScrapedWebsiteData,
     description: '',
     customerSegments: []
   });
+
+  // Auto-start workflow if initialUrl is provided
+  useEffect(() => {
+    if (initialUrl && initialUrl !== workflowData.url) {
+      setWorkflowData(prev => ({ ...prev, url: initialUrl }));
+      // If we have a URL, we can proceed to step 2 (description review)
+      // This will trigger the website scraping automatically
+      if (initialUrl.trim()) {
+        handleWebsiteSubmitted(initialUrl, {} as ScrapedWebsiteData);
+      }
+    }
+  }, [initialUrl]);
 
   const handleWebsiteSubmitted = (url: string, scrapedData: ScrapedWebsiteData) => {
     setWorkflowData(prev => ({
