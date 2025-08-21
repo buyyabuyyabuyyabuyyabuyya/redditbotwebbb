@@ -15,30 +15,45 @@ interface WorkflowData {
   customerSegments: string[];
 }
 
-interface BenoOneWorkflowProps {
-  initialUrl?: string | null;
-}
-
-export default function BenoOneWorkflow({ initialUrl }: BenoOneWorkflowProps) {
+export default function BenoOneWorkflow() {
   const [currentStep, setCurrentStep] = useState(1);
   const [workflowData, setWorkflowData] = useState<WorkflowData>({
-    url: initialUrl || '',
+    url: '',
     scrapedData: {} as ScrapedWebsiteData,
     description: '',
     customerSegments: []
   });
+  const [isVisible, setIsVisible] = useState(false);
 
-  // Auto-start workflow if initialUrl is provided
+  // Listen for start workflow event
   useEffect(() => {
-    if (initialUrl && initialUrl !== workflowData.url) {
-      setWorkflowData(prev => ({ ...prev, url: initialUrl }));
-      // If we have a URL, we can proceed to step 2 (description review)
-      // This will trigger the website scraping automatically
-      if (initialUrl.trim()) {
-        handleWebsiteSubmitted(initialUrl, {} as ScrapedWebsiteData);
+    const handleStartWorkflow = (event: CustomEvent) => {
+      const { url } = event.detail;
+      setWorkflowData(prev => ({ ...prev, url }));
+      setIsVisible(true);
+      
+      // Hide the URL input section
+      const urlSection = document.querySelector('[id^="website-url"]')?.closest('.bg-gray-800\\/70');
+      if (urlSection) {
+        urlSection.classList.add('hidden');
       }
-    }
-  }, [initialUrl]);
+      
+      // Show the workflow container
+      const workflowContainer = document.getElementById('beno-workflow-container');
+      if (workflowContainer) {
+        workflowContainer.classList.remove('hidden');
+      }
+      
+      // Start the workflow
+      handleWebsiteSubmitted(url, {} as ScrapedWebsiteData);
+    };
+
+    window.addEventListener('startBenoWorkflow', handleStartWorkflow as EventListener);
+    
+    return () => {
+      window.removeEventListener('startBenoWorkflow', handleStartWorkflow as EventListener);
+    };
+  }, []);
 
   const handleWebsiteSubmitted = (url: string, scrapedData: ScrapedWebsiteData) => {
     setWorkflowData(prev => ({
@@ -82,6 +97,20 @@ export default function BenoOneWorkflow({ initialUrl }: BenoOneWorkflowProps) {
       description: '',
       customerSegments: []
     });
+    
+    // Show the URL input section again
+    const urlSection = document.querySelector('[id^="website-url"]')?.closest('.bg-gray-800\\/70');
+    if (urlSection) {
+      urlSection.classList.remove('hidden');
+    }
+    
+    // Hide the workflow container
+    const workflowContainer = document.getElementById('beno-workflow-container');
+    if (workflowContainer) {
+      workflowContainer.classList.add('hidden');
+    }
+    
+    setIsVisible(false);
   };
 
   const goBack = () => {

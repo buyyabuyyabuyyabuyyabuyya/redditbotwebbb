@@ -70,15 +70,15 @@ export default function WebsiteInputForm({ onWebsiteSubmitted, onNext }: Website
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-6">
-      <div className="max-w-md w-full">
+    <div className="w-full">
+      <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Let Beno AI find customers for your project
+          <h1 className="text-2xl font-bold text-white mb-2">
+            Let AI find customers for your project
           </h1>
-          <p className="text-gray-600">
-            Start by entering your website URL below
+          <p className="text-gray-300">
+            We'll analyze your website and find the best customer segments
           </p>
         </div>
 
@@ -86,7 +86,7 @@ export default function WebsiteInputForm({ onWebsiteSubmitted, onNext }: Website
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* URL Input */}
           <div>
-            <label htmlFor="url" className="sr-only">
+            <label htmlFor="url" className="block text-sm font-medium text-purple-300 mb-2">
               Website URL
             </label>
             <input
@@ -94,14 +94,14 @@ export default function WebsiteInputForm({ onWebsiteSubmitted, onNext }: Website
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder="Enter your project url"
-              className="w-full px-4 py-3 border-2 border-orange-400 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
+              placeholder="https://yourwebsite.com"
+              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
               disabled={isLoading}
             />
           </div>
 
           {/* Helper Text */}
-          <p className="text-sm text-gray-500 text-center">
+          <p className="text-sm text-gray-400 text-center">
             Better to add a website here. But it can be an App Store page or a Blog
           </p>
 
@@ -112,12 +112,12 @@ export default function WebsiteInputForm({ onWebsiteSubmitted, onNext }: Website
               type="checkbox"
               checked={acceptedTerms}
               onChange={(e) => setAcceptedTerms(e.target.checked)}
-              className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
+              className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-600 rounded bg-gray-700"
               disabled={isLoading}
             />
-            <label htmlFor="terms" className="ml-2 text-sm text-gray-700">
+            <label htmlFor="terms" className="ml-2 text-sm text-gray-300">
               I accept{' '}
-              <a href="/terms" className="font-semibold underline text-orange-600 hover:text-orange-700">
+              <a href="/terms" className="font-semibold underline text-purple-400 hover:text-purple-300">
                 terms and conditions
               </a>
             </label>
@@ -125,7 +125,7 @@ export default function WebsiteInputForm({ onWebsiteSubmitted, onNext }: Website
 
           {/* Error Message */}
           {error && (
-            <div className="text-red-600 text-sm text-center bg-red-50 p-3 rounded-lg">
+            <div className="text-red-400 text-sm text-center bg-red-900/20 border border-red-500/30 p-3 rounded-lg">
               {error}
             </div>
           )}
@@ -134,7 +134,7 @@ export default function WebsiteInputForm({ onWebsiteSubmitted, onNext }: Website
           <Button3D
             type="submit"
             disabled={isLoading || !acceptedTerms}
-            className="w-full py-3 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            className="w-full py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
           >
             {isLoading ? (
               <div className="flex items-center justify-center">
@@ -149,7 +149,7 @@ export default function WebsiteInputForm({ onWebsiteSubmitted, onNext }: Website
 
         {/* User Info */}
         {user && (
-          <div className="mt-8 text-center text-sm text-gray-500">
+          <div className="mt-8 text-center text-sm text-gray-400">
             <p>Logged in as: {user.emailAddresses[0]?.emailAddress}</p>
           </div>
         )}
