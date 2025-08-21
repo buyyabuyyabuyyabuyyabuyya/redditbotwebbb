@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button3D } from '../ui/Button';
 import { ScrapedWebsiteData } from '../../types/beno-one';
 
@@ -14,6 +14,18 @@ export default function DescriptionReview({ scrapedData, onDescriptionConfirmed,
   const [description, setDescription] = useState(scrapedData.title || '');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Automatically generate description when component mounts with scraped data
+  useEffect(() => {
+    if (scrapedData && Object.keys(scrapedData).length > 0 && scrapedData.title) {
+      // Auto-generate description after a short delay
+      const timer = setTimeout(() => {
+        generateDescription();
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [scrapedData]);
 
   const generateDescription = async () => {
     setIsGenerating(true);
@@ -45,6 +57,10 @@ export default function DescriptionReview({ scrapedData, onDescriptionConfirmed,
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate description');
+      // Fallback to title if AI generation fails
+      if (scrapedData.title) {
+        setDescription(scrapedData.title);
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -155,21 +171,81 @@ export default function DescriptionReview({ scrapedData, onDescriptionConfirmed,
             View scraped website data
           </summary>
           <div className="mt-3 p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
-            <div className="space-y-2">
+            <div className="space-y-3">
+              {scrapedData.title && (
+                <div>
+                  <strong>Page Title:</strong> {scrapedData.title}
+                </div>
+              )}
               {scrapedData.meta_description && (
                 <div>
                   <strong>Meta Description:</strong> {scrapedData.meta_description}
                 </div>
               )}
+              {scrapedData.meta_keywords && scrapedData.meta_keywords.length > 0 && (
+                <div>
+                  <strong>Meta Keywords:</strong> {scrapedData.meta_keywords.join(', ')}
+                </div>
+              )}
               {scrapedData.headings && scrapedData.headings.length > 0 && (
                 <div>
-                  <strong>Headings:</strong> {scrapedData.headings.slice(0, 3).join(', ')}
-                  {scrapedData.headings.length > 3 && '...'}
+                  <strong>Main Headings:</strong> 
+                  <div className="mt-1 ml-4 space-y-1">
+                    {scrapedData.headings.slice(0, 5).map((heading, index) => (
+                      <div key={index} className="text-gray-500">• {heading}</div>
+                    ))}
+                    {scrapedData.headings.length > 5 && (
+                      <div className="text-gray-400">... and {scrapedData.headings.length - 5} more</div>
+                    )}
+                  </div>
+                </div>
+              )}
+              {scrapedData.main_content && (
+                <div>
+                  <strong>Content Preview:</strong> 
+                  <div className="mt-1 ml-4 text-gray-500">
+                    {scrapedData.main_content.substring(0, 200)}...
+                  </div>
                 </div>
               )}
               {scrapedData.technologies && scrapedData.technologies.length > 0 && (
                 <div>
-                  <strong>Technologies:</strong> {scrapedData.technologies.join(', ')}
+                  <strong>Technologies Detected:</strong> {scrapedData.technologies.join(', ')}
+                </div>
+              )}
+              {scrapedData.social_media && (
+                <div>
+                  <strong>Social Media:</strong>
+                  <div className="mt-1 ml-4 space-y-1">
+                    {Object.entries(scrapedData.social_media).map(([platform, link]) => 
+                      link ? <div key={platform} className="text-gray-500">• {platform}: {link}</div> : null
+                    )}
+                  </div>
+                </div>
+              )}
+              {scrapedData.links && scrapedData.links.length > 0 && (
+                <div>
+                  <strong>External Links:</strong> {scrapedData.links.length} links found
+                </div>
+              )}
+              {scrapedData.images && scrapedData.images.length > 0 && (
+                <div>
+                  <strong>Images:</strong> {scrapedData.images.length} images found
+                </div>
+              )}
+              {scrapedData.structured_data && (
+                <div>
+                  <strong>Structured Data:</strong>
+                  <div className="mt-1 ml-4 text-gray-500">
+                    <pre className="text-xs overflow-x-auto">
+                      {JSON.stringify(scrapedData.structured_data, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+              )}
+              {scrapedData.scraped_at && (
+                <div>
+                  <strong>Scraped At:</strong> {new Date(scrapedData.scraped_at).toLocaleString()}
                 </div>
               )}
             </div>

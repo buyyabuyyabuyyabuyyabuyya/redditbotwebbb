@@ -27,7 +27,7 @@ export default function BenoOneWorkflow() {
 
   // Listen for start workflow event
   useEffect(() => {
-    const handleStartWorkflow = (event: CustomEvent) => {
+    const handleStartWorkflow = async (event: CustomEvent) => {
       const { url } = event.detail;
       setWorkflowData(prev => ({ ...prev, url }));
       setIsVisible(true);
@@ -44,16 +44,52 @@ export default function BenoOneWorkflow() {
         workflowContainer.classList.remove('hidden');
       }
       
-      // Start the workflow
-      handleWebsiteSubmitted(url, {} as ScrapedWebsiteData);
+      // Automatically scrape the website and start the workflow
+      try {
+        const scrapedData = await scrapeWebsite(url);
+        handleWebsiteSubmitted(url, scrapedData);
+      } catch (error) {
+        console.error('Failed to scrape website:', error);
+        // Still proceed with empty data to show error handling
+        handleWebsiteSubmitted(url, {} as ScrapedWebsiteData);
+      }
     };
 
-    window.addEventListener('startBenoWorkflow', handleStartWorkflow as EventListener);
+    window.addEventListener('startBenoWorkflow', handleStartWorkflow as unknown as EventListener);
     
     return () => {
-      window.removeEventListener('startBenoWorkflow', handleStartWorkflow as EventListener);
+      window.removeEventListener('startBenoWorkflow', handleStartWorkflow as unknown as EventListener);
     };
   }, []);
+
+  // Function to scrape website
+  const scrapeWebsite = async (url: string): Promise<ScrapedWebsiteData> => {
+    try {
+      const response = await fetch('/api/products/scrape-website', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url: url.trim() }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to scrape website');
+      }
+
+      if (data.success && data.data) {
+        return data.data;
+      } else {
+        throw new Error('No data received from scraping service');
+      }
+
+    } catch (err) {
+      console.error('Website scraping error:', err);
+      throw err;
+    }
+  };
 
   const handleWebsiteSubmitted = (url: string, scrapedData: ScrapedWebsiteData) => {
     setWorkflowData(prev => ({

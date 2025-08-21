@@ -26,8 +26,11 @@ export interface ScrapedWebsiteData {
     twitter?: string;
     facebook?: string;
     linkedin?: string;
+    instagram?: string;
+    youtube?: string;
   };
   technologies?: string[];
+  structured_data?: any; // JSON-LD structured data
   scraped_at: string;
 }
 

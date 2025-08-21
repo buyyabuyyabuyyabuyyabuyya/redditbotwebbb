@@ -359,6 +359,16 @@ export default function Dashboard() {
     }
   };
 
+  const handleWebsiteAnalysis = async (url: string) => {
+    try {
+      // Trigger the Beno One workflow
+      const event = new CustomEvent('startBenoWorkflow', { detail: { url } });
+      window.dispatchEvent(event);
+    } catch (e: any) {
+      console.error('Error starting website analysis:', e);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto">
       {/* AutoScanPoller is a headless component that manages automatic scanning */}
@@ -839,14 +849,20 @@ export default function Dashboard() {
                           id="website-url"
                           placeholder="https://yourwebsite.com"
                           className="flex-1 px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              const url = (e.target as HTMLInputElement).value;
+                              if (url) {
+                                handleWebsiteAnalysis(url);
+                              }
+                            }
+                          }}
                         />
                         <button 
                           onClick={() => {
                             const url = (document.getElementById('website-url') as HTMLInputElement)?.value;
                             if (url) {
-                              // Trigger the Beno One workflow
-                              const event = new CustomEvent('startBenoWorkflow', { detail: { url } });
-                              window.dispatchEvent(event);
+                              handleWebsiteAnalysis(url);
                             }
                           }}
                           className="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-medium rounded-lg transition-all hover:shadow-lg"

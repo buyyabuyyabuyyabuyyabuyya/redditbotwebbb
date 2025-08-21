@@ -82,6 +82,15 @@ export async function POST(req: Request) {
       // Wait for content to load
       await page.waitForTimeout(2000);
 
+      // Try to wait for dynamic content
+      try {
+        await page.waitForFunction(() => {
+          return document.body && document.body.textContent && document.body.textContent.length > 100;
+        }, { timeout: 10000 });
+      } catch (e) {
+        console.log('Dynamic content wait timeout, proceeding with available content');
+      }
+
       // Extract website data
       const scrapedData: ScrapedWebsiteData = await page.evaluate(() => {
         // Get basic page info
@@ -98,21 +107,32 @@ export async function POST(req: Request) {
           '.content',
           '.main-content',
           '.post-content',
-          '.entry-content'
+          '.entry-content',
+          '.product-description',
+          '.product-info',
+          '.hero-content',
+          '.landing-content'
         ];
         
         for (const selector of contentSelectors) {
           const element = document.querySelector(selector);
-          if (element && element.textContent) {
+          if (element && element.textContent && element.textContent.trim().length > 50) {
             mainContent = element.textContent.trim();
             break;
           }
         }
         
         // Fallback to body if no main content found
-        if (!mainContent) {
+        if (!mainContent || mainContent.length < 50) {
           mainContent = document.body?.textContent?.trim() || '';
         }
+        
+        // Clean up content (remove extra whitespace, scripts, etc.)
+        mainContent = mainContent
+          .replace(/\s+/g, ' ')
+          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+          .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+          .trim();
         
         // Get headings
         const headings = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6'))
@@ -133,13 +153,17 @@ export async function POST(req: Request) {
         const socialMedia = {
           twitter: '',
           facebook: '',
-          linkedin: ''
+          linkedin: '',
+          instagram: '',
+          youtube: ''
         };
         
         const socialSelectors = {
           twitter: 'a[href*="twitter.com"], a[href*="x.com"]',
           facebook: 'a[href*="facebook.com"]',
-          linkedin: 'a[href*="linkedin.com"]'
+          linkedin: 'a[href*="linkedin.com"]',
+          instagram: 'a[href*="instagram.com"]',
+          youtube: 'a[href*="youtube.com"], a[href*="youtu.be"]'
         };
         
         Object.entries(socialSelectors).forEach(([platform, selector]) => {
@@ -149,36 +173,59 @@ export async function POST(req: Request) {
           }
         });
         
-        // Detect technologies (basic detection)
+        // Detect technologies (enhanced detection)
         const technologies: string[] = [];
+        const htmlContent = document.documentElement.innerHTML.toLowerCase();
         const techIndicators = {
-          'React': 'react',
-          'Vue': 'vue',
-          'Angular': 'angular',
-          'WordPress': 'wordpress',
-          'Shopify': 'shopify',
-          'WooCommerce': 'woocommerce',
-          'Magento': 'magento',
-          'Drupal': 'drupal',
-          'Joomla': 'joomla'
+          'React': ['react', 'jsx', 'createelement'],
+          'Vue': ['vue', 'v-bind', 'v-if'],
+          'Angular': ['angular', 'ng-', 'ngapp'],
+          'WordPress': ['wordpress', 'wp-', 'wp_'],
+          'Shopify': ['shopify', 'liquid', 'shopify.theme'],
+          'WooCommerce': ['woocommerce', 'wc-'],
+          'Magento': ['magento', 'mage.'],
+          'Drupal': ['drupal', 'drupal-'],
+          'Joomla': ['joomla', 'joomla-'],
+          'Next.js': ['next', 'nextjs', '__next'],
+          'Nuxt.js': ['nuxt', 'nuxtjs'],
+          'Gatsby': ['gatsby', 'gatsby-'],
+          'Tailwind': ['tailwind', 'tw-'],
+          'Bootstrap': ['bootstrap', 'bs-'],
+          'jQuery': ['jquery', 'jq-'],
+          'Node.js': ['node', 'express'],
+          'PHP': ['php', '<?php'],
+          'Python': ['python', 'django', 'flask'],
+          'Ruby': ['ruby', 'rails', 'erb']
         };
         
-        Object.entries(techIndicators).forEach(([name, indicator]) => {
-          if (document.documentElement.innerHTML.toLowerCase().includes(indicator.toLowerCase())) {
+        Object.entries(techIndicators).forEach(([name, indicators]) => {
+          if (indicators.some(indicator => htmlContent.includes(indicator))) {
             technologies.push(name);
           }
         });
+        
+        // Get structured data (JSON-LD)
+        let structuredData = null;
+        try {
+          const jsonLdScript = document.querySelector('script[type="application/ld+json"]');
+          if (jsonLdScript && jsonLdScript.textContent) {
+            structuredData = JSON.parse(jsonLdScript.textContent);
+          }
+        } catch (e) {
+          // Ignore JSON parsing errors
+        }
         
         return {
           title,
           meta_description: metaDescription,
           meta_keywords: metaKeywords,
-          main_content: mainContent.substring(0, 5000), // Limit content length
+          main_content: mainContent.substring(0, 8000), // Increased content length
           headings,
-          links: links.slice(0, 20), // Limit to first 20 links
-          images: images.slice(0, 10), // Limit to first 10 images
+          links: links.slice(0, 30), // Increased to 30 links
+          images: images.slice(0, 15), // Increased to 15 images
           social_media: socialMedia,
           technologies,
+          structured_data: structuredData,
           scraped_at: new Date().toISOString()
         };
       });
