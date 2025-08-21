@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
-import { chromium } from 'playwright';
+import chromium from 'chrome-aws-lambda';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { ScrapedWebsiteData, ScrapeWebsiteRequest, ScrapeWebsiteResponse } from '../../../../types/beno-one';
@@ -60,10 +60,11 @@ export async function POST(req: Request) {
     console.log(`Starting website scraping for: ${url}`);
 
     // Launch browser and scrape website
-    const browser = await chromium.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
+  const browser = await chromium.puppeteer.launch({
+  args: chromium.args,
+  executablePath: await chromium.executablePath,
+  headless: chromium.headless,
+});
 
     try {
       const page = await browser.newPage();
@@ -74,10 +75,10 @@ export async function POST(req: Request) {
       });
       
       // Set viewport
-      await page.setViewportSize({ width: 1920, height: 1080 });
+      await page.setViewport({ width: 1920, height: 1080 });
       
       // Navigate to URL with timeout
-      await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+      await page.goto(url, { waitUntil: 'networkidle0', timeout: 30000 });
       
       // Wait for content to load
       await page.waitForTimeout(2000);
