@@ -8,7 +8,7 @@ import { useUserPlan } from '../hooks/useUserPlan';
 import SubredditScanner from './SubredditScanner';
 import AddRedditAccount from './AddRedditAccount';
 import CreateMessageTemplate from './CreateMessageTemplate';
-import ScanConfig from './ScanConfig';
+
 import LogViewer from './LogViewer';
 import UserStats from './UserStats';
 import AutoScanPoller from './AutoScanPoller';
@@ -811,22 +811,9 @@ export default function Dashboard() {
             </Tab.Panel>
 
             <Tab.Panel>
-              <ScanConfig
-                userId={user?.id || ''}
-                onSuccess={() => {
-                  // Refresh any necessary data after creating a scan config
-                  loadAccounts();
-                  loadMessageTemplates();
-                  // Refresh stats when a new scan config is created or updated
-                  setRefreshTrigger((prev) => prev + 1);
-                }}
-              />
-            </Tab.Panel>
-
-            <Tab.Panel>
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold">Discussion Engagement</h2>
+                  <h2 className="text-xl font-semibold text-white">Discussion Engagement</h2>
                   <div className="text-sm text-gray-400">
                     AI-powered Reddit discussion monitoring and engagement
                   </div>
