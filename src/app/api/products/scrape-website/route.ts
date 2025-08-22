@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
-import chromium from 'chrome-aws-lambda';
+import chromium from '@sparticuz/chromium';
+import puppeteer from 'puppeteer-core';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { ScrapedWebsiteData, ScrapeWebsiteRequest, ScrapeWebsiteResponse } from '../../../../types/beno-one';
@@ -60,11 +61,13 @@ export async function POST(req: Request) {
     console.log(`Starting website scraping for: ${url}`);
 
     // Launch browser and scrape website
-  const browser = await chromium.puppeteer.launch({
-  args: chromium.args,
-  executablePath: await chromium.executablePath,
-  headless: chromium.headless,
-});
+    const executablePath = await chromium.executablePath();
+    const browser = await puppeteer.launch({
+      args: chromium.args,
+      executablePath,
+      headless: true,
+      defaultViewport: { width: 1920, height: 1080 },
+    });
 
     try {
       const page = await browser.newPage();
@@ -81,7 +84,8 @@ export async function POST(req: Request) {
       await page.goto(url, { waitUntil: 'networkidle0', timeout: 30000 });
       
       // Wait for content to load
-      await page.waitForTimeout(2000);
+      // Pause briefly to allow late-loading elements (non-critical if function missing)
+      await (page as any).waitForTimeout?.(2000);
 
       // Try to wait for dynamic content
       try {

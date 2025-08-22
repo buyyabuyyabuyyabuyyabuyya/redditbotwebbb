@@ -66,8 +66,10 @@ const nextConfig = {
   webpack: (config, { isServer }) => {
     if (isServer) {
       config.externals = config.externals || [];
-      if (!config.externals.includes('chrome-aws-lambda')) {
-        config.externals.push('chrome-aws-lambda');
+      for (const pkg of ['@sparticuz/chromium', 'chrome-aws-lambda']) {
+        if (!config.externals.includes(pkg)) {
+          config.externals.push(pkg);
+        }
       }
     }
     return config;
