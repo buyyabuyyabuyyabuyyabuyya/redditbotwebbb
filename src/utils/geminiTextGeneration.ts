@@ -1,4 +1,5 @@
 import { DEFAULT_RETRY_OPTIONS, sleep } from './retry';
+import { apiKeyManager } from './apiKeyManager';
 
 interface GeminiTextResponse {
   text: string;
@@ -11,33 +12,18 @@ interface GeminiTextOptions {
   temperature?: number;
 }
 
-// Multiple API keys for fallback
-const getGeminiKeys = (): string[] => {
-  const keys: string[] = [];
-  
-  // Primary key
-  if (process.env.GEMINI_KEY) {
-    keys.push(process.env.GEMINI_KEY);
+/**
+ * Acquire a fresh Gemini API key from Supabase using the ApiKeyManager.
+ */
+const fetchApiKey = async (userId?: string): Promise<string | null> => {
+  try {
+    // Free up any keys whose rate‐limit window has passed
+    await apiKeyManager.releaseExpiredRateLimitedKeys();
+    return await apiKeyManager.acquireApiKey(userId || 'system', 'gemini');
+  } catch (e) {
+    console.error('Error acquiring Gemini API key:', e);
+    return null;
   }
-  
-  // Additional fallback keys
-  if (process.env.GEMINI_KEY_2) {
-    keys.push(process.env.GEMINI_KEY_2);
-  }
-  
-  if (process.env.GEMINI_KEY_3) {
-    keys.push(process.env.GEMINI_KEY_3);
-  }
-  
-  if (process.env.GEMINI_KEY_4) {
-    keys.push(process.env.GEMINI_KEY_4);
-  }
-  
-  if (process.env.GEMINI_KEY_5) {
-    keys.push(process.env.GEMINI_KEY_5);
-  }
-  
-  return keys;
 };
 
 // Fetch wrapper with retries for text generation
@@ -46,14 +32,6 @@ export async function callGeminiForText(
   options: GeminiTextOptions = {}
 ): Promise<GeminiTextResponse> {
   const rawUrl = process.env.NEXT_PUBLIC_GEMINI_API_URL!;
-  const keys = getGeminiKeys();
-  
-  if (keys.length === 0) {
-    return {
-      text: '',
-      error: 'No Gemini API keys configured'
-    };
-  }
 
   // Convert relative path into a fully qualified URL
   let url: string;
@@ -72,13 +50,21 @@ export async function callGeminiForText(
 
   let lastErr: any;
 
-  // Try each API key
-  for (const key of keys) {
-    // Try multiple attempts with each key
+  // Attempt up to 5 different keys from the pool
+  const MAX_KEY_ATTEMPTS = 5;
+
+  for (let keyAttempt = 0; keyAttempt < MAX_KEY_ATTEMPTS; keyAttempt++) {
+    const key = await fetchApiKey(options.userId);
+    if (!key) {
+      lastErr = new Error('No available Gemini API keys');
+      break;
+    }
+
+    // Try multiple attempts with the current key
     for (let attempt = 0; attempt <= DEFAULT_RETRY_OPTIONS.maxRetries; attempt++) {
       try {
         console.log(`Attempting Gemini API call with key ${key.substring(0, 8)}... (attempt ${attempt + 1})`);
-        
+
         const res = await fetch(url, {
           method: 'POST',
           headers: {
@@ -112,6 +98,8 @@ export async function callGeminiForText(
         // For text generation, we expect a different response format
         if (json?.text) {
           console.log(`Successfully generated text with key ${key.substring(0, 8)}`);
+          // Release key asynchronously; no need to await
+          apiKeyManager.releaseApiKey(key, options.userId || 'system');
           return {
             text: json.text,
           };
@@ -122,6 +110,8 @@ export async function callGeminiForText(
           const generatedText = json?.generatedText || json?.content || text;
           if (generatedText && typeof generatedText === 'string') {
             console.log(`Successfully generated text with key ${key.substring(0, 8)} (fallback format)`);
+            // Release key asynchronously
+            apiKeyManager.releaseApiKey(key, options.userId || 'system');
             return {
               text: generatedText,
             };
@@ -130,23 +120,26 @@ export async function callGeminiForText(
           throw new Error('Unexpected response format from Gemini');
         }
 
-      } catch (err) {
+      } catch (err: any) {
         lastErr = err;
         console.warn(`Attempt ${attempt + 1} with key ${key.substring(0, 8)} failed:`, err);
-        
+
+        // Mark the key as errored / possibly rate-limited
+        await apiKeyManager.handleApiKeyError(key, err, options.userId || 'system');
+
         if (attempt === DEFAULT_RETRY_OPTIONS.maxRetries) {
-          // Try next key
+          // Break inner retry loop and fetch a different key
           break;
         }
-        
         await sleep(DEFAULT_RETRY_OPTIONS.initialDelay * (attempt + 1));
       }
     }
+
   }
 
-  console.error('All Gemini API keys failed:', lastErr);
+  console.error('Gemini text generation failed:', lastErr);
   return {
     text: '',
-    error: `All API keys failed: ${lastErr?.message || 'Unknown error'}`,
+    error: `Gemini text generation failed: ${lastErr?.message || 'Unknown error'}`,
   };
 } 
