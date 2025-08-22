@@ -62,6 +62,16 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Avoid webpack trying to bundle chrome-aws-lambda (its .map files break "next build")
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals = config.externals || [];
+      if (!config.externals.includes('chrome-aws-lambda')) {
+        config.externals.push('chrome-aws-lambda');
+      }
+    }
+    return config;
+  },
   async headers() {
     return [
       {
