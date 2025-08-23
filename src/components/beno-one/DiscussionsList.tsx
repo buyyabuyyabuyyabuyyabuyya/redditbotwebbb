@@ -83,11 +83,14 @@ export default function DiscussionsList({ productId, discussions, onRepliesPoste
                   }`}
                 >
                   <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-semibold text-gray-900">
-                        {d.comment?.slice(0, 120) || 'Reddit post'}
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 truncate">
+                        {(((d as any).title || d.comment) as string)?.slice(0, 120) || 'Reddit post'}
                       </h3>
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm text-gray-600 mt-1 overflow-hidden whitespace-nowrap text-ellipsis">
+                        {(((d as any).description || d.comment) as string)?.slice(0, 160)}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-2">
                         Relevance: {(d.relevance_score * 100).toFixed(0)}%
                       </p>
                     </div>

@@ -2,6 +2,33 @@ import { NextResponse } from 'next/server';
 
 const PB_BASE = 'https://app.beno.one/pbsb/api';
 
+// GET /api/beno/promoting-product
+// Returns list of promoting products records.
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+    const pbUrlBase = `${PB_BASE}/collections/beno_promoting_products/records`;
+
+    const targetUrl = id ? `${pbUrlBase}/${id}` : `${pbUrlBase}?sort=-created&perPage=50`;
+
+    const res = await fetch(targetUrl, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      return NextResponse.json({ error: `PocketBase request failed ${res.status}: ${err.slice(0,200)}` }, { status: res.status });
+    }
+
+    const data = await res.json();
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error('[promoting-product route] GET error', error);
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
+  }
+}
+
 // POST /api/beno/promoting-product
 // Creates a promoting_products record in PocketBase.
 export async function POST(req: Request) {

@@ -77,6 +77,8 @@ export default function Dashboard() {
   // User Agent test UI state
   const [userAgentTestingId, setUserAgentTestingId] = useState<string | null>(null);
   const [userAgentTestMsg, setUserAgentTestMsg] = useState<Record<string, string>>({});
+  // Saved campaigns (promoting products)
+  const [campaigns, setCampaigns] = useState<any[]>([]);
 
   // Function to handle stopping a bot from the logs view
   const handleStopBot = async (subreddit: string, configId?: string) => {
@@ -200,8 +202,15 @@ export default function Dashboard() {
       loadAccounts();
       loadMessageTemplates();
       loadActiveConfigs();
+      loadCampaigns();
     }
   }, [user]);
+
+  // Listen for newly created campaigns
+  useEffect(() => {
+    window.addEventListener('campaignsUpdated', loadCampaigns);
+    return () => window.removeEventListener('campaignsUpdated', loadCampaigns);
+  }, []);
 
   // Load active scan configurations for AutoScanPoller
   const loadActiveConfigs = async () => {
@@ -224,6 +233,20 @@ export default function Dashboard() {
       setActiveBots(activeConfigs);
     } catch (err) {
       console.error('Error loading active configurations:', err);
+    }
+  };
+
+  const loadCampaigns = async () => {
+    try {
+      const response = await fetch('/api/beno/promoting-product');
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to load campaigns');
+      }
+      const items = Array.isArray(data.items) ? data.items : (data.items ? data.items : data);
+      setCampaigns(items);
+    } catch (err) {
+      console.error('Error loading campaigns:', err);
     }
   };
 
@@ -888,6 +911,32 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </div>
+
+                {/* Saved Campaigns */}
+                {campaigns.length > 0 && (
+                  <div className="mt-8">
+                    <h3 className="text-lg font-medium text-purple-300 mb-4">Your Campaigns</h3>
+                    <div className="space-y-4">
+                      {campaigns.map((c: any) => (
+                        <div
+                          key={c.id}
+                          className="p-4 border border-gray-700/50 rounded-lg bg-gray-800/40 flex justify-between items-center hover:bg-gray-800/60 transition-colors"
+                        >
+                          <div>
+                            <h4 className="text-white font-semibold">{c.name}</h4>
+                            <p className="text-sm text-gray-400">{c.url}</p>
+                          </div>
+                          <button
+                            onClick={() => console.log('View campaign details', c.id)}
+                            className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg transition-all"
+                          >
+                            See Details
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Beno One Workflow (initially hidden) */}
                 <div id="beno-workflow-container" className="hidden">

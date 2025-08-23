@@ -85,6 +85,8 @@ export default function CustomerFinding({ url, name, description, segments, onCu
               description,
             }),
           });
+          // notify dashboard to refresh campaigns list
+          window.dispatchEvent(new Event('campaignsUpdated'));
         } catch (e) {
           console.warn('[CustomerFinding] promoting-product creation failed', e);
         }
