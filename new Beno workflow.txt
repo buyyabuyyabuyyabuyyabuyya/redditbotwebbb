@@ -3579,6 +3579,9 @@ Response:
 
 
 
+redditoutreach one
+
+{"user_id":"demo","pb_reply_id":"2xsvotcpgh7nmej","comment_text":"i use redditoutreach automation to handle replies on multiple accounts, saves a ton of time and keeps engagement consistent. for content ideas, try scraping top posts in your niche with a tool like redditmetis or export comments to a spreadsheet for analysis. redditoutreach automation helps scale it all.","product_id":"yxb82eqdvubztc4","post_url":"https://reddit.com/r/SaaS/comments/1mt9u2k/its_monday_whatre_you_working_on/"}
 
 
 
@@ -3598,3 +3601,435 @@ Response:
 
 {"name":"Reddit Outreach Automator","url":"https://redditoutreach.com/","description":"Reddit Outreach Automator is a platform that automates targeted messaging and engagement on Reddit to help users reach potential customers efficiently. It offers AI-driven discussion replies and private messaging with customizable templates, multiple managed accounts, and detailed analytics to track campaign success. Designed for marketers, small businesses, social media managers, and lead generation specialists, it ensures safe, compliant outreach with real-time monitoring and AI content analysis."
 ,"creator":"yxb82eqdvubztc4","validation_status":"completed","is_auto_replies_off":true,"is_low_rel":true,"is_long_solving_replies":true}
+
+
+
+ok i found another URL to get creator ID:
+https://app.beno.one/pbsb/api/collections/beno_promoting_products/records/yxb82eqdvubztc4?expand=subscriptions%2Csubscriptions.platform
+
+Method:
+GET
+
+payload:
+expand=subscriptions%2Csubscriptions.platform
+
+Responce:
+{
+    "bot_sources": [],
+    "collectionId": "86bpa79je1hu2cu",
+    "collectionName": "beno_promoting_products",
+    "created": "2025-08-20 17:07:45.441Z",
+    "creator": "h21tdf3nhk86wwo",
+    "custom_prompt": "",
+    "description": "RedditOutreach Automation is a platform that automates messaging on Reddit to help users efficiently engage with targeted subreddits. It enables users to run multiple Reddit accounts, create custom message templates, and track outreach performance with detailed analytics and AI-powered content analysis. The tool is designed for marketers, community managers, and businesses aiming to scale Reddit engagement while maintaining account safety and compliance. Its unique value lies in combining automation with AI-driven message optimization and real-time monitoring.",
+    "expand": {
+        "subscriptions": [
+            {
+                "collectionId": "ydfllna2f103c9y",
+                "collectionName": "beno_subscriptions",
+                "created": "2024-06-18 16:34:48.161Z",
+                "description": "Discussions and useful links for SaaS owners, online business owners, and more.",
+                "expand": {
+                    "platform": {
+                        "collectionId": "3murh9k75sogfun",
+                        "collectionName": "beno_platforms",
+                        "created": "2024-05-20 08:46:57.208Z",
+                        "id": "jpbtdmozcrso5yg",
+                        "logo": "what_is_the_reddit_logo_called_FjC9SGNkf1.png",
+                        "name": "Reddit",
+                        "updated": "2024-05-27 18:46:47.384Z",
+                        "url": "https://reddit.com"
+                    }
+                },
+                "followers_count": 377622,
+                "id": "df0x9nnqo1i146m",
+                "platform": "jpbtdmozcrso5yg",
+                "status": "active",
+                "topic": "SaaS",
+                "updated": "2025-08-23 01:13:36.216Z"
+            },
+            {
+                "collectionId": "ydfllna2f103c9y",
+                "collectionName": "beno_subscriptions",
+                "created": "2024-06-18 16:45:50.279Z",
+                "description": "For digital marketing news, best practices, strategy, and learning.",
+                "expand": {
+                    "platform": {
+                        "collectionId": "3murh9k75sogfun",
+                        "collectionName": "beno_platforms",
+                        "created": "2024-05-20 08:46:57.208Z",
+                        "id": "jpbtdmozcrso5yg",
+                        "logo": "what_is_the_reddit_logo_called_FjC9SGNkf1.png",
+                        "name": "Reddit",
+                        "updated": "2024-05-27 18:46:47.384Z",
+                        "url": "https://reddit.com"
+                    }
+                },
+                "followers_count": 273171,
+                "id": "i0rr3z5paqfbbov",
+                "platform": "jpbtdmozcrso5yg",
+                "status": "active",
+                "topic": "digital_marketing",
+                "updated": "2025-08-23 01:21:44.754Z"
+            },
+            {
+                "collectionId": "ydfllna2f103c9y",
+                "collectionName": "beno_subscriptions",
+                "created": "2024-06-18 16:45:00.766Z",
+                "description": "Welcome to world's largest Growth Hacking Reddit Community. \n\nA place for Growth Hacking practitioners and professionals to discuss and debate Growth Marketing. \n\nShare novel marketing experiments, new tools and startup growth marketing stories. ",
+                "expand": {
+                    "platform": {
+                        "collectionId": "3murh9k75sogfun",
+                        "collectionName": "beno_platforms",
+                        "created": "2024-05-20 08:46:57.208Z",
+                        "id": "jpbtdmozcrso5yg",
+                        "logo": "what_is_the_reddit_logo_called_FjC9SGNkf1.png",
+                        "name": "Reddit",
+                        "updated": "2024-05-27 18:46:47.384Z",
+                        "url": "https://reddit.com"
+                    }
+                },
+                "followers_count": 93634,
+                "id": "hd7ockm65zaz112",
+                "platform": "jpbtdmozcrso5yg",
+                "status": "active",
+                "topic": "growthhacking",
+                "updated": "2025-08-23 01:20:52.915Z"
+            },
+            {
+                "collectionId": "ydfllna2f103c9y",
+                "collectionName": "beno_subscriptions",
+                "created": "2024-07-02 05:03:24.553Z",
+                "description": "r/SocialMediaMarketing is a place for SMM professionals to share industry-relevant information, discuss best practices, and provide constructive critique.",
+                "expand": {
+                    "platform": {
+                        "collectionId": "3murh9k75sogfun",
+                        "collectionName": "beno_platforms",
+                        "created": "2024-05-20 08:46:57.208Z",
+                        "id": "jpbtdmozcrso5yg",
+                        "logo": "what_is_the_reddit_logo_called_FjC9SGNkf1.png",
+                        "name": "Reddit",
+                        "updated": "2024-05-27 18:46:47.384Z",
+                        "url": "https://reddit.com"
+                    }
+                },
+                "followers_count": 197830,
+                "id": "iakt989vtty24rj",
+                "platform": "jpbtdmozcrso5yg",
+                "status": "active",
+                "topic": "SocialMediaMarketing",
+                "updated": "2025-08-23 01:23:13.874Z"
+            },
+            {
+                "collectionId": "ydfllna2f103c9y",
+                "collectionName": "beno_subscriptions",
+                "created": "2024-07-18 23:37:04.630Z",
+                "description": "Lead Generation and all its broader facets. Your community for Lead Generation discussions, help \u0026amp; advice, content, questions, etc. \n\nA power house for both new \u0026amp; experienced marketers to learn together.\n\nBuy/Sell/Trade posts should be made at our marketplace sub linked in our community information.",
+                "expand": {
+                    "platform": {
+                        "collectionId": "3murh9k75sogfun",
+                        "collectionName": "beno_platforms",
+                        "created": "2024-05-20 08:46:57.208Z",
+                        "id": "jpbtdmozcrso5yg",
+                        "logo": "what_is_the_reddit_logo_called_FjC9SGNkf1.png",
+                        "name": "Reddit",
+                        "updated": "2024-05-27 18:46:47.384Z",
+                        "url": "https://reddit.com"
+                    }
+                },
+                "followers_count": 42136,
+                "id": "3mik0v5df3qwjyk",
+                "platform": "jpbtdmozcrso5yg",
+                "status": "active",
+                "topic": "LeadGeneration",
+                "updated": "2025-08-23 01:30:02.645Z"
+            },
+            {
+                "collectionId": "ydfllna2f103c9y",
+                "collectionName": "beno_subscriptions",
+                "created": "2025-08-11 18:06:50.303Z",
+                "description": "",
+                "expand": {
+                    "platform": {
+                        "collectionId": "3murh9k75sogfun",
+                        "collectionName": "beno_platforms",
+                        "created": "2024-05-20 08:46:57.208Z",
+                        "id": "jpbtdmozcrso5yg",
+                        "logo": "what_is_the_reddit_logo_called_FjC9SGNkf1.png",
+                        "name": "Reddit",
+                        "updated": "2024-05-27 18:46:47.384Z",
+                        "url": "https://reddit.com"
+                    }
+                },
+                "followers_count": 43977,
+                "id": "r6z78cknxerin8s",
+                "platform": "jpbtdmozcrso5yg",
+                "status": "active",
+                "topic": "marketingautomation",
+                "updated": "2025-08-23 04:05:09.397Z"
+            },
+            {
+                "collectionId": "ydfllna2f103c9y",
+                "collectionName": "beno_subscriptions",
+                "created": "2024-08-26 23:25:33.508Z",
+                "description": "This is a community of professional digital marketers. No self-promotion or lead generation allowed, no exceptions.",
+                "expand": {
+                    "platform": {
+                        "collectionId": "3murh9k75sogfun",
+                        "collectionName": "beno_platforms",
+                        "created": "2024-05-20 08:46:57.208Z",
+                        "id": "jpbtdmozcrso5yg",
+                        "logo": "what_is_the_reddit_logo_called_FjC9SGNkf1.png",
+                        "name": "Reddit",
+                        "updated": "2024-05-27 18:46:47.384Z",
+                        "url": "https://reddit.com"
+                    }
+                },
+                "followers_count": 59881,
+                "id": "kqrj7j9avwlgiko",
+                "platform": "jpbtdmozcrso5yg",
+                "status": "active",
+                "topic": "agency",
+                "updated": "2025-08-23 01:42:40.730Z"
+            },
+            {
+                "collectionId": "ydfllna2f103c9y",
+                "collectionName": "beno_subscriptions",
+                "created": "2025-07-22 19:44:28.534Z",
+                "description": "Welcome to the Product Marketing community. \n\nThis is a growing space for Product Marketers to connect and share knowledge, resources, strategies and advice and talk through changes in our field.\n\nMost importantly, it is unbiased and not affiliated with any 3rd party course, newsletter, blog, website or any other paid platform.",
+                "expand": {
+                    "platform": {
+                        "collectionId": "3murh9k75sogfun",
+                        "collectionName": "beno_platforms",
+                        "created": "2024-05-20 08:46:57.208Z",
+                        "id": "jpbtdmozcrso5yg",
+                        "logo": "what_is_the_reddit_logo_called_FjC9SGNkf1.png",
+                        "name": "Reddit",
+                        "updated": "2024-05-27 18:46:47.384Z",
+                        "url": "https://reddit.com"
+                    }
+                },
+                "followers_count": 19086,
+                "id": "maqvvgjy1296flq",
+                "platform": "jpbtdmozcrso5yg",
+                "status": "active",
+                "topic": "ProductMarketing",
+                "updated": "2025-08-23 04:04:08.348Z"
+            },
+            {
+                "collectionId": "ydfllna2f103c9y",
+                "collectionName": "beno_subscriptions",
+                "created": "2025-01-26 18:21:53.346Z",
+                "description": "",
+                "expand": {
+                    "platform": {
+                        "collectionId": "3murh9k75sogfun",
+                        "collectionName": "beno_platforms",
+                        "created": "2024-05-20 08:46:57.208Z",
+                        "id": "jpbtdmozcrso5yg",
+                        "logo": "what_is_the_reddit_logo_called_FjC9SGNkf1.png",
+                        "name": "Reddit",
+                        "updated": "2024-05-27 18:46:47.384Z",
+                        "url": "https://reddit.com"
+                    }
+                },
+                "followers_count": 106168,
+                "id": "ckfrp6pif9j0yhp",
+                "platform": "jpbtdmozcrso5yg",
+                "status": "active",
+                "topic": "indiehackers",
+                "updated": "2025-08-23 02:37:01.976Z"
+            },
+            {
+                "collectionId": "ydfllna2f103c9y",
+                "collectionName": "beno_subscriptions",
+                "created": "2024-05-25 06:27:11.602Z",
+                "description": "Our community brings together individuals driven by a shared commitment to problem-solving, professional networking, and collaborative innovation, all with the goal of making a positive impact. We welcome a diverse range of pursuits, from side projects and small businesses to venture-backed startups and solo ventures. However, this is a space for genuine connection and exchange of ideas, not self-promotion. Please refrain from promoting personal blogs, consulting services, books, podcasts, MLMs,",
+                "expand": {
+                    "platform": {
+                        "collectionId": "3murh9k75sogfun",
+                        "collectionName": "beno_platforms",
+                        "created": "2024-05-20 08:46:57.208Z",
+                        "id": "jpbtdmozcrso5yg",
+                        "logo": "what_is_the_reddit_logo_called_FjC9SGNkf1.png",
+                        "name": "Reddit",
+                        "updated": "2024-05-27 18:46:47.384Z",
+                        "url": "https://reddit.com"
+                    }
+                },
+                "followers_count": 4874154,
+                "id": "oofh8m3pxs9zwu7",
+                "platform": "jpbtdmozcrso5yg",
+                "status": "active",
+                "topic": "Entrepreneur",
+                "updated": "2025-08-23 01:10:03.087Z"
+            },
+            {
+                "collectionId": "ydfllna2f103c9y",
+                "collectionName": "beno_subscriptions",
+                "created": "2024-05-25 14:41:56.324Z",
+                "description": "Welcome to /r/startups, the place to discuss startup problems and solutions. Startups are companies that are designed to grow and scale rapidly.  Be sure to read and follow all of our rules--we have specific places for common content and requests.",
+                "expand": {
+                    "platform": {
+                        "collectionId": "3murh9k75sogfun",
+                        "collectionName": "beno_platforms",
+                        "created": "2024-05-20 08:46:57.208Z",
+                        "id": "jpbtdmozcrso5yg",
+                        "logo": "what_is_the_reddit_logo_called_FjC9SGNkf1.png",
+                        "name": "Reddit",
+                        "updated": "2024-05-27 18:46:47.384Z",
+                        "url": "https://reddit.com"
+                    }
+                },
+                "followers_count": 1892832,
+                "id": "zskk6btbr0fikbk",
+                "platform": "jpbtdmozcrso5yg",
+                "status": "active",
+                "topic": "startups",
+                "updated": "2025-08-23 01:10:03.276Z"
+            },
+            {
+                "collectionId": "ydfllna2f103c9y",
+                "collectionName": "beno_subscriptions",
+                "created": "2025-06-23 21:05:03.402Z",
+                "description": "",
+                "expand": {
+                    "platform": {
+                        "collectionId": "3murh9k75sogfun",
+                        "collectionName": "beno_platforms",
+                        "created": "2024-05-20 08:46:57.208Z",
+                        "id": "jpbtdmozcrso5yg",
+                        "logo": "what_is_the_reddit_logo_called_FjC9SGNkf1.png",
+                        "name": "Reddit",
+                        "updated": "2024-05-27 18:46:47.384Z",
+                        "url": "https://reddit.com"
+                    }
+                },
+                "followers_count": 17572,
+                "id": "47ftxaqupfwk6nj",
+                "platform": "jpbtdmozcrso5yg",
+                "status": "active",
+                "topic": "ContentMarketing",
+                "updated": "2025-08-23 03:47:07.587Z"
+            },
+            {
+                "collectionId": "ydfllna2f103c9y",
+                "collectionName": "beno_subscriptions",
+                "created": "2024-06-18 16:34:57.010Z",
+                "description": "Product Management",
+                "expand": {
+                    "platform": {
+                        "collectionId": "3murh9k75sogfun",
+                        "collectionName": "beno_platforms",
+                        "created": "2024-05-20 08:46:57.208Z",
+                        "id": "jpbtdmozcrso5yg",
+                        "logo": "what_is_the_reddit_logo_called_FjC9SGNkf1.png",
+                        "name": "Reddit",
+                        "updated": "2024-05-27 18:46:47.384Z",
+                        "url": "https://reddit.com"
+                    }
+                },
+                "followers_count": 222154,
+                "id": "huq9fmpwpq4ephc",
+                "platform": "jpbtdmozcrso5yg",
+                "status": "active",
+                "topic": "ProductManagement",
+                "updated": "2025-08-23 01:13:46.864Z"
+            },
+            {
+                "collectionId": "ydfllna2f103c9y",
+                "collectionName": "beno_subscriptions",
+                "created": "2024-06-18 16:44:51.975Z",
+                "description": "A professional community focused on web/digital marketing, including email marketing, online PR, social media, SEO and more!",
+                "expand": {
+                    "platform": {
+                        "collectionId": "3murh9k75sogfun",
+                        "collectionName": "beno_platforms",
+                        "created": "2024-05-20 08:46:57.208Z",
+                        "id": "jpbtdmozcrso5yg",
+                        "logo": "what_is_the_reddit_logo_called_FjC9SGNkf1.png",
+                        "name": "Reddit",
+                        "updated": "2024-05-27 18:46:47.384Z",
+                        "url": "https://reddit.com"
+                    }
+                },
+                "followers_count": 38481,
+                "id": "5z77dyrttsv9amn",
+                "platform": "jpbtdmozcrso5yg",
+                "status": "active",
+                "topic": "webmarketing",
+                "updated": "2025-08-23 01:20:42.751Z"
+            },
+            {
+                "collectionId": "ydfllna2f103c9y",
+                "collectionName": "beno_subscriptions",
+                "created": "2024-10-03 05:22:22.664Z",
+                "description": "Join the eCommerce Marketing subreddit for valuable insights, strategies, and discussions to help your online business succeed. Discover SEO, content marketing, conversion optimization, UX/UI design, and more. Connect with experts, share experiences, and stay ahead in the ever-changing world of eCommerce. Let's grow together!",
+                "expand": {
+                    "platform": {
+                        "collectionId": "3murh9k75sogfun",
+                        "collectionName": "beno_platforms",
+                        "created": "2024-05-20 08:46:57.208Z",
+                        "id": "jpbtdmozcrso5yg",
+                        "logo": "what_is_the_reddit_logo_called_FjC9SGNkf1.png",
+                        "name": "Reddit",
+                        "updated": "2024-05-27 18:46:47.384Z",
+                        "url": "https://reddit.com"
+                    }
+                },
+                "followers_count": 34575,
+                "id": "0alv85w6x3hr3h6",
+                "platform": "jpbtdmozcrso5yg",
+                "status": "active",
+                "topic": "ecommercemarketing",
+                "updated": "2025-08-23 01:55:48.199Z"
+            }
+        ]
+    },
+    "id": "yxb82eqdvubztc4",
+    "is_auto_publish_with_high_accs_on": false,
+    "is_auto_replies_off": true,
+    "is_auto_replies_with_api_on": false,
+    "is_enable_custom_prompt_in_base_scoring": false,
+    "is_high_rel": false,
+    "is_long_solving_replies": true,
+    "is_low_rel": true,
+    "is_max_free_replies_reached": true,
+    "is_need_to_rewrite_in_bg": false,
+    "is_need_to_upvote": false,
+    "is_public": false,
+    "is_very_low_rel": false,
+    "last_raw_comments_review": "2025-08-22 21:37:47.764Z",
+    "name": "RedditOutreach Automation",
+    "r_code": "",
+    "subscriptions": [
+        "df0x9nnqo1i146m",
+        "i0rr3z5paqfbbov",
+        "hd7ockm65zaz112",
+        "iakt989vtty24rj",
+        "3mik0v5df3qwjyk",
+        "r6z78cknxerin8s",
+        "kqrj7j9avwlgiko",
+        "maqvvgjy1296flq",
+        "ckfrp6pif9j0yhp",
+        "oofh8m3pxs9zwu7",
+        "zskk6btbr0fikbk",
+        "47ftxaqupfwk6nj",
+        "huq9fmpwpq4ephc",
+        "5z77dyrttsv9amn",
+        "0alv85w6x3hr3h6"
+    ],
+    "updated": "2025-08-22 21:37:47.773Z",
+    "url": "redditoutreach.com",
+    "validation_status": "completed"
+}
+
+
+but the werid thing is that when I do the same requets in POSTMAN i get:
+{
+    "page": 1,
+    "perPage": 20,
+    "totalItems": 0,
+    "totalPages": 0,
+    "items": []
+}

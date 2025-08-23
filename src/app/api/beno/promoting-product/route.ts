@@ -8,9 +8,19 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
+    const urlParam = searchParams.get('url');
     const pbUrlBase = `${PB_BASE}/collections/beno_promoting_products/records`;
 
-    const targetUrl = id ? `${pbUrlBase}/${id}` : `${pbUrlBase}?sort=-created&perPage=50`;
+    let targetUrl: string;
+    if (id) {
+      targetUrl = `${pbUrlBase}/${id}`;
+    } else if (urlParam) {
+      // PocketBase filter by url exact match
+      const filter = encodeURIComponent(`url="${urlParam}"`);
+      targetUrl = `${pbUrlBase}?filter=${filter}&perPage=1`;
+    } else {
+      targetUrl = `${pbUrlBase}?sort=-created&perPage=50`;
+    }
 
     const res = await fetch(targetUrl, {
       headers: { 'Content-Type': 'application/json' },

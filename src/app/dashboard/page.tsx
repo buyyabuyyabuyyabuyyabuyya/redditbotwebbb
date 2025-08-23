@@ -25,6 +25,8 @@ const createSupabaseServerClient = () => {
 };
 
 import Dashboard from '@/components/Dashboard';
+import BenoWorkflow from '@/components/beno-one/BenoWorkflow';
+import DiscussionCampaigns from '@/components/DiscussionCampaigns';
 
 export default async function DashboardPage() {
   const { userId } = await auth();
@@ -60,7 +62,23 @@ export default async function DashboardPage() {
       <div className="py-8">
         <Dashboard />
       </div>
-      <div className="mt-5">
+      
+      {/* Beno AI Workflow Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-white mb-2">AI-Powered Reddit Outreach</h2>
+          <p className="text-gray-400">Automate your Reddit engagement with Beno's AI-generated replies</p>
+        </div>
+        <BenoWorkflow />
+      </div>
+
+      {/* Discussion Campaigns Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <DiscussionCampaigns />
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+        <h3 className="text-xl font-semibold text-white mb-4">Recent Messages</h3>
         {sentMessages?.length === 0 ? (
           <p className="text-sm text-gray-500">No messages sent yet.</p>
         ) : (

@@ -10,6 +10,7 @@ interface CustomerFindingProps {
   description: string;
   segments: string[];
   onCustomersFound: (productId: string, discussions: DiscussionItem[], creatorId: string) => void;
+  onRedditPostingReady?: (productId: string) => void;
   onBack: () => void;
 }
 
@@ -49,28 +50,48 @@ export default function CustomerFinding({ url, name, description, segments, onCu
         });
         const createData = await createRes.json(); // { product_id, r_code }
 
-        // 2. Create promoting_product record first to get creator ID
+        // 2. Ensure promoting_product record exists and get creator ID
         setProgress(35);
         let creatorId = 'demo';
         try {
-          const promotingRes = await fetch('/api/beno/promoting-product', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              name: name || description.substring(0, 80),
-              url,
-              description,
-            }),
-          });
-          const promotingData = await promotingRes.json();
-          if (promotingRes.ok) {
-            creatorId = promotingData.creator || creatorId;
-            window.dispatchEvent(new Event('campaignsUpdated'));
+          // Try to fetch existing record by url first
+          console.log('[CustomerFinding] Looking up existing record for:', url);
+          const lookupRes = await fetch(`/api/beno/promoting-product?url=${encodeURIComponent(url)}`);
+          const lookupData = await lookupRes.json();
+          console.log('[CustomerFinding] Lookup response:', lookupData);
+          let record: any | null = null;
+          if (lookupRes.ok && lookupData?.items?.length) {
+            record = lookupData.items[0];
+            console.log('[CustomerFinding] Found existing record with creator:', record.creator);
           } else {
-            console.warn('[CustomerFinding] promoting-product error', promotingData);
+            console.log('[CustomerFinding] No existing record found, will create new one');
+          }
+
+          if (!record) {
+            // Not found, create new record
+            const promotingRes = await fetch('/api/beno/promoting-product', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                name: name || description.substring(0, 80),
+                url,
+                description,
+              }),
+            });
+            record = await promotingRes.json();
+            if (!promotingRes.ok) {
+              console.warn('[CustomerFinding] promoting-product creation error', record);
+              record = null;
+            } else {
+              window.dispatchEvent(new Event('campaignsUpdated'));
+            }
+          }
+
+          if (record?.creator) {
+            creatorId = record.creator;
           }
         } catch (e) {
-          console.warn('[CustomerFinding] promoting-product creation failed', e);
+          console.warn('[CustomerFinding] promoting-product fetch/create failed', e);
         }
         if (!createRes.ok) throw new Error(createData.error || 'Failed to create product');
 
