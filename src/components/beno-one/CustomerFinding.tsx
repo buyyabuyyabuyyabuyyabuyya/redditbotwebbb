@@ -6,13 +6,14 @@ import { DiscussionItem } from '../../types/beno-workflow';
 
 interface CustomerFindingProps {
   url: string;
+  name: string;
   description: string;
   segments: string[];
   onCustomersFound: (productId: string, discussions: DiscussionItem[]) => void;
   onBack: () => void;
 }
 
-export default function CustomerFinding({ url, description, segments, onCustomersFound, onBack }: CustomerFindingProps) {
+export default function CustomerFinding({ url, name, description, segments, onCustomersFound, onBack }: CustomerFindingProps) {
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState<'initializing' | 'analyzing' | 'scanning' | 'complete' | 'error'>('initializing');
   const [stepMessages] = useState({
@@ -33,7 +34,18 @@ export default function CustomerFinding({ url, description, segments, onCustomer
         const createRes = await fetch('/api/beno/product', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: description, description, product_url: url }),
+          body: JSON.stringify({
+            name: name || description.substring(0, 80),
+            description,
+            product_url: (() => {
+              try {
+                const u = new URL(url.startsWith('http') ? url : `https://${url}`);
+                return u.hostname;
+              } catch {
+                return url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+              }
+            })()
+          }),
         });
         const createData = await createRes.json(); // { product_id, r_code }
         if (!createRes.ok) throw new Error(createData.error || 'Failed to create product');
@@ -55,7 +67,7 @@ export default function CustomerFinding({ url, description, segments, onCustomer
       }
     }
     run();
-  }, [url, description, segments, onCustomersFound]);
+  }, [url, name, description, segments, onCustomersFound]);
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-6">

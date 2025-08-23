@@ -191,6 +191,7 @@ export default function BenoOneWorkflow() {
         return (
           <CustomerFinding
             url={workflowData.url}
+            name={workflowData.scrapedData.title || ''}
             description={workflowData.description}
             segments={workflowData.customerSegments}
             onCustomersFound={handleCustomersFound}
