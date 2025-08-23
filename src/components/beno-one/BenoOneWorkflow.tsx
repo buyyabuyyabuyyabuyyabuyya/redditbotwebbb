@@ -2,16 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import { ScrapedWebsiteData } from '../../types/beno-one';
+import { DiscussionItem } from '../../types/beno-workflow';
 import WebsiteInputForm from './WebsiteInputForm';
 import DescriptionReview from './DescriptionReview';
 import CustomerSegments from './CustomerSegments';
 import CustomerFinding from './CustomerFinding';
+import DiscussionsList from './DiscussionsList';
 import SuccessScreen from './SuccessScreen';
 
 interface WorkflowData {
   url: string;
   scrapedData: ScrapedWebsiteData;
   description: string;
+  productId: string;
+  discussions: DiscussionItem[];
   customerSegments: string[];
 }
 
@@ -21,7 +25,9 @@ export default function BenoOneWorkflow() {
     url: '',
     scrapedData: {} as ScrapedWebsiteData,
     description: '',
-    customerSegments: []
+    customerSegments: [],
+    productId: '',
+    discussions: []
   });
   const [isVisible, setIsVisible] = useState(false);
 
@@ -46,7 +52,7 @@ export default function BenoOneWorkflow() {
       
       // Automatically scrape the website and start the workflow
       try {
-        const scrapedData = await scrapeWebsite(url);
+        const scrapedData = await describeProduct(url);
         handleWebsiteSubmitted(url, scrapedData);
       } catch (error) {
         console.error('Failed to scrape website:', error);
@@ -62,31 +68,23 @@ export default function BenoOneWorkflow() {
     };
   }, []);
 
-  // Function to scrape website
-  const scrapeWebsite = async (url: string): Promise<ScrapedWebsiteData> => {
+  // Describe product via new Beno flow
+  const describeProduct = async (url: string): Promise<ScrapedWebsiteData> => {
     try {
-      const response = await fetch('/api/products/scrape-website', {
+      const response = await fetch('/api/beno/describe', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: url.trim() }),
       });
-
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to scrape website');
-      }
-
-      if (data.success && data.data) {
-        return data.data;
-      } else {
-        throw new Error('No data received from scraping service');
-      }
-
+      if (!response.ok) throw new Error(data.error || 'Failed to describe product');
+      // Map to legacy ScrapedWebsiteData-like shape used by UI components
+      return {
+        title: data.name,
+        description: data.description,
+      } as unknown as ScrapedWebsiteData;
     } catch (err) {
-      console.error('Website scraping error:', err);
+      console.error('describeProduct error:', err);
       throw err;
     }
   };
@@ -116,8 +114,13 @@ export default function BenoOneWorkflow() {
     setCurrentStep(4);
   };
 
-  const handleCustomersFound = () => {
+  const handleCustomersFound = (productId: string, discussions: DiscussionItem[]) => {
+    setWorkflowData(prev => ({ ...prev, productId, discussions }));
     setCurrentStep(5);
+  };
+
+  const handleRepliesPosted = () => {
+    setCurrentStep(6);
   };
 
   const handleViewCustomers = () => {
@@ -131,7 +134,9 @@ export default function BenoOneWorkflow() {
       url: '',
       scrapedData: {} as ScrapedWebsiteData,
       description: '',
-      customerSegments: []
+      customerSegments: [],
+      productId: '',
+      discussions: []
     });
     
     // Show the URL input section again
@@ -185,12 +190,25 @@ export default function BenoOneWorkflow() {
       case 4:
         return (
           <CustomerFinding
+            url={workflowData.url}
+            description={workflowData.description}
+            segments={workflowData.customerSegments}
             onCustomersFound={handleCustomersFound}
             onBack={goBack}
           />
         );
       
       case 5:
+        return (
+          <DiscussionsList
+            productId={workflowData.productId}
+            discussions={workflowData.discussions}
+            onRepliesPosted={handleRepliesPosted}
+            onBack={goBack}
+          />
+        );
+      
+      case 6:
         return (
           <SuccessScreen
             productName={workflowData.scrapedData.title || 'Your Product'}

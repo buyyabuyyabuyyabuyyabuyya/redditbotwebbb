@@ -2,14 +2,19 @@
 
 import { useState, useEffect } from 'react';
 
+import { DiscussionItem } from '../../types/beno-workflow';
+
 interface CustomerFindingProps {
-  onCustomersFound: () => void;
+  url: string;
+  description: string;
+  segments: string[];
+  onCustomersFound: (productId: string, discussions: DiscussionItem[]) => void;
   onBack: () => void;
 }
 
-export default function CustomerFinding({ onCustomersFound, onBack }: CustomerFindingProps) {
+export default function CustomerFinding({ url, description, segments, onCustomersFound, onBack }: CustomerFindingProps) {
   const [progress, setProgress] = useState(0);
-  const [currentStep, setCurrentStep] = useState('initializing');
+  const [currentStep, setCurrentStep] = useState<'initializing' | 'analyzing' | 'scanning' | 'complete' | 'error'>('initializing');
   const [stepMessages] = useState({
     initializing: 'Initializing AI customer finding process...',
     analyzing: 'Analyzing your product and customer segments...',
@@ -20,41 +25,37 @@ export default function CustomerFinding({ onCustomersFound, onBack }: CustomerFi
   });
 
   useEffect(() => {
-    // Simulate the customer finding process
-    const steps = [
-      { step: 'initializing', duration: 1000, progress: 10 },
-      { step: 'analyzing', duration: 2000, progress: 30 },
-      { step: 'scanning', duration: 3000, progress: 50 },
-      { step: 'scoring', duration: 2000, progress: 70 },
-      { step: 'finalizing', duration: 1500, progress: 90 },
-      { step: 'complete', duration: 1000, progress: 100 }
-    ];
+    async function run() {
+      try {
+        // 1. Create product in Beno
+        setCurrentStep('analyzing');
+        setProgress(20);
+        const createRes = await fetch('/api/beno/product', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: description, description, product_url: url }),
+        });
+        const createData = await createRes.json(); // { product_id, r_code }
+        if (!createRes.ok) throw new Error(createData.error || 'Failed to create product');
 
-    let currentStepIndex = 0;
+        // 2. Fetch discussions
+        setCurrentStep('scanning');
+        setProgress(60);
+        const discRes = await fetch(`/api/beno/discussions?productId=${createData.product_id}`);
+        const discData = await discRes.json();
+        if (!discRes.ok) throw new Error(discData.error || 'Failed to get discussions');
 
-    const processSteps = () => {
-      if (currentStepIndex >= steps.length) {
-        // Process complete, wait a moment then proceed
-        setTimeout(() => {
-          onCustomersFound();
-        }, 1500);
-        return;
+        // 3. Done
+        setProgress(100);
+        setCurrentStep('complete');
+        setTimeout(() => onCustomersFound(createData.product_id, discData.items || []), 1200);
+      } catch (e) {
+        console.error('[CustomerFinding] error', e);
+        setCurrentStep('error');
       }
-
-      const { step, duration, progress: targetProgress } = steps[currentStepIndex];
-      
-      setCurrentStep(step);
-      setProgress(targetProgress);
-
-      currentStepIndex++;
-      setTimeout(processSteps, duration);
-    };
-
-    // Start the process
-    const timer = setTimeout(processSteps, 500);
-
-    return () => clearTimeout(timer);
-  }, [onCustomersFound]);
+    }
+    run();
+  }, [url, description, segments, onCustomersFound]);
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-6">

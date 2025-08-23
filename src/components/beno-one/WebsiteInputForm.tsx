@@ -41,7 +41,7 @@ export default function WebsiteInputForm({ onWebsiteSubmitted, onNext }: Website
     setError(null);
 
     try {
-      const response = await fetch('/api/products/scrape-website', {
+      const response = await fetch('/api/beno/describe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -52,11 +52,14 @@ export default function WebsiteInputForm({ onWebsiteSubmitted, onNext }: Website
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to scrape website');
+        throw new Error(data.error || 'Failed to describe product');
       }
 
       if (data.success && data.data) {
-        onWebsiteSubmitted(url.trim(), data.data);
+        onWebsiteSubmitted(url.trim(), {
+          title: data.name,
+          description: data.description,
+        });
         onNext();
       } else {
         throw new Error('No data received from scraping service');
@@ -139,10 +142,10 @@ export default function WebsiteInputForm({ onWebsiteSubmitted, onNext }: Website
             {isLoading ? (
               <div className="flex items-center justify-center">
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                Scraping website...
+                Analyzing website...
               </div>
             ) : (
-              'Continue'
+              'Analyze Website'
             )}
           </Button3D>
         </form>

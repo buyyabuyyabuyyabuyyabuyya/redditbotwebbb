@@ -1,0 +1,48 @@
+Beno Workflow Integration Plan (2025-08-22)
+================================================
+
+1. Disable legacy scraping & discussion code
+   • Mark API routes `scrape-website`, `generate-description`, `discussions/monitor` as deprecated by returning HTTP 410.
+   • Update front-end hooks/components to stop importing those routes.
+
+2. Centralise Beno API helpers
+   • Create `src/lib/benoService.ts` with typed wrappers:
+     – `describeProduct(url)` → POST describe-product FN
+     – `createProduct(payload)` → POST beno.one /api/product
+     – `getDiscussions(productId)` → GET beno.one /api/discussions
+     – `publishReply(payload)` → POST comments/publish-by-3rd-party
+   Content-Type: application/json
+
+3. New Next.js route handlers
+   • `api/beno/describe/route.ts` (proxy to describeProduct)
+   • `api/beno/product/route.ts` (proxy to createProduct)
+   • `api/beno/discussions/route.ts` (proxy to getDiscussions)
+   • `api/beno/reply/route.ts` (proxy to publishReply)
+
+4. Update data types
+   • Add `types/beno-workflow.ts` describing request/response shapes seen in new Beno workflow file.
+
+5. Front-end workflow screens
+   • Modify `BenoOneWorkflow.tsx` to:
+     1. Accept user URL → call /api/beno/describe, show product pitch.
+     2. Confirm & create product → call /api/beno/product, store `productId`.
+     3. Fetch related discussions → call /api/beno/discussions.
+     4. Show list; allow user to pick & edit reply → call /api/beno/reply.
+
+6. Remove runtime references to old code
+   • Search & replace imports/usages of old API routes with the new service.
+
+7. Config
+   • No API keys required – endpoints are public.
+   • Ensure each request sets `Content-Type: application/json`.
+
+8. Tests
+   • Unit: Mock `benoService` responses.
+   • E2E (Playwright): happy path end-to-end.
+
+9. Deployment
+   • Verify Vercel env vars.
+   • Commit & push.
+
+10. Cleanup (later)
+   • Remove deprecated files once stable.
