@@ -1,5 +1,7 @@
 'use client';
 
+import { useUser } from '@clerk/nextjs';
+
 import { useState } from 'react';
 import { Button3D } from '../ui/Button';
 import { DiscussionItem, PublishReplyRequest } from '../../types/beno-workflow';
@@ -12,6 +14,7 @@ interface DiscussionsListProps {
 }
 
 export default function DiscussionsList({ productId, discussions, onRepliesPosted, onBack }: DiscussionsListProps) {
+  const { user } = useUser();
   const [selectedIds, setSelectedIds] = useState<Set<number | string>>(new Set());
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,13 +40,13 @@ export default function DiscussionsList({ productId, discussions, onRepliesPoste
         const link = (item as any)?.expand?.reply_to?.link as string | undefined;
         const fullUrl = link ? (link.startsWith('http') ? link : `https://reddit.com${link}`) : '';
         const req: PublishReplyRequest = {
-          user_id: 'demo', // TODO: hook into auth
+          user_id: user?.id || 'demo',
           pb_reply_id: ((item as any).id ?? id).toString(),
           comment_text: (item as any).text ?? (item.comment ?? 'Thanks for sharing!'),
           product_id: productId,
           post_url: fullUrl,
         };
-        await fetch('/api/beno/reply', {
+        await fetch('https://scfwkrlxmglonmbvvkhz.supabase.co/functions/v1/comments/publish-by-3rd-party', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(req),
