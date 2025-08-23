@@ -10,12 +10,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { productId, accountId, intervalMinutes, qstashToken } = await req.json();
+    const { productId, accountId, intervalMinutes } = await req.json();
 
-    if (!productId || !accountId || !intervalMinutes || !qstashToken) {
+    if (!productId || !accountId || !intervalMinutes) {
       return NextResponse.json({ 
-        error: 'Missing required fields: productId, accountId, intervalMinutes, qstashToken' 
+        error: 'Missing required fields: productId, accountId, intervalMinutes' 
       }, { status: 400 });
+    }
+
+    // Use admin's QStash token from environment
+    const qstashToken = process.env.QSTASH_TOKEN;
+    if (!qstashToken) {
+      return NextResponse.json({ 
+        error: 'QStash token not configured on server' 
+      }, { status: 500 });
     }
 
     const supabaseAdmin = createClient(
@@ -81,7 +89,6 @@ export async function POST(req: Request) {
       .from('auto_poster_configs')
       .update({
         upstash_schedule_id: scheduleData.scheduleId,
-        upstash_token: qstashToken, // Store encrypted in production
         status: 'active'
       })
       .eq('id', config.id);
@@ -123,10 +130,13 @@ export async function DELETE(req: Request) {
     // Get config with Upstash details
     const { data: config } = await supabaseAdmin
       .from('auto_poster_configs')
-      .select('upstash_schedule_id, upstash_token')
+      .select('upstash_schedule_id')
       .eq('id', configId)
       .eq('user_id', userId)
       .single();
+
+    // Use admin's QStash token
+    const qstashToken = process.env.QSTASH_TOKEN;
 
     if (!config || !config.upstash_schedule_id) {
       return NextResponse.json({ error: 'No Upstash schedule found' }, { status: 404 });
@@ -136,7 +146,7 @@ export async function DELETE(req: Request) {
     const deleteResponse = await fetch(`https://qstash.upstash.io/v2/schedules/${config.upstash_schedule_id}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${config.upstash_token}`,
+        'Authorization': `Bearer ${qstashToken}`,
       }
     });
 
@@ -149,7 +159,6 @@ export async function DELETE(req: Request) {
       .from('auto_poster_configs')
       .update({
         upstash_schedule_id: null,
-        upstash_token: null,
         status: 'paused'
       })
       .eq('id', configId);

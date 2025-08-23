@@ -19,7 +19,6 @@ interface AutoPosterConfig {
   lastPostedAt: string | null;
   nextPostAt: string | null;
   postsToday?: number;
-  qstashToken?: string;
   accountId?: string;
 }
 
@@ -32,7 +31,6 @@ export default function AutoPosterSettings({ productId, accountId }: AutoPosterS
     lastPostedAt: null,
     nextPostAt: null,
     postsToday: 0,
-    qstashToken: '',
     accountId: ''
   });
   const [loading, setLoading] = useState(true);
@@ -87,12 +85,6 @@ export default function AutoPosterSettings({ productId, accountId }: AutoPosterS
   };
 
   const toggleAutoPoster = async () => {
-    if (!config.enabled && !config.qstashToken) {
-      alert('Please enter your Upstash QStash token first');
-      setShowSettings(true);
-      return;
-    }
-
     if (!config.enabled) {
       // Starting automation - setup Upstash cron
       try {
@@ -103,8 +95,7 @@ export default function AutoPosterSettings({ productId, accountId }: AutoPosterS
           body: JSON.stringify({
             productId,
             accountId,
-            intervalMinutes: config.intervalMinutes,
-            qstashToken: config.qstashToken
+            intervalMinutes: config.intervalMinutes
           })
         });
 

@@ -938,10 +938,8 @@ export default function Dashboard() {
                   </div>
                 )}
 
-                {/* Beno One Workflow (initially hidden) */}
-                <div id="beno-workflow-container" className="hidden">
-                  <BenoOneWorkflow />
-                </div>
+                {/* Step-by-step Beno Workflow */}
+                <BenoOneWorkflow />
               </div>
             </Tab.Panel>
           </Tab.Panels>

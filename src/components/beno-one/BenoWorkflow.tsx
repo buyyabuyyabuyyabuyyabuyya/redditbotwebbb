@@ -1,31 +1,51 @@
 'use client';
 
 import { useState } from 'react';
-import CustomerFinding from './CustomerFinding';
 import RedditPoster from './RedditPoster';
 import AutoPosterSettings from './AutoPosterSettings';
 import { DiscussionItem } from '../../types/beno-workflow';
 
-type WorkflowStep = 'input' | 'finding' | 'posting' | 'automation';
+type WorkflowStep = 'input' | 'describe' | 'segments' | 'discussions' | 'posting' | 'automation';
 
 export default function BenoWorkflow() {
   const [currentStep, setCurrentStep] = useState<WorkflowStep>('input');
-  const [productData, setProductData] = useState({
-    url: '',
-    name: '',
-    description: '',
-    segments: [] as string[]
-  });
+  const [url, setUrl] = useState<string>('');
+  const [description, setDescription] = useState<any>(null);
+  const [selectedSegments, setSelectedSegments] = useState<string[]>([]);
   const [productId, setProductId] = useState<string>('');
   const [discussions, setDiscussions] = useState<DiscussionItem[]>([]);
   const [selectedAccountId, setSelectedAccountId] = useState<string>('');
+  const [loading, setLoading] = useState(false);
 
-  const handleInputSubmit = (data: typeof productData) => {
-    setProductData(data);
-    setCurrentStep('finding');
+  const handleUrlSubmit = async (inputUrl: string) => {
+    setUrl(inputUrl);
+    setLoading(true);
+    try {
+      const response = await fetch('/api/beno/describe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: inputUrl })
+      });
+      const data = await response.json();
+      setDescription(data);
+      setCurrentStep('describe');
+    } catch (error) {
+      console.error('Failed to describe website:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleCustomersFound = (id: string, foundDiscussions: DiscussionItem[], creatorId: string) => {
+  const handleDescriptionConfirm = () => {
+    setCurrentStep('segments');
+  };
+
+  const handleSegmentsConfirm = (segments: string[]) => {
+    setSelectedSegments(segments);
+    setCurrentStep('discussions');
+  };
+
+  const handleDiscussionsFound = (id: string, foundDiscussions: DiscussionItem[]) => {
     setProductId(id);
     setDiscussions(foundDiscussions);
     setCurrentStep('posting');
@@ -39,8 +59,12 @@ export default function BenoWorkflow() {
     if (currentStep === 'automation') {
       setCurrentStep('posting');
     } else if (currentStep === 'posting') {
-      setCurrentStep('finding');
-    } else if (currentStep === 'finding') {
+      setCurrentStep('discussions');
+    } else if (currentStep === 'discussions') {
+      setCurrentStep('segments');
+    } else if (currentStep === 'segments') {
+      setCurrentStep('describe');
+    } else if (currentStep === 'describe') {
       setCurrentStep('input');
     }
   };
@@ -50,86 +74,312 @@ export default function BenoWorkflow() {
       {/* Progress indicator */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-3xl font-bold">Beno AI Workflow</h1>
-          <div className="flex items-center space-x-4">
-            <div className={`flex items-center ${currentStep === 'input' ? 'text-blue-600' : currentStep === 'finding' || currentStep === 'posting' ? 'text-green-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'input' ? 'bg-blue-100' : currentStep === 'finding' || currentStep === 'posting' ? 'bg-green-100' : 'bg-gray-100'}`}>
-                1
-              </div>
-              <span className="ml-2">Product Input</span>
-            </div>
-            <div className="w-8 h-px bg-gray-300"></div>
-            <div className={`flex items-center ${currentStep === 'finding' ? 'text-blue-600' : currentStep === 'posting' ? 'text-green-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'finding' ? 'bg-blue-100' : currentStep === 'posting' ? 'bg-green-100' : 'bg-gray-100'}`}>
-                2
-              </div>
-              <span className="ml-2">Find Customers</span>
-            </div>
-            <div className="w-8 h-px bg-gray-300"></div>
-            <div className={`flex items-center ${currentStep === 'posting' ? 'text-blue-600' : currentStep === 'automation' ? 'text-green-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'posting' ? 'bg-blue-100' : currentStep === 'automation' ? 'bg-green-100' : 'bg-gray-100'}`}>
-                3
-              </div>
-              <span className="ml-2">Manual Posting</span>
-            </div>
-            <div className="w-8 h-px bg-gray-300"></div>
-            <div className={`flex items-center ${currentStep === 'automation' ? 'text-blue-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'automation' ? 'bg-blue-100' : 'bg-gray-100'}`}>
-                4
-              </div>
-              <span className="ml-2">Auto-Posting</span>
-            </div>
+          <h1 className="text-3xl font-bold text-white">AI-Powered Discussion Engagement</h1>
+          <div className="flex items-center space-x-2 text-sm">
+            <StepBadge step={1} current={currentStep} stepKey="input" label="URL" />
+            <div className="w-4 h-px bg-gray-600"></div>
+            <StepBadge step={2} current={currentStep} stepKey="describe" label="Analysis" />
+            <div className="w-4 h-px bg-gray-600"></div>
+            <StepBadge step={3} current={currentStep} stepKey="segments" label="Segments" />
+            <div className="w-4 h-px bg-gray-600"></div>
+            <StepBadge step={4} current={currentStep} stepKey="discussions" label="Discussions" />
+            <div className="w-4 h-px bg-gray-600"></div>
+            <StepBadge step={5} current={currentStep} stepKey="posting" label="Manual" />
+            <div className="w-4 h-px bg-gray-600"></div>
+            <StepBadge step={6} current={currentStep} stepKey="automation" label="Auto" />
           </div>
         </div>
       </div>
 
       {/* Step content */}
       {currentStep === 'input' && (
-        <ProductInput onSubmit={handleInputSubmit} />
+        <URLInputStep onSubmit={handleUrlSubmit} loading={loading} />
       )}
 
-      {currentStep === 'finding' && (
-        <CustomerFinding
-          url={productData.url}
-          name={productData.name}
-          description={productData.description}
-          segments={productData.segments}
-          onCustomersFound={handleCustomersFound}
+      {currentStep === 'describe' && description && (
+        <DescriptionStep 
+          description={description}
+          onConfirm={handleDescriptionConfirm}
+          onBack={handleBack}
+        />
+      )}
+
+      {currentStep === 'segments' && description && (
+        <SegmentsStep 
+          customerSegments={description.customer_segments || []}
+          onConfirm={handleSegmentsConfirm}
+          onBack={handleBack}
+        />
+      )}
+
+      {currentStep === 'discussions' && (
+        <DiscussionsStep
+          url={url}
+          description={description}
+          selectedSegments={selectedSegments}
+          onDiscussionsFound={handleDiscussionsFound}
           onBack={handleBack}
         />
       )}
 
       {currentStep === 'posting' && (
-        <div>
+        <div className="bg-gray-800/70 rounded-xl p-6 border border-gray-700/50">
           <div className="mb-6 flex items-center justify-between">
             <button
               onClick={handleBack}
-              className="text-blue-600 hover:text-blue-800 flex items-center"
+              className="text-purple-400 hover:text-purple-300 flex items-center"
             >
-              ← Back to Customer Finding
+              ← Back to Discussions
             </button>
             <button
               onClick={handleSetupAutomation}
-              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg transition-all"
             >
-              Setup Auto-Posting →
+              Setup Automation
             </button>
           </div>
-          <RedditPoster productId={productId} accountId={selectedAccountId} />
+          <RedditPoster
+            productId={productId}
+          />
         </div>
       )}
 
       {currentStep === 'automation' && (
+        <AutoPosterSettings
+          productId={productId}
+          accountId={selectedAccountId}
+        />
+      )}
+    </div>
+  );
+}
+
+// Step Badge Component
+function StepBadge({ step, current, stepKey, label }: { step: number; current: string; stepKey: string; label: string }) {
+  const isActive = current === stepKey;
+  const isCompleted = ['input', 'describe', 'segments', 'discussions', 'posting', 'automation'].indexOf(current) > ['input', 'describe', 'segments', 'discussions', 'posting', 'automation'].indexOf(stepKey);
+  
+  return (
+    <div className={`flex items-center ${isActive ? 'text-purple-400' : isCompleted ? 'text-green-400' : 'text-gray-500'}`}>
+      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${isActive ? 'bg-purple-600' : isCompleted ? 'bg-green-600' : 'bg-gray-600'}`}>
+        {step}
+      </div>
+      <span className="ml-1 text-xs">{label}</span>
+    </div>
+  );
+}
+
+// URL Input Step
+function URLInputStep({ onSubmit, loading }: { onSubmit: (url: string) => void; loading: boolean }) {
+  const [url, setUrl] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (url.trim()) {
+      onSubmit(url.trim());
+    }
+  };
+
+  return (
+    <div className="bg-gray-800/70 rounded-xl p-6 border border-gray-700/50">
+      <h2 className="text-2xl font-bold text-white mb-6">Enter Your Website URL</h2>
+      <p className="text-gray-300 mb-6">
+        Our AI will analyze your website to understand your business and generate targeted discussion engagement strategies.
+      </p>
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <div className="mb-6">
-            <button
-              onClick={handleBack}
-              className="text-blue-600 hover:text-blue-800 flex items-center"
-            >
-              ← Back to Manual Posting
-            </button>
+          <label className="block text-sm font-medium text-purple-300 mb-2">
+            Website URL *
+          </label>
+          <input
+            type="url"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="https://yourwebsite.com"
+            required
+            disabled={loading}
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={loading || !url.trim()}
+          className="w-full bg-purple-600 hover:bg-purple-500 disabled:bg-gray-600 text-white py-3 px-4 rounded-lg transition-colors"
+        >
+          {loading ? 'Analyzing...' : 'Analyze Website →'}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+// Description Step
+function DescriptionStep({ description, onConfirm, onBack }: { description: any; onConfirm: () => void; onBack: () => void }) {
+  return (
+    <div className="bg-gray-800/70 rounded-xl p-6 border border-gray-700/50">
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-white">Review Description</h2>
+        <button onClick={onBack} className="text-purple-400 hover:text-purple-300">← Back</button>
+      </div>
+      
+      <div className="space-y-4 mb-6">
+        <div>
+          <h3 className="text-lg font-semibold text-purple-300 mb-2">Product Name</h3>
+          <p className="text-white">{description.name}</p>
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold text-purple-300 mb-2">Description</h3>
+          <p className="text-gray-300">{description.description}</p>
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold text-purple-300 mb-2">Relevance</h3>
+          <p className="text-gray-300">{description.is_relevant ? 'Suitable for Reddit engagement' : 'May not be suitable'}</p>
+        </div>
+      </div>
+      
+      <button
+        onClick={onConfirm}
+        className="w-full bg-purple-600 hover:bg-purple-500 text-white py-3 px-4 rounded-lg transition-colors"
+      >
+        Continue to Customer Segments →
+      </button>
+    </div>
+  );
+}
+
+// Segments Step
+function SegmentsStep({ customerSegments, onConfirm, onBack }: { customerSegments: string[]; onConfirm: (segments: string[]) => void; onBack: () => void }) {
+  const [selectedSegments, setSelectedSegments] = useState<string[]>([]);
+
+  const toggleSegment = (segment: string) => {
+    setSelectedSegments(prev => 
+      prev.includes(segment) 
+        ? prev.filter(s => s !== segment)
+        : [...prev, segment]
+    );
+  };
+
+  return (
+    <div className="bg-gray-800/70 rounded-xl p-6 border border-gray-700/50">
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-white">Select Customer Segments</h2>
+        <button onClick={onBack} className="text-purple-400 hover:text-purple-300">← Back</button>
+      </div>
+      
+      <p className="text-gray-300 mb-6">
+        Choose which customer segments best represent your target audience:
+      </p>
+      
+      <div className="space-y-3 mb-6">
+        {customerSegments.map((segment, index) => (
+          <label key={index} className="flex items-center space-x-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={selectedSegments.includes(segment)}
+              onChange={() => toggleSegment(segment)}
+              className="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500"
+            />
+            <span className="text-white">{segment}</span>
+          </label>
+        ))}
+      </div>
+      
+      <button
+        onClick={() => onConfirm(selectedSegments)}
+        disabled={selectedSegments.length === 0}
+        className="w-full bg-purple-600 hover:bg-purple-500 disabled:bg-gray-600 text-white py-3 px-4 rounded-lg transition-colors"
+      >
+        Find Relevant Discussions →
+      </button>
+    </div>
+  );
+}
+
+// Discussions Step
+function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFound, onBack }: {
+  url: string;
+  description: any;
+  selectedSegments: string[];
+  onDiscussionsFound: (id: string, discussions: DiscussionItem[]) => void;
+  onBack: () => void;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [discussions, setDiscussions] = useState<DiscussionItem[]>([]);
+  const [productId, setProductId] = useState('');
+
+  const findDiscussions = async () => {
+    setLoading(true);
+    try {
+      // Create product first
+      const productRes = await fetch('/api/beno/product', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: description.name,
+          description: description.description,
+          product_url: url
+        })
+      });
+      const productData = await productRes.json();
+      setProductId(productData.product_id);
+
+      // Get discussions
+      const discussionsRes = await fetch(`/api/beno/discussions?productId=${productData.product_id}`);
+      const discussionsData = await discussionsRes.json();
+      
+      setDiscussions(discussionsData.items || []);
+    } catch (error) {
+      console.error('Failed to find discussions:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleContinue = () => {
+    onDiscussionsFound(productId, discussions);
+  };
+
+  return (
+    <div className="bg-gray-800/70 rounded-xl p-6 border border-gray-700/50">
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-white">Find Relevant Discussions</h2>
+        <button onClick={onBack} className="text-purple-400 hover:text-purple-300">← Back</button>
+      </div>
+      
+      {discussions.length === 0 ? (
+        <div className="text-center">
+          <p className="text-gray-300 mb-6">
+            Ready to find Reddit discussions relevant to your selected customer segments.
+          </p>
+          <button
+            onClick={findDiscussions}
+            disabled={loading}
+            className="bg-purple-600 hover:bg-purple-500 disabled:bg-gray-600 text-white py-3 px-6 rounded-lg transition-colors"
+          >
+            {loading ? 'Searching...' : 'Find Discussions'}
+          </button>
+        </div>
+      ) : (
+        <div>
+          <p className="text-green-400 mb-4">Found {discussions.length} relevant discussions!</p>
+          <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
+            {discussions.slice(0, 3).map((discussion, index) => (
+              <div key={index} className="bg-gray-700/50 p-4 rounded-lg">
+                <h4 className="text-white font-semibold mb-2">{(discussion.raw_comment as any)?.post_title || 'Discussion'}</h4>
+                <p className="text-gray-300 text-sm mb-2">{((discussion.raw_comment as any)?.post_body || '').substring(0, 200)}...</p>
+                <div className="flex items-center space-x-4 text-xs text-gray-400">
+                  <span>Score: {discussion.relevance_score}%</span>
+                  <span>Subreddit: r/{(discussion.raw_comment as any)?.subs_source || 'unknown'}</span>
+                </div>
+              </div>
+            ))}
           </div>
-          <AutoPosterSettings productId={productId} accountId={selectedAccountId} />
+          <button
+            onClick={handleContinue}
+            className="w-full bg-purple-600 hover:bg-purple-500 text-white py-3 px-4 rounded-lg transition-colors"
+          >
+            Continue to Manual Posting →
+          </button>
         </div>
       )}
     </div>
