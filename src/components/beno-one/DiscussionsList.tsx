@@ -35,11 +35,11 @@ export default function DiscussionsList({ productId, creatorId, discussions, onR
         const id = (item as any).id ?? discussions.indexOf(item);
         if (!selectedIds.has(id)) continue;
 
-        const link = (item as any)?.expand?.reply_to?.link as string | undefined;
+        const link = (item as any)?.raw_comment?.link ?? (item as any)?.expand?.reply_to?.link as string | undefined;
         const fullUrl = link ? (link.startsWith('http') ? link : `https://reddit.com${link}`) : '';
         const req: PublishReplyRequest = {
           user_id: creatorId,
-          pb_reply_id: ((item as any).id ?? id).toString(),
+          pb_reply_id: ((item as any)?.raw_comment?.id ?? (item as any).id ?? id).toString(),
           comment_text: (item as any).text ?? (item.comment ?? 'Thanks for sharing!'),
           product_id: productId,
           post_url: fullUrl,

@@ -3576,3 +3576,25 @@ Body:
 
 Response:
 {"status":"success"}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{"name":"Reddit Outreach Automator","url":"https://redditoutreach.com/","description":"Reddit Outreach Automator is a platform that automates targeted messaging and engagement on Reddit to help users reach potential customers efficiently. It offers AI-driven discussion replies and private messaging with customizable templates, multiple managed accounts, and detailed analytics to track campaign success. Designed for marketers, small businesses, social media managers, and lead generation specialists, it ensures safe, compliant outreach with real-time monitoring and AI content analysis."
+,"creator":"yxb82eqdvubztc4","validation_status":"completed","is_auto_replies_off":true,"is_low_rel":true,"is_long_solving_replies":true}
