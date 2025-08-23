@@ -18,6 +18,7 @@ export interface ScrapedWebsiteData {
   title?: string;
   meta_description?: string;
   meta_keywords?: string[];
+  description?: string;
   main_content?: string;
   headings?: string[];
   links?: string[];

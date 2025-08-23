@@ -11,59 +11,15 @@ interface DescriptionReviewProps {
 }
 
 export default function DescriptionReview({ scrapedData, onDescriptionConfirmed, onBack }: DescriptionReviewProps) {
-  const [description, setDescription] = useState(scrapedData.title || '');
+  const [description, setDescription] = useState(scrapedData.description || scrapedData.title || '');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Automatically generate description when component mounts with scraped data
-  useEffect(() => {
-    if (scrapedData && Object.keys(scrapedData).length > 0 && scrapedData.title) {
-      // Auto-generate description after a short delay
-      const timer = setTimeout(() => {
-        generateDescription();
-      }, 1000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [scrapedData]);
+  // Disabled auto generation for now
 
+  // Generate description disabled temporarily to avoid wrong endpoint
   const generateDescription = async () => {
-    setIsGenerating(true);
-    setError(null);
-
-    try {
-      const response = await fetch('/api/products/generate-description', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          scraped_content: scrapedData,
-          product_name: scrapedData.title
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate description');
-      }
-
-      if (data.success && data.description) {
-        setDescription(data.description);
-      } else {
-        throw new Error('No description generated');
-      }
-
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate description');
-      // Fallback to title if AI generation fails
-      if (scrapedData.title) {
-        setDescription(scrapedData.title);
-      }
-    } finally {
-      setIsGenerating(false);
-    }
+    console.log('[DescriptionReview] generateDescription temporarily disabled');
   };
 
   const handleConfirm = () => {
@@ -116,29 +72,6 @@ export default function DescriptionReview({ scrapedData, onDescriptionConfirmed,
             className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 resize-none"
             placeholder="Describe your project in simple terms..."
           />
-          
-          {/* Generate Button */}
-          <div className="mt-3 flex justify-end">
-            <button
-              onClick={generateDescription}
-              disabled={isGenerating}
-              className="text-orange-600 hover:text-orange-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-            >
-              {isGenerating ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-600 mr-2"></div>
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                  Generate with AI
-                </>
-              )}
-            </button>
-          </div>
         </div>
 
         {/* Error Message */}
