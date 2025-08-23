@@ -50,7 +50,14 @@ export default function CustomerFinding({ url, name, description, segments, onCu
         const createData = await createRes.json(); // { product_id, r_code }
         if (!createRes.ok) throw new Error(createData.error || 'Failed to create product');
 
-        // 2. Poll discussions until items available or timeout (~30s)
+        // 2. Trigger Beno replies endpoint (required before discussions)
+        try {
+          await fetch(`/api/beno/replies?productId=${createData.product_id}`);
+        } catch (e) {
+          console.warn('[CustomerFinding] non-fatal: replies endpoint failed', e);
+        }
+
+        // 3. Poll discussions until items available or timeout (~30s)
         setCurrentStep('scanning');
         setProgress(60);
         let discData: any = { items: [] };
@@ -67,7 +74,22 @@ export default function CustomerFinding({ url, name, description, segments, onCu
           setProgress(p => Math.min(90, p + 5));
         }
 
-        // 3. Done
+        // 4. Create promoting_product record (non-blocking)
+        try {
+          await fetch('/api/beno/promoting-product', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: name || description.substring(0, 80),
+              url,
+              description,
+            }),
+          });
+        } catch (e) {
+          console.warn('[CustomerFinding] promoting-product creation failed', e);
+        }
+
+        // 5. Done
         setProgress(100);
         setCurrentStep('complete');
         setTimeout(() => onCustomersFound(createData.product_id, discData.items || []), 1200);
