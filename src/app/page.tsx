@@ -62,7 +62,7 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* URL Input & Outreach Method Selection */}
+      {/* Outreach Method Selection */}
       <div className="bg-gray-800 py-24 sm:py-32">
         <div className="mx-auto max-w-4xl px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -70,29 +70,11 @@ export default async function Home() {
               Choose Your Outreach Strategy
             </h2>
             <p className="text-lg leading-8 text-gray-300 max-w-2xl mx-auto">
-              Enter your website URL and select how you want to reach potential customers on Reddit
+              Select how you want to reach potential customers on Reddit with our AI-powered tools
             </p>
           </div>
 
           <div className="bg-gray-700/40 rounded-2xl p-8 border border-gray-600/30 backdrop-blur-lg">
-            {/* URL Input */}
-            <div className="mb-8">
-              <label htmlFor="website-url" className="block text-sm font-medium text-purple-300 mb-3">
-                Your Website URL
-              </label>
-              <div className="flex gap-3">
-                <input
-                  type="url"
-                  id="website-url"
-                  placeholder="https://yourwebsite.com"
-                  className="flex-1 px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                />
-                <button className="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-medium rounded-lg transition-all hover:shadow-lg">
-                  Analyze
-                </button>
-              </div>
-            </div>
-
             {/* Outreach Method Selection */}
             <div className="grid md:grid-cols-2 gap-6">
               {/* Discussion Engagement Option */}
@@ -175,7 +157,7 @@ export default async function Home() {
             </div>
 
             {/* Info Box */}
-            <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+            <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mt-6">
               <div className="flex items-start gap-3">
                 <svg className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
@@ -183,9 +165,8 @@ export default async function Home() {
                 <div>
                   <h4 className="text-blue-400 font-semibold mb-2">How It Works</h4>
                   <p className="text-sm text-gray-300">
-                    Enter your website URL above and our AI will analyze it to understand your business. 
-                    Then choose your preferred outreach method. Both options use your managed Reddit accounts 
-                    to ensure safety and compliance with Reddit's terms of service.
+                    Sign up to access the dashboard where you can enter your website URL and our AI will analyze it to understand your business. 
+                    Both options use your managed Reddit accounts to ensure safety and compliance with Reddit's terms of service.
                   </p>
                 </div>
               </div>

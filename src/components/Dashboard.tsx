@@ -852,65 +852,6 @@ export default function Dashboard() {
                   </div>
                 </div>
                 
-                {/* Initial URL Input Section */}
-                <div className="bg-gray-800/70 rounded-xl p-6 border border-gray-700/50 backdrop-blur-sm">
-                  <h3 className="text-lg font-medium text-purple-300 mb-4">
-                    Start Your Discussion Engagement Campaign
-                  </h3>
-                  <p className="text-gray-300 mb-6">
-                    Enter your website URL below to begin the AI-powered analysis and setup process.
-                  </p>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <label htmlFor="website-url" className="block text-sm font-medium text-purple-300 mb-2">
-                        Your Website URL
-                      </label>
-                      <div className="flex gap-3">
-                        <input
-                          type="url"
-                          id="website-url"
-                          placeholder="https://yourwebsite.com"
-                          className="flex-1 px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                          onKeyPress={(e) => {
-                            if (e.key === 'Enter') {
-                              const url = (e.target as HTMLInputElement).value;
-                              if (url) {
-                                handleWebsiteAnalysis(url);
-                              }
-                            }
-                          }}
-                        />
-                        <button 
-                          onClick={() => {
-                            const url = (document.getElementById('website-url') as HTMLInputElement)?.value;
-                            if (url) {
-                              handleWebsiteAnalysis(url);
-                            }
-                          }}
-                          className="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-medium rounded-lg transition-all hover:shadow-lg"
-                        >
-                          Analyze Website
-                        </button>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
-                      <div className="flex items-start gap-3">
-                        <svg className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                        </svg>
-                        <div>
-                          <h4 className="text-blue-400 font-semibold mb-2">How It Works</h4>
-                          <p className="text-sm text-gray-300">
-                            Our AI will analyze your website, generate a description, help you select customer segments, 
-                            and then monitor Reddit discussions to find relevant opportunities for engagement.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
 
                 {/* Saved Campaigns */}
                 {campaigns.length > 0 && (
