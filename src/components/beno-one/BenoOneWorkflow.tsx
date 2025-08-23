@@ -16,6 +16,7 @@ interface WorkflowData {
   description: string;
   productId: string;
   discussions: DiscussionItem[];
+  creatorId: string;
   customerSegments: string[];
 }
 
@@ -27,6 +28,7 @@ export default function BenoOneWorkflow() {
     description: '',
     customerSegments: [],
     productId: '',
+    creatorId: '',
     discussions: []
   });
   const [isVisible, setIsVisible] = useState(false);
@@ -114,8 +116,8 @@ export default function BenoOneWorkflow() {
     setCurrentStep(4);
   };
 
-  const handleCustomersFound = (productId: string, discussions: DiscussionItem[]) => {
-    setWorkflowData(prev => ({ ...prev, productId, discussions }));
+  const handleCustomersFound = (productId: string, discussions: DiscussionItem[], creatorId: string) => {
+    setWorkflowData(prev => ({ ...prev, productId, discussions, creatorId }));
     setCurrentStep(5);
   };
 
@@ -136,7 +138,8 @@ export default function BenoOneWorkflow() {
       description: '',
       customerSegments: [],
       productId: '',
-      discussions: []
+      discussions: [],
+      creatorId: ''
     });
     
     // Show the URL input section again
@@ -203,6 +206,7 @@ export default function BenoOneWorkflow() {
         return (
           <DiscussionsList
             productId={workflowData.productId}
+            creatorId={workflowData.creatorId}
             discussions={workflowData.discussions}
             onRepliesPosted={handleRepliesPosted}
             onBack={goBack}

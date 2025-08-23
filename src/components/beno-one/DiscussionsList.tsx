@@ -1,20 +1,18 @@
 'use client';
 
-import { useUser } from '@clerk/nextjs';
-
 import { useState } from 'react';
 import { Button3D } from '../ui/Button';
 import { DiscussionItem, PublishReplyRequest } from '../../types/beno-workflow';
 
 interface DiscussionsListProps {
   productId: string;
+  creatorId: string;
   discussions: DiscussionItem[];
   onRepliesPosted: () => void;
   onBack: () => void;
 }
 
-export default function DiscussionsList({ productId, discussions, onRepliesPosted, onBack }: DiscussionsListProps) {
-  const { user } = useUser();
+export default function DiscussionsList({ productId, creatorId, discussions, onRepliesPosted, onBack }: DiscussionsListProps) {
   const [selectedIds, setSelectedIds] = useState<Set<number | string>>(new Set());
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +38,7 @@ export default function DiscussionsList({ productId, discussions, onRepliesPoste
         const link = (item as any)?.expand?.reply_to?.link as string | undefined;
         const fullUrl = link ? (link.startsWith('http') ? link : `https://reddit.com${link}`) : '';
         const req: PublishReplyRequest = {
-          user_id: user?.id || 'demo',
+          user_id: creatorId,
           pb_reply_id: ((item as any).id ?? id).toString(),
           comment_text: (item as any).text ?? (item.comment ?? 'Thanks for sharing!'),
           product_id: productId,
