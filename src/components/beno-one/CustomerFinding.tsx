@@ -50,12 +50,22 @@ export default function CustomerFinding({ url, name, description, segments, onCu
         const createData = await createRes.json(); // { product_id, r_code }
         if (!createRes.ok) throw new Error(createData.error || 'Failed to create product');
 
-        // 2. Fetch discussions
+        // 2. Poll discussions until items available or timeout (~30s)
         setCurrentStep('scanning');
         setProgress(60);
-        const discRes = await fetch(`/api/beno/discussions?productId=${createData.product_id}`);
-        const discData = await discRes.json();
-        if (!discRes.ok) throw new Error(discData.error || 'Failed to get discussions');
+        let discData: any = { items: [] };
+        const maxAttempts = 6;
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+          const res = await fetch(`/api/beno/discussions?productId=${createData.product_id}`);
+          discData = await res.json();
+          if (res.ok && Array.isArray(discData.items) && discData.items.length > 0) {
+            break;
+          }
+          // wait 5s before next try
+          await new Promise(r => setTimeout(r, 5000));
+          // update progress slightly
+          setProgress(p => Math.min(90, p + 5));
+        }
 
         // 3. Done
         setProgress(100);

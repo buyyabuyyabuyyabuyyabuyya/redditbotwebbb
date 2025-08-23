@@ -65,28 +65,43 @@ export default function DiscussionsList({ productId, discussions, onRepliesPoste
           <div className="bg-red-50 text-red-600 p-3 mb-4 rounded-lg text-center text-sm">{error}</div>
         )}
 
-        <div className="space-y-4 mb-8">
-          {discussions.map((d, idx) => {
-            const id = (d as any).id ?? idx;
-            const selected = selectedIds.has(id);
-            return (
-              <div
-                key={id}
-                onClick={() => toggleSelect(id)}
-                className={`border rounded-lg p-4 cursor-pointer transition-all ${selected ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:bg-gray-50'}`}
-              >
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{d.comment?.slice(0, 120) || 'Reddit post'}</h3>
-                    <p className="text-sm text-gray-500 mt-1">Relevance: {(d.relevance_score * 100).toFixed(0)}%</p>
+        {discussions.length === 0 ? (
+          <div className="text-center text-gray-500 mb-8">
+            No relevant Reddit posts were found yet. Try scanning again later or go back to adjust criteria.
+          </div>
+        ) : (
+          <div className="space-y-4 mb-8">
+            {discussions.map((d, idx) => {
+              const id = (d as any).id ?? idx;
+              const selected = selectedIds.has(id);
+              return (
+                <div
+                  key={id}
+                  onClick={() => toggleSelect(id)}
+                  className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                    selected ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="font-semibold text-gray-900">
+                        {d.comment?.slice(0, 120) || 'Reddit post'}
+                      </h3>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Relevance: {(d.relevance_score * 100).toFixed(0)}%
+                      </p>
+                    </div>
+                    <div
+                      className={`w-5 h-5 rounded-full border-2 ${
+                        selected ? 'bg-orange-500 border-orange-500' : 'border-gray-300'
+                      }`}
+                    />
                   </div>
-
-                  <div className={`w-5 h-5 rounded-full border-2 ${selected ? 'bg-orange-500 border-orange-500' : 'border-gray-300'}`} />
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
 
         <div className="flex gap-4 justify-center">
           <button
