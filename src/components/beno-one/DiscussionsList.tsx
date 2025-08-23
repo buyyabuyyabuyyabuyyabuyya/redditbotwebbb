@@ -34,12 +34,14 @@ export default function DiscussionsList({ productId, discussions, onRepliesPoste
         const id = (item as any).id ?? discussions.indexOf(item);
         if (!selectedIds.has(id)) continue;
 
+        const link = (item as any)?.expand?.reply_to?.link as string | undefined;
+        const fullUrl = link ? (link.startsWith('http') ? link : `https://reddit.com${link}`) : '';
         const req: PublishReplyRequest = {
           user_id: 'demo', // TODO: hook into auth
-          pb_reply_id: id.toString(),
-          comment_text: item.comment ?? 'Thanks for sharing!',
+          pb_reply_id: ((item as any).id ?? id).toString(),
+          comment_text: (item as any).text ?? (item.comment ?? 'Thanks for sharing!'),
           product_id: productId,
-          post_url: (item as any).url ?? '',
+          post_url: fullUrl,
         };
         await fetch('/api/beno/reply', {
           method: 'POST',
