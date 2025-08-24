@@ -4,8 +4,9 @@ import { useState } from 'react';
 import RedditPoster from './RedditPoster';
 import AutoPosterSettings from './AutoPosterSettings';
 import { DiscussionItem } from '../../types/beno-workflow';
+import { redditReplyService } from '../../lib/redditReplyService';
 
-type WorkflowStep = 'input' | 'describe' | 'segments' | 'discussions' | 'posting' | 'automation';
+type WorkflowStep = 'input' | 'describe' | 'segments' | 'discussions' | 'auto-reply' | 'posting' | 'automation';
 
 export default function BenoWorkflow() {
   const [currentStep, setCurrentStep] = useState<WorkflowStep>('input');
@@ -59,6 +60,8 @@ export default function BenoWorkflow() {
     if (currentStep === 'automation') {
       setCurrentStep('posting');
     } else if (currentStep === 'posting') {
+      setCurrentStep('auto-reply');
+    } else if (currentStep === 'auto-reply') {
       setCurrentStep('discussions');
     } else if (currentStep === 'discussions') {
       setCurrentStep('segments');
@@ -84,9 +87,11 @@ export default function BenoWorkflow() {
             <div className="w-4 h-px bg-gray-600"></div>
             <StepBadge step={4} current={currentStep} stepKey="discussions" label="Discussions" />
             <div className="w-4 h-px bg-gray-600"></div>
-            <StepBadge step={5} current={currentStep} stepKey="posting" label="Manual" />
+            <StepBadge step={5} current={currentStep} stepKey="auto-reply" label="AI Reply" />
             <div className="w-4 h-px bg-gray-600"></div>
-            <StepBadge step={6} current={currentStep} stepKey="automation" label="Auto" />
+            <StepBadge step={6} current={currentStep} stepKey="posting" label="Manual" />
+            <div className="w-4 h-px bg-gray-600"></div>
+            <StepBadge step={7} current={currentStep} stepKey="automation" label="Auto" />
           </div>
         </div>
       </div>
@@ -119,6 +124,15 @@ export default function BenoWorkflow() {
           selectedSegments={selectedSegments}
           onDiscussionsFound={handleDiscussionsFound}
           onBack={handleBack}
+          onAutoReply={() => setCurrentStep('auto-reply')}
+        />
+      )}
+
+      {currentStep === 'auto-reply' && (
+        <AutoReplyStep
+          discussions={discussions}
+          onBack={handleBack}
+          onContinue={() => setCurrentStep('posting')}
         />
       )}
 
@@ -159,12 +173,15 @@ function StepBadge({ step, current, stepKey, label }: { step: number; current: s
   const isActive = current === stepKey;
   const isCompleted = ['input', 'describe', 'segments', 'discussions', 'posting', 'automation'].indexOf(current) > ['input', 'describe', 'segments', 'discussions', 'posting', 'automation'].indexOf(stepKey);
   
+  const stepClasses = isActive 
+    ? 'bg-purple-600 text-white' 
+    : isCompleted 
+      ? 'bg-green-600 text-white' 
+      : 'bg-gray-600 text-gray-300';
+
   return (
-    <div className={`flex items-center ${isActive ? 'text-purple-400' : isCompleted ? 'text-green-400' : 'text-gray-500'}`}>
-      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${isActive ? 'bg-purple-600' : isCompleted ? 'bg-green-600' : 'bg-gray-600'}`}>
-        {step}
-      </div>
-      <span className="ml-1 text-xs">{label}</span>
+    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${stepClasses}`}>
+      {step}
     </div>
   );
 }
@@ -296,12 +313,13 @@ function SegmentsStep({ customerSegments, onConfirm, onBack }: { customerSegment
 }
 
 // Discussions Step
-function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFound, onBack }: {
+function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFound, onBack, onAutoReply }: {
   url: string;
   description: any;
   selectedSegments: string[];
   onDiscussionsFound: (id: string, discussions: DiscussionItem[]) => void;
   onBack: () => void;
+  onAutoReply: () => void;
 }) {
   const [loading, setLoading] = useState(false);
   const [discussions, setDiscussions] = useState<DiscussionItem[]>([]);
@@ -412,12 +430,20 @@ function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFoun
               </div>
             ))}
           </div>
-          <button
-            onClick={handleContinue}
-            className="w-full bg-purple-600 hover:bg-purple-500 text-white py-3 px-4 rounded-lg transition-colors"
-          >
-            Continue to Manual Posting →
-          </button>
+          <div className="flex space-x-4">
+            <button
+              onClick={onAutoReply}
+              className="flex-1 bg-green-600 hover:bg-green-500 text-white py-3 px-4 rounded-lg transition-colors"
+            >
+              Generate AI Replies →
+            </button>
+            <button
+              onClick={handleContinue}
+              className="flex-1 bg-purple-600 hover:bg-purple-500 text-white py-3 px-4 rounded-lg transition-colors"
+            >
+              Manual Posting →
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -566,6 +592,219 @@ function ProductInput({ onSubmit }: ProductInputProps) {
           Start Customer Finding
         </button>
       </form>
+    </div>
+  );
+}
+
+// Auto Reply Step Component
+function AutoReplyStep({ discussions, onBack, onContinue }: {
+  discussions: DiscussionItem[];
+  onBack: () => void;
+  onContinue: () => void;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [selectedAccountId, setSelectedAccountId] = useState<string>('');
+  const [tone, setTone] = useState<'helpful' | 'casual' | 'professional' | 'enthusiastic' | 'informative'>('helpful');
+  const [maxLength, setMaxLength] = useState(500);
+  const [keywords, setKeywords] = useState<string>('');
+  const [results, setResults] = useState<any[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const handleGenerateReplies = async () => {
+    if (!selectedAccountId) {
+      alert('Please select a Reddit account first');
+      return;
+    }
+
+    setLoading(true);
+    setResults([]);
+    setCurrentIndex(0);
+
+    try {
+      const keywordArray = keywords.split(',').map(k => k.trim()).filter(k => k);
+      const postsToProcess = discussions.slice(0, 5); // Process first 5 discussions
+
+      for (let i = 0; i < postsToProcess.length; i++) {
+        const discussion = postsToProcess[i] as any;
+        
+        // Convert discussion to Reddit post format
+        const post = {
+          id: discussion.id || `post_${i}`,
+          title: discussion.title || 'Discussion',
+          selftext: discussion.content || discussion.description || '',
+          subreddit: discussion.subreddit || 'unknown',
+          score: discussion.score || 0,
+          url: discussion.url || '',
+          permalink: discussion.url || ''
+        };
+
+        const result = await redditReplyService.generateAndPostReply(post, {
+          tone,
+          maxLength,
+          keywords: keywordArray,
+          accountId: selectedAccountId
+        });
+
+        setResults(prev => [...prev, { post, result }]);
+        setCurrentIndex(i + 1);
+
+        // Small delay between requests
+        if (i < postsToProcess.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      }
+    } catch (error) {
+      console.error('Error generating replies:', error);
+      alert('Error generating replies. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-gray-800/70 rounded-xl p-6 border border-gray-700/50">
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-white">AI Reply Generation</h2>
+        <button onClick={onBack} className="text-purple-400 hover:text-purple-300">← Back</button>
+      </div>
+
+      {results.length === 0 ? (
+        <div className="space-y-6">
+          <p className="text-gray-300">
+            Generate AI-powered replies for the found discussions and automatically post them to Reddit.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Reddit Account
+              </label>
+              <select
+                value={selectedAccountId}
+                onChange={(e) => setSelectedAccountId(e.target.value)}
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                <option value="">Select an account...</option>
+                <option value="account1">Reddit Account 1</option>
+                <option value="account2">Reddit Account 2</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Reply Tone
+              </label>
+              <select
+                value={tone}
+                onChange={(e) => setTone(e.target.value as any)}
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                <option value="helpful">Helpful</option>
+                <option value="casual">Casual</option>
+                <option value="professional">Professional</option>
+                <option value="enthusiastic">Enthusiastic</option>
+                <option value="informative">Informative</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Max Length (characters)
+              </label>
+              <input
+                type="number"
+                value={maxLength}
+                onChange={(e) => setMaxLength(parseInt(e.target.value) || 500)}
+                min="100"
+                max="1000"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Keywords (comma-separated)
+              </label>
+              <input
+                type="text"
+                value={keywords}
+                onChange={(e) => setKeywords(e.target.value)}
+                placeholder="keyword1, keyword2, keyword3"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+          </div>
+
+          <div className="bg-gray-700/50 p-4 rounded-lg">
+            <h3 className="text-white font-semibold mb-2">Discussions to Process ({discussions.length})</h3>
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {discussions.slice(0, 5).map((discussion, index) => (
+                <div key={index} className="text-sm text-gray-300">
+                  • {(discussion as any).title || 'Discussion'} (r/{(discussion as any).subreddit || 'unknown'})
+                </div>
+              ))}
+              {discussions.length > 5 && (
+                <div className="text-sm text-gray-400">...and {discussions.length - 5} more</div>
+              )}
+            </div>
+          </div>
+
+          <button
+            onClick={handleGenerateReplies}
+            disabled={loading || !selectedAccountId}
+            className="w-full bg-green-600 hover:bg-green-500 disabled:bg-gray-600 text-white py-3 px-4 rounded-lg transition-colors"
+          >
+            {loading ? `Generating Replies... (${currentIndex}/${Math.min(discussions.length, 5)})` : 'Generate & Post AI Replies'}
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-semibold text-white">Reply Results</h3>
+            <div className="text-sm text-gray-300">
+              {results.filter(r => r.result.success).length} successful, {results.filter(r => !r.result.success).length} failed
+            </div>
+          </div>
+
+          <div className="space-y-4 max-h-96 overflow-y-auto">
+            {results.map((item, index) => (
+              <div key={index} className="bg-gray-700/50 p-4 rounded-lg">
+                <div className="flex items-start justify-between mb-2">
+                  <h4 className="text-white font-medium">{item.post.title}</h4>
+                  <span className={`px-2 py-1 rounded text-xs ${
+                    item.result.success ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
+                  }`}>
+                    {item.result.success ? 'Posted' : 'Failed'}
+                  </span>
+                </div>
+                <p className="text-gray-400 text-sm mb-2">r/{item.post.subreddit}</p>
+                {item.result.generatedReply && (
+                  <div className="bg-gray-800 p-3 rounded text-sm text-gray-300 mb-2">
+                    <strong>Generated Reply:</strong><br />
+                    {item.result.generatedReply.substring(0, 200)}...
+                  </div>
+                )}
+                {item.result.error && (
+                  <p className="text-red-400 text-sm">Error: {item.result.error}</p>
+                )}
+                {item.result.commentUrl && (
+                  <a href={item.result.commentUrl} target="_blank" rel="noopener noreferrer" 
+                     className="text-blue-400 hover:text-blue-300 text-sm">
+                    View Comment →
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <button
+            onClick={onContinue}
+            className="w-full bg-purple-600 hover:bg-purple-500 text-white py-3 px-4 rounded-lg transition-colors"
+          >
+            Continue to Manual Posting →
+          </button>
+        </div>
+      )}
     </div>
   );
 }
