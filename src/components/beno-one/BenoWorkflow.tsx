@@ -323,11 +323,40 @@ function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFoun
       const productData = await productRes.json();
       setProductId(productData.product_id);
 
-      // Get discussions
-      const discussionsRes = await fetch(`/api/beno/discussions?productId=${productData.product_id}`);
-      const discussionsData = await discussionsRes.json();
+      // Use custom Reddit discussions logic
+      const { generateRedditSearchQueries, searchMultipleSubreddits } = await import('../../lib/redditService');
       
-      setDiscussions(discussionsData.items || []);
+      // Generate search queries based on product description
+      const queries = generateRedditSearchQueries(description.description, description.segments || []);
+      
+      // Search Reddit for relevant discussions
+      const allDiscussions = [];
+      for (const query of queries.slice(0, 3)) { // Limit to top 3 queries
+        try {
+          const discussions = await searchMultipleSubreddits(query, undefined, 3);
+          allDiscussions.push(...discussions);
+        } catch (error) {
+          console.warn('Failed to search Reddit for query:', query, error);
+        }
+      }
+      
+      // Remove duplicates and convert to expected DiscussionItem format
+      const uniqueDiscussions = allDiscussions
+        .filter((discussion, index, self) => 
+          index === self.findIndex(d => d.id === discussion.id)
+        )
+        .slice(0, 10)
+        .map(discussion => ({
+          raw_comment: discussion.content || discussion.title,
+          engagement_metrics: {
+            score: discussion.score,
+            num_comments: discussion.num_comments
+          },
+          relevance_score: Math.min(100, Math.max(0, discussion.score * 2)), // Convert Reddit score to 0-100 scale
+          comment: discussion.content || discussion.title
+        }));
+      
+      setDiscussions(uniqueDiscussions);
     } catch (error) {
       console.error('Failed to find discussions:', error);
     } finally {

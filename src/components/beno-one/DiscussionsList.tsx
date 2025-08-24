@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button3D } from '../ui/Button';
-import { DiscussionItem, PublishReplyRequest } from '../../types/beno-workflow';
+import { DiscussionItem } from '../../types/beno-workflow';
 
 interface DiscussionsListProps {
   productId: string;
@@ -37,18 +37,25 @@ export default function DiscussionsList({ productId, creatorId, discussions, onR
 
         const link = (item as any)?.raw_comment?.link ?? (item as any)?.expand?.reply_to?.link as string | undefined;
         const fullUrl = link ? (link.startsWith('http') ? link : `https://reddit.com${link}`) : '';
-        const req: PublishReplyRequest = {
-          user_id: creatorId,
-          pb_reply_id: ((item as any).id ?? id).toString(),
-          comment_text: (item as any).text ?? (item.comment ?? 'Thanks for sharing!'),
-          product_id: productId,
-          post_url: fullUrl,
-        };
-        await fetch('https://scfwkrlxmglonmbvvkhz.supabase.co/functions/v1/comments/publish-by-3rd-party', {
+        // Use custom Reddit posting API
+        const commentText = (item as any).text ?? (item.comment ?? 'Thanks for sharing!');
+        
+        const response = await fetch('/api/reddit/post-reply', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(req),
+          body: JSON.stringify({
+            comment_text: commentText,
+            post_url: fullUrl,
+            user_id: creatorId
+          })
         });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to post reply: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log(`[DiscussionsList] Posted comment successfully:`, result);
       }
       onRepliesPosted();
     } catch (e) {

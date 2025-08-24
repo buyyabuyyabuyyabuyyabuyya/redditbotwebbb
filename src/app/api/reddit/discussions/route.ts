@@ -1,0 +1,56 @@
+import { NextResponse } from 'next/server';
+
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const query = searchParams.get('query');
+    const subreddit = searchParams.get('subreddit') || 'all';
+    const limit = parseInt(searchParams.get('limit') || '10');
+
+    if (!query) {
+      return NextResponse.json({ error: 'query parameter required' }, { status: 400 });
+    }
+
+    // Use Reddit's JSON API to search for posts
+    const redditUrl = `https://www.reddit.com/r/${subreddit}/search.json?q=${encodeURIComponent(query)}&sort=relevance&limit=${limit}&restrict_sr=on`;
+    
+    const response = await fetch(redditUrl, {
+      headers: {
+        'User-Agent': 'RedditBot/1.0 (by /u/YourUsername)'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Reddit API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    // Transform Reddit data to match our expected format
+    const discussions = data.data?.children?.map((post: any) => ({
+      id: post.data.id,
+      title: post.data.title,
+      content: post.data.selftext || '',
+      description: post.data.selftext || post.data.title, // Add description field for UI
+      url: `https://reddit.com${post.data.permalink}`,
+      subreddit: post.data.subreddit,
+      author: post.data.author,
+      score: post.data.score,
+      num_comments: post.data.num_comments,
+      created_utc: post.data.created_utc,
+      raw_comment: post.data.selftext || post.data.title
+    })) || [];
+
+    return NextResponse.json({
+      items: discussions,
+      total: discussions.length
+    });
+
+  } catch (error) {
+    console.error('Reddit discussions API error:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch Reddit discussions', details: (error as Error).message },
+      { status: 500 }
+    );
+  }
+}

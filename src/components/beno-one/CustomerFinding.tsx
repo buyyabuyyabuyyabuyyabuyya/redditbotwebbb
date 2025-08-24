@@ -102,22 +102,46 @@ export default function CustomerFinding({ url, name, description, segments, onCu
           console.warn('[CustomerFinding] non-fatal: replies endpoint failed', e);
         }
 
-        // 4. Poll discussions until items available or timeout (~30s)
+        // 4. Custom discussions logic (replacing old Beno API)
         setCurrentStep('scanning');
         setProgress(60);
-        let discData: any = { items: [] };
-        const maxAttempts = 6;
-        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-          const res = await fetch(`/api/beno/discussions?productId=${createData.product_id}`);
-          discData = await res.json();
-          if (res.ok && Array.isArray(discData.items) && discData.items.length > 0) {
-            break;
+        
+        // Use custom Reddit discussions logic
+        const { generateRedditSearchQueries, searchMultipleSubreddits } = await import('../../lib/redditService');
+        
+        // Generate search queries based on product description and segments
+        const queries = generateRedditSearchQueries(description, segments);
+        
+        // Search Reddit for relevant discussions
+        const allDiscussions = [];
+        for (const query of queries.slice(0, 3)) { // Limit to top 3 queries
+          try {
+            const discussions = await searchMultipleSubreddits(query, undefined, 3);
+            allDiscussions.push(...discussions);
+            setProgress(p => Math.min(85, p + 5)); // Update progress
+          } catch (error) {
+            console.warn('Failed to search Reddit for query:', query, error);
           }
-          // wait 5s before next try
-          await new Promise(r => setTimeout(r, 5000));
-          // update progress slightly
-          setProgress(p => Math.min(90, p + 5));
         }
+        
+        // Convert to expected DiscussionItem format
+        const discussionItems = allDiscussions
+          .filter((discussion, index, self) => 
+            index === self.findIndex(d => d.id === discussion.id)
+          )
+          .slice(0, 10)
+          .map(discussion => ({
+            raw_comment: discussion.content || discussion.title,
+            engagement_metrics: {
+              score: discussion.score,
+              num_comments: discussion.num_comments
+            },
+            relevance_score: Math.min(100, Math.max(0, discussion.score * 2)),
+            comment: discussion.content || discussion.title
+          }));
+        
+        let discData: any = { items: discussionItems };
+        setProgress(90);
 
         // (moved promoting_product creation earlier)
         try {
