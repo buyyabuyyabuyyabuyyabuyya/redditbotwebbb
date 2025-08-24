@@ -16,8 +16,13 @@ export async function GET(req: Request) {
     
     const response = await fetch(redditUrl, {
       headers: {
-        'User-Agent': 'RedditBot/1.0 (by /u/YourUsername)'
-      }
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+        'Cache-Control': 'no-cache'
+    }
     });
 
     if (!response.ok) {
