@@ -11,8 +11,8 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'query parameter required' }, { status: 400 });
     }
 
-    // Use Reddit's JSON API to search for posts
-    const redditUrl = `https://old.reddit.com/r/${subreddit}/search.json?q=${encodeURIComponent(query)}&sort=relevance&limit=${limit}&restrict_sr=on`;    
+    // Use Reddit's JSON API to get hot posts (search is heavily restricted)
+    const redditUrl = `https://old.reddit.com/r/${subreddit}/hot.json?limit=${limit}`;    
     const response = await fetch(redditUrl, {
         headers: {
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -37,19 +37,27 @@ export async function GET(req: Request) {
     const data = await response.json();
     
     // Transform Reddit data to match our expected format
-    const discussions = data.data?.children?.map((post: any) => ({
-      id: post.data.id,
-      title: post.data.title,
-      content: post.data.selftext || '',
-      description: post.data.selftext || post.data.title, // Add description field for UI
-      url: `https://reddit.com${post.data.permalink}`,
-      subreddit: post.data.subreddit,
-      author: post.data.author,
-      score: post.data.score,
-      num_comments: post.data.num_comments,
-      created_utc: post.data.created_utc,
-      raw_comment: post.data.selftext || post.data.title
-    })) || [];
+    // Filter posts by query relevance since we're using hot posts instead of search
+    const discussions = data.data?.children
+      ?.filter((post: any) => {
+        const title = post.data.title.toLowerCase();
+        const content = (post.data.selftext || '').toLowerCase();
+        const queryLower = query.toLowerCase();
+        return title.includes(queryLower) || content.includes(queryLower);
+      })
+      ?.map((post: any) => ({
+        id: post.data.id,
+        title: post.data.title,
+        content: post.data.selftext || '',
+        description: post.data.selftext || post.data.title, // Add description field for UI
+        url: `https://reddit.com${post.data.permalink}`,
+        subreddit: post.data.subreddit,
+        author: post.data.author,
+        score: post.data.score,
+        num_comments: post.data.num_comments,
+        created_utc: post.data.created_utc,
+        raw_comment: post.data.selftext || post.data.title
+      })) || [];
 
     return NextResponse.json({
       items: discussions,
