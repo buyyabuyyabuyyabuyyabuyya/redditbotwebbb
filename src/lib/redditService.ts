@@ -4,6 +4,7 @@ export interface RedditDiscussion {
   id: string;
   title: string;
   content: string;
+  description: string;
   url: string;
   subreddit: string;
   author: string;

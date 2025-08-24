@@ -340,19 +340,28 @@ function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFoun
         }
       }
       
-      // Remove duplicates and convert to expected DiscussionItem format
+      // Remove duplicates and keep Reddit data structure for display
       const uniqueDiscussions = allDiscussions
         .filter((discussion, index, self) => 
           index === self.findIndex(d => d.id === discussion.id)
         )
         .slice(0, 10)
         .map(discussion => ({
+          // Keep original Reddit properties for display
+          title: discussion.title,
+          content: discussion.content,
+          description: discussion.description,
+          score: discussion.score,
+          subreddit: discussion.subreddit,
+          author: discussion.author,
+          url: discussion.url,
+          // Also include DiscussionItem format for compatibility
           raw_comment: discussion.content || discussion.title,
           engagement_metrics: {
             score: discussion.score,
             num_comments: discussion.num_comments
           },
-          relevance_score: Math.min(100, Math.max(0, discussion.score * 2)), // Convert Reddit score to 0-100 scale
+          relevance_score: Math.min(100, Math.max(0, discussion.score * 2)),
           comment: discussion.content || discussion.title
         }));
       
