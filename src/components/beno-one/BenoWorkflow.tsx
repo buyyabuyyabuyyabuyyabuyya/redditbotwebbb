@@ -394,11 +394,11 @@ function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFoun
           <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
             {discussions.slice(0, 3).map((discussion, index) => (
               <div key={index} className="bg-gray-700/50 p-4 rounded-lg">
-                <h4 className="text-white font-semibold mb-2">{(discussion.raw_comment as any)?.post_title || 'Discussion'}</h4>
-                <p className="text-gray-300 text-sm mb-2">{((discussion.raw_comment as any)?.post_body || '').substring(0, 200)}...</p>
+                <h4 className="text-white font-semibold mb-2">{(discussion as any).title || 'Discussion'}</h4>
+                <p className="text-gray-300 text-sm mb-2">{((discussion as any).content || (discussion as any).description || '').substring(0, 200)}...</p>
                 <div className="flex items-center space-x-4 text-xs text-gray-400">
-                  <span>Score: {discussion.relevance_score}%</span>
-                  <span>Subreddit: r/{(discussion.raw_comment as any)?.subs_source || 'unknown'}</span>
+                  <span>Score: {(discussion as any).score || 0}</span>
+                  <span>Subreddit: r/{(discussion as any).subreddit || 'unknown'}</span>
                 </div>
               </div>
             ))}
