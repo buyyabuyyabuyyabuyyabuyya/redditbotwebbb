@@ -3,7 +3,7 @@ export async function ensureInboxSchedule(userId: string, baseUrl: string) {
     const QSTASH_URL = process.env.QSTASH_URL;
     const QSTASH_TOKEN = process.env.QSTASH_TOKEN;
     if (!QSTASH_URL || !QSTASH_TOKEN) return;
-    const cron = '*/15 * * * *';
+    const cron = '*/60 * * * *';
     const destination = `${baseUrl}/api/reddit/process-inbox`;
       const url = `${QSTASH_URL}/v2/schedules/${destination}`;
   
