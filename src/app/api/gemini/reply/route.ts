@@ -58,12 +58,24 @@ export async function POST(req: Request) {
     }
 
     let apiKey: string | null = null;
-    try {
-      // Get a valid API key with rotation
-      apiKey = await getValidApiKey(userId);
+    let attempts = 0;
+    const maxAttempts = 3;
+    let lastError: any = null;
 
-      // Prepare the prompt for generating Reddit replies
-      const prompt = `
+    // Retry logic for API key failures
+    while (attempts < maxAttempts) {
+      try {
+        attempts++;
+        
+        // Get a valid API key with rotation (always random)
+        apiKey = await getValidApiKey(userId);
+        
+        if (!apiKey) {
+          throw new Error('No API keys available');
+        }
+
+        // Prepare the prompt for generating Reddit replies
+        const prompt = `
 You are an expert at writing engaging Reddit comments that add value to discussions. Generate a thoughtful reply to the following Reddit post.
 
 Post Title: ${postTitle}
@@ -175,6 +187,27 @@ REMINDER: Return ONLY the raw JSON. No markdown, no code blocks, no explanations
             .eq('key', apiKey);
         }
 
+        // Check if this is a retryable error (400, 429, or API key issues)
+        if (status === 400 || status === 429 || 
+            errorText.toLowerCase().includes('expired') || 
+            errorText.toLowerCase().includes('invalid') ||
+            errorText.toLowerCase().includes('quota')) {
+          
+          console.log(`Retryable error detected (${status}), attempt ${attempts}/${maxAttempts}`);
+          lastError = new Error(`Gemini API error (${status}): ${errorText}`);
+          
+          // Release the current API key
+          if (apiKey) {
+            apiKeyManager.releaseApiKey(apiKey, userId);
+          }
+          
+          // If this isn't the last attempt, continue to next iteration
+          if (attempts < maxAttempts) {
+            console.log(`Trying with a different API key...`);
+            continue;
+          }
+        }
+
         throw new Error(`Gemini API error (${status}): ${errorText}`);
       }
 
@@ -216,6 +249,12 @@ REMINDER: Return ONLY the raw JSON. No markdown, no code blocks, no explanations
           'Raw response:',
           data?.candidates?.[0]?.content?.parts?.[0]?.text || 'No text content'
         );
+        
+        // Release the API key on parse error
+        if (apiKey) {
+          apiKeyManager.releaseApiKey(apiKey, userId);
+        }
+        
         return NextResponse.json(
           { error: 'Error parsing AI response for reply generation' },
           { status: 500 }
@@ -229,19 +268,43 @@ REMINDER: Return ONLY the raw JSON. No markdown, no code blocks, no explanations
         success: true,
         reply: replyResult,
         message: 'Reddit reply generated successfully.',
+        attempts: attempts
       });
 
-    } catch (apiError: any) {
-      console.error('API processing error:', apiError);
-      // Release the API key on error
-      if (apiKey) {
-        apiKeyManager.releaseApiKey(apiKey, userId);
+      } catch (apiError: any) {
+        console.error(`API processing error on attempt ${attempts}:`, apiError);
+        lastError = apiError;
+        
+        // Release the API key on error
+        if (apiKey) {
+          apiKeyManager.releaseApiKey(apiKey, userId);
+        }
+        
+        // If this isn't the last attempt and it's a retryable error, continue
+        if (attempts < maxAttempts && (
+          apiError.message?.includes('400') || 
+          apiError.message?.includes('429') ||
+          apiError.message?.includes('expired') ||
+          apiError.message?.includes('quota')
+        )) {
+          console.log(`Retrying with different API key, attempt ${attempts + 1}/${maxAttempts}`);
+          continue;
+        }
+        
+        // If it's the last attempt or non-retryable error, break
+        break;
       }
-      return NextResponse.json(
-        { error: `API error: ${apiError.message || 'Unknown API error'}` },
-        { status: 500 }
-      );
     }
+
+    // If we've exhausted all attempts, return the last error
+    console.error('All API key attempts failed');
+    return NextResponse.json(
+      { 
+        error: `API error after ${maxAttempts} attempts: ${lastError?.message || 'Unknown API error'}`,
+        attempts: attempts
+      },
+      { status: 500 }
+    );
   } catch (error: any) {
     console.error('Server error:', error);
     return NextResponse.json(
