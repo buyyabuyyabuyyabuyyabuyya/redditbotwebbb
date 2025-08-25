@@ -195,7 +195,7 @@ export default function RedditPoster({ productId }: RedditPosterProps) {
                         {reply.post.subreddit && (
                           <span className="flex items-center gap-1">
                             <Users className="h-3 w-3" />
-                            {reply.post.subreddit.followers.toLocaleString()}
+                            {reply.post.subreddit?.followers ? reply.post.subreddit.followers.toLocaleString() : '0'}
                           </span>
                         )}
                       </div>

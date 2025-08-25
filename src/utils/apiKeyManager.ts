@@ -269,7 +269,9 @@ export class ApiKeyManager {
       errorStatus === 429 ||
       errorMessage.includes('rate limit') ||
       errorMessage.includes('quota') ||
-      errorMessage.includes('too many requests')
+      errorMessage.includes('too many requests') ||
+      errorMessage.includes('api key expired') ||
+      errorMessage.includes('expired')
     );
   }
 }

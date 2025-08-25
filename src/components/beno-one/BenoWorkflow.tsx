@@ -313,6 +313,55 @@ function SegmentsStep({ customerSegments, onConfirm, onBack }: { customerSegment
 }
 
 // Discussions Step
+// Helper functions for relevance calculation
+function calculateTitleRelevance(title: string, segments: string[]): number {
+  if (!title || !segments.length) return 0;
+  
+  const titleLower = title.toLowerCase();
+  let relevanceScore = 0;
+  
+  segments.forEach(segment => {
+    const segmentLower = segment.toLowerCase();
+    if (titleLower.includes(segmentLower)) {
+      relevanceScore += 20; // High weight for title matches
+    }
+    
+    // Check for partial matches
+    const words = segmentLower.split(' ');
+    words.forEach(word => {
+      if (word.length > 3 && titleLower.includes(word)) {
+        relevanceScore += 5;
+      }
+    });
+  });
+  
+  return Math.min(100, relevanceScore);
+}
+
+function calculateContentRelevance(content: string, segments: string[]): number {
+  if (!content || !segments.length) return 0;
+  
+  const contentLower = content.toLowerCase();
+  let relevanceScore = 0;
+  
+  segments.forEach(segment => {
+    const segmentLower = segment.toLowerCase();
+    if (contentLower.includes(segmentLower)) {
+      relevanceScore += 15; // Medium weight for content matches
+    }
+    
+    // Check for partial matches
+    const words = segmentLower.split(' ');
+    words.forEach(word => {
+      if (word.length > 3 && contentLower.includes(word)) {
+        relevanceScore += 3;
+      }
+    });
+  });
+  
+  return Math.min(100, relevanceScore);
+}
+
 function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFound, onBack, onAutoReply }: {
   url: string;
   description: any;
@@ -358,31 +407,54 @@ function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFoun
         }
       }
       
-      // Remove duplicates, sort by score (highest first), and keep top discussions
-      const uniqueDiscussions = allDiscussions
+      // Remove duplicates and calculate initial relevance scores
+      const discussionsWithScores = allDiscussions
         .filter((discussion, index, self) => 
           index === self.findIndex(d => d.id === discussion.id)
         )
-        .sort((a, b) => (b.score || 0) - (a.score || 0)) // Sort by score descending
-        .slice(0, 10)
-        .map(discussion => ({
-          // Keep original Reddit properties for display
-          title: discussion.title,
-          content: discussion.content,
-          description: discussion.description,
-          score: discussion.score,
-          subreddit: discussion.subreddit,
-          author: discussion.author,
-          url: discussion.url,
-          // Also include DiscussionItem format for compatibility
-          raw_comment: discussion.content || discussion.title,
-          engagement_metrics: {
+        .map(discussion => {
+          // Calculate relevance score based on multiple factors
+          const baseScore = discussion.score || 0;
+          const commentCount = discussion.num_comments || 0;
+          const titleRelevance = calculateTitleRelevance(discussion.title, selectedSegments);
+          const contentRelevance = calculateContentRelevance(discussion.content || discussion.description, selectedSegments);
+          
+          // Combined relevance score (0-100)
+          const relevanceScore = Math.min(100, Math.max(0, 
+            (baseScore * 0.3) + 
+            (commentCount * 0.2) + 
+            (titleRelevance * 0.25) + 
+            (contentRelevance * 0.25)
+          ));
+
+          return {
+            // Keep original Reddit properties for display
+            id: discussion.id,
+            title: discussion.title,
+            content: discussion.content,
+            description: discussion.description,
             score: discussion.score,
-            num_comments: discussion.num_comments
-          },
-          relevance_score: Math.min(100, Math.max(0, discussion.score * 2)),
-          comment: discussion.content || discussion.title
-        }));
+            subreddit: discussion.subreddit,
+            author: discussion.author,
+            url: discussion.url,
+            num_comments: discussion.num_comments,
+            // Enhanced scoring system
+            relevanceScore: Math.round(relevanceScore),
+            validationScore: 0, // Will be set by Gemini AI
+            // Also include DiscussionItem format for compatibility
+            raw_comment: discussion.content || discussion.title,
+            engagement_metrics: {
+              score: discussion.score,
+              num_comments: discussion.num_comments
+            },
+            relevance_score: Math.round(relevanceScore),
+            comment: discussion.content || discussion.title
+          };
+        })
+        .sort((a, b) => b.relevanceScore - a.relevanceScore) // Sort by relevance score descending
+        .slice(0, 10);
+
+      const uniqueDiscussions = discussionsWithScores;
       
       setDiscussions(uniqueDiscussions);
       
@@ -400,6 +472,10 @@ function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFoun
   const autoGenerateReplies = async (topDiscussions: any[]) => {
     try {
       for (const discussion of topDiscussions) {
+        // First, get Gemini AI validation score for the discussion
+        const validationScore = await getGeminiValidationScore(discussion);
+        discussion.validationScore = validationScore;
+
         // Convert discussion to Reddit post format
         const post = {
           id: discussion.id || `post_${Math.random()}`,
@@ -422,7 +498,7 @@ function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFoun
           // Store the generated reply in the discussion object
           discussion.generatedReply = result.reply.reply;
           discussion.replyConfidence = result.reply.confidence;
-          console.log(`Generated reply for: ${discussion.title}`);
+          console.log(`Generated reply for: ${discussion.title} (Validation: ${validationScore})`);
         }
       }
       
@@ -430,6 +506,63 @@ function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFoun
       setDiscussions(prev => [...prev]);
     } catch (error) {
       console.error('Failed to auto-generate replies:', error);
+    }
+  };
+
+  const getGeminiValidationScore = async (discussion: any): Promise<number> => {
+    try {
+      const response = await fetch('/api/gemini/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Internal-API': 'true',
+        },
+        body: JSON.stringify({
+          content: `${discussion.title}\n\n${discussion.content || discussion.description || ''}`,
+          subreddit: discussion.subreddit,
+          keywords: selectedSegments,
+          customPrompt: `Analyze this Reddit post for business relevance and engagement potential. Consider:
+          1. How relevant is this post to the keywords: ${selectedSegments.join(', ')}
+          2. How likely is this post to generate meaningful engagement
+          3. How appropriate is this post for business/product discussion
+          4. The quality and engagement level of the post content
+          
+          Rate the overall validation score from 0-100 where:
+          - 90-100: Highly relevant, perfect for engagement
+          - 70-89: Good relevance, likely to generate engagement
+          - 50-69: Moderate relevance, some engagement potential
+          - 30-49: Low relevance, limited engagement potential
+          - 0-29: Not relevant, avoid engagement`
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.analysis) {
+          // Extract validation score from confidence or create a score based on relevance
+          const isRelevant = data.analysis.isRelevant;
+          const confidence = data.analysis.confidence || 0;
+          const keywordMatches = data.analysis.keywordMatches?.length || 0;
+          
+          // Calculate validation score
+          let validationScore = 0;
+          if (isRelevant) {
+            validationScore = Math.round(confidence * 100);
+            validationScore += keywordMatches * 5; // Bonus for keyword matches
+            validationScore = Math.min(100, validationScore);
+          } else {
+            validationScore = Math.round(confidence * 50); // Lower score for non-relevant posts
+          }
+          
+          return validationScore;
+        }
+      }
+      
+      // Fallback: use relevance score as validation score
+      return discussion.relevanceScore || 50;
+    } catch (error) {
+      console.error('Failed to get Gemini validation score:', error);
+      return discussion.relevanceScore || 50;
     }
   };
 
@@ -466,10 +599,14 @@ function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFoun
                 <h4 className="text-white font-semibold mb-2">{(discussion as any).title || 'Discussion'}</h4>
                 <p className="text-gray-300 text-sm mb-2">{((discussion as any).content || (discussion as any).description || '').substring(0, 200)}...</p>
                 <div className="flex items-center space-x-4 text-xs text-gray-400 mb-3">
-                  <span>Score: {(discussion as any).score || 0}</span>
+                  <span>Reddit Score: {(discussion as any).score || 0}</span>
                   <span>Subreddit: r/{(discussion as any).subreddit || 'unknown'}</span>
+                  <span className="text-blue-400">Relevance: {(discussion as any).relevanceScore || 0}%</span>
+                  {(discussion as any).validationScore > 0 && (
+                    <span className="text-purple-400">AI Validation: {(discussion as any).validationScore}%</span>
+                  )}
                   {(discussion as any).replyConfidence && (
-                    <span className="text-green-400">AI Reply: {Math.round((discussion as any).replyConfidence * 100)}% confidence</span>
+                    <span className="text-green-400">Reply Confidence: {Math.round((discussion as any).replyConfidence * 100)}%</span>
                   )}
                 </div>
                 {(discussion as any).generatedReply && (

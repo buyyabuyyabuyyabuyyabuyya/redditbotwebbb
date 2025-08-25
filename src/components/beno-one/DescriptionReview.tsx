@@ -178,7 +178,7 @@ export default function DescriptionReview({ scrapedData, onDescriptionConfirmed,
               )}
               {scrapedData.scraped_at && (
                 <div>
-                  <strong>Scraped At:</strong> {new Date(scrapedData.scraped_at).toLocaleString()}
+                  <strong>Scraped At:</strong> {scrapedData.scraped_at ? new Date(scrapedData.scraped_at).toLocaleString() : 'Unknown'}
                 </div>
               )}
             </div>

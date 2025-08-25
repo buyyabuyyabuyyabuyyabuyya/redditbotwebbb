@@ -163,6 +163,17 @@ REMINDER: Return ONLY the raw JSON. No markdown, no code blocks, no explanations
 
         // Handle the API key error using the manager
         await apiKeyManager.handleApiKeyError(apiKey, new Error(errorText), userId);
+        
+        // If it's an expired key error, mark it as inactive
+        if (errorText.toLowerCase().includes('expired') || errorText.toLowerCase().includes('api key expired')) {
+          await supabaseAdmin
+            .from('api_keys')
+            .update({
+              is_active: false,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('key', apiKey);
+        }
 
         throw new Error(`Gemini API error (${status}): ${errorText}`);
       }

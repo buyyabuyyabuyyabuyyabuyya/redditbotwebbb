@@ -317,7 +317,7 @@ export default function AutoPosterSettings({ productId, accountId }: AutoPosterS
         <Card>
           <CardContent className="p-4">
             <div className="text-sm text-gray-600">
-              <p><strong>Last Posted:</strong> {new Date(config.lastPostedAt).toLocaleString()}</p>
+              <p><strong>Last Posted:</strong> {config.lastPostedAt ? new Date(config.lastPostedAt).toLocaleString() : 'Never'}</p>
               {config.nextPostAt && (
                 <p><strong>Next Post:</strong> {new Date(config.nextPostAt).toLocaleString()}</p>
               )}
