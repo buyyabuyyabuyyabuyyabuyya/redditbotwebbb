@@ -358,11 +358,12 @@ function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFoun
         }
       }
       
-      // Remove duplicates and keep Reddit data structure for display
+      // Remove duplicates, sort by score (highest first), and keep top discussions
       const uniqueDiscussions = allDiscussions
         .filter((discussion, index, self) => 
           index === self.findIndex(d => d.id === discussion.id)
         )
+        .sort((a, b) => (b.score || 0) - (a.score || 0)) // Sort by score descending
         .slice(0, 10)
         .map(discussion => ({
           // Keep original Reddit properties for display
@@ -384,10 +385,51 @@ function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFoun
         }));
       
       setDiscussions(uniqueDiscussions);
+      
+      // Auto-generate replies for the top 3 most relevant discussions
+      if (uniqueDiscussions.length > 0) {
+        await autoGenerateReplies(uniqueDiscussions.slice(0, 3));
+      }
     } catch (error) {
       console.error('Failed to find discussions:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const autoGenerateReplies = async (topDiscussions: any[]) => {
+    try {
+      for (const discussion of topDiscussions) {
+        // Convert discussion to Reddit post format
+        const post = {
+          id: discussion.id || `post_${Math.random()}`,
+          title: discussion.title || 'Discussion',
+          selftext: discussion.content || discussion.description || '',
+          subreddit: discussion.subreddit || 'unknown',
+          score: discussion.score || 0,
+          url: discussion.url || '',
+          permalink: discussion.url || ''
+        };
+
+        // Generate reply with fixed helpful tone
+        const result = await redditReplyService.generateReply(post, {
+          tone: 'helpful',
+          maxLength: 300,
+          keywords: selectedSegments // Use selected segments as keywords
+        });
+
+        if (result.success && result.reply) {
+          // Store the generated reply in the discussion object
+          discussion.generatedReply = result.reply.reply;
+          discussion.replyConfidence = result.reply.confidence;
+          console.log(`Generated reply for: ${discussion.title}`);
+        }
+      }
+      
+      // Update discussions state with generated replies
+      setDiscussions(prev => [...prev]);
+    } catch (error) {
+      console.error('Failed to auto-generate replies:', error);
     }
   };
 
@@ -412,7 +454,7 @@ function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFoun
             disabled={loading}
             className="bg-purple-600 hover:bg-purple-500 disabled:bg-gray-600 text-white py-3 px-6 rounded-lg transition-colors"
           >
-            {loading ? 'Searching...' : 'Find Discussions'}
+            {loading ? 'Finding Discussions & Generating Replies...' : 'Find Discussions & Auto-Generate Replies'}
           </button>
         </div>
       ) : (
@@ -423,25 +465,28 @@ function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFoun
               <div key={index} className="bg-gray-700/50 p-4 rounded-lg">
                 <h4 className="text-white font-semibold mb-2">{(discussion as any).title || 'Discussion'}</h4>
                 <p className="text-gray-300 text-sm mb-2">{((discussion as any).content || (discussion as any).description || '').substring(0, 200)}...</p>
-                <div className="flex items-center space-x-4 text-xs text-gray-400">
+                <div className="flex items-center space-x-4 text-xs text-gray-400 mb-3">
                   <span>Score: {(discussion as any).score || 0}</span>
                   <span>Subreddit: r/{(discussion as any).subreddit || 'unknown'}</span>
+                  {(discussion as any).replyConfidence && (
+                    <span className="text-green-400">AI Reply: {Math.round((discussion as any).replyConfidence * 100)}% confidence</span>
+                  )}
                 </div>
+                {(discussion as any).generatedReply && (
+                  <div className="bg-gray-800 p-3 rounded text-sm">
+                    <div className="text-green-400 font-medium mb-1">✓ Generated Reply:</div>
+                    <div className="text-gray-300">{(discussion as any).generatedReply.substring(0, 150)}...</div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
           <div className="flex space-x-4">
             <button
-              onClick={onAutoReply}
-              className="flex-1 bg-green-600 hover:bg-green-500 text-white py-3 px-4 rounded-lg transition-colors"
-            >
-              Generate AI Replies →
-            </button>
-            <button
               onClick={handleContinue}
               className="flex-1 bg-purple-600 hover:bg-purple-500 text-white py-3 px-4 rounded-lg transition-colors"
             >
-              Manual Posting →
+              Continue to Post Replies →
             </button>
           </div>
         </div>
