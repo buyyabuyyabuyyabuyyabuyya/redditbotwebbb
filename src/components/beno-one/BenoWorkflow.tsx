@@ -463,6 +463,9 @@ function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFoun
       if (uniqueDiscussions.length > 0) {
         await autoGenerateReplies(uniqueDiscussions.slice(0, 3));
       }
+      
+      // Transition to the next step after completion
+      onDiscussionsFound(productId, uniqueDiscussions);
     } catch (error) {
       console.error('Failed to find discussions:', error);
     } finally {
