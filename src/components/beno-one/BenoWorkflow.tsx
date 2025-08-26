@@ -154,6 +154,7 @@ export default function BenoWorkflow() {
           </div>
           <RedditPoster
             productId={productId}
+            generatedReplies={discussions.filter(d => d.generatedReply)}
           />
         </div>
       )}

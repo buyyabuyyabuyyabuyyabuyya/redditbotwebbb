@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/Badge';
 import { Textarea } from '@/components/ui/Textarea';
 import { ExternalLink, MessageSquare, TrendingUp, Users } from 'lucide-react';
+import { DiscussionItem } from '../../types/beno-workflow';
 
 interface RedditPost {
   id: string;
@@ -33,9 +34,10 @@ interface Reply {
 interface RedditPosterProps {
   productId: string;
   accountId?: string; // Selected Reddit account ID
+  generatedReplies?: DiscussionItem[];
 }
 
-export default function RedditPoster({ productId }: RedditPosterProps) {
+export default function RedditPoster({ productId, generatedReplies = [] }: RedditPosterProps) {
   const [replies, setReplies] = useState<Reply[]>([]);
   const [loading, setLoading] = useState(true);
   const [posting, setPosting] = useState<string | null>(null);
@@ -43,8 +45,35 @@ export default function RedditPoster({ productId }: RedditPosterProps) {
   const [editText, setEditText] = useState('');
 
   useEffect(() => {
-    fetchReplies();
-  }, [productId]);
+    if (generatedReplies.length > 0) {
+      // Convert generated replies to Reply format
+      const convertedReplies: Reply[] = generatedReplies.map((discussion, index) => ({
+        id: discussion.id || `generated_${index}`,
+        text: discussion.generatedReply || '',
+        relevanceScore: discussion.relevance_score || 0,
+        validationScore: discussion.validationScore || 0,
+        status: 'ready',
+        post: {
+          id: discussion.id || `post_${index}`,
+          title: discussion.title || 'Discussion',
+          body: discussion.content || discussion.comment || '',
+          link: discussion.url || '',
+          redditId: discussion.id || '',
+          author: 'unknown',
+          subreddit: {
+            name: discussion.subreddit || 'unknown',
+            description: '',
+            followers: 0
+          }
+        }
+      }));
+      
+      setReplies(convertedReplies);
+      setLoading(false);
+    } else {
+      fetchReplies();
+    }
+  }, [productId, generatedReplies]);
 
   const fetchReplies = async () => {
     try {

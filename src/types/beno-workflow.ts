@@ -26,6 +26,15 @@ export interface DiscussionItem {
   engagement_metrics: unknown;
   relevance_score: number;
   comment: string;
+  generatedReply?: string;
+  replyConfidence?: number;
+  validationScore?: number;
+  id?: string;
+  title?: string;
+  content?: string;
+  subreddit?: string;
+  score?: number;
+  url?: string;
 }
 
 export interface GetDiscussionsResponse {
