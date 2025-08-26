@@ -179,163 +179,124 @@ export default function RedditPoster({ productId, generatedReplies = [] }: Reddi
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     );
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Ready to Post</h2>
-          <p className="text-gray-600">
-            {replies.length} replies ready for Reddit posting
-          </p>
+          <h2 className="text-2xl font-bold text-white mb-2">Ready to Post</h2>
+          <p className="text-gray-400">{replies.length} replies ready for Reddit posting</p>
         </div>
-        <Button onClick={fetchReplies} variant="secondary">
+        <Button
+          onClick={fetchReplies}
+          variant="secondary"
+          disabled={loading}
+        >
           Refresh
         </Button>
       </div>
 
-      {replies.length === 0 ? (
+      {loading ? (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
+          <p className="text-gray-400 mt-2">Loading replies...</p>
+        </div>
+      ) : replies.length === 0 ? (
         <Card>
-          <CardContent className="p-8 text-center">
-            <MessageSquare className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No replies ready
-            </h3>
-            <p className="text-gray-600">
-              Check back later for new validated replies to post.
-            </p>
+          <CardContent className="text-center py-8">
+            <MessageSquare className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-white mb-2">No replies ready</h3>
+            <p className="text-gray-400">Check back later for new validated replies to post.</p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-4">
           {replies.map((reply) => (
-            <Card key={reply.id} className="overflow-hidden">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg line-clamp-2">
-                      {reply.post.title}
-                    </CardTitle>
-                    <CardDescription className="mt-1">
-                      <div className="flex items-center gap-4 text-sm">
-                        <span>r/{reply.post.subreddit?.name}</span>
-                        <span>by u/{reply.post.author}</span>
-                        {reply.post.subreddit && (
-                          <span className="flex items-center gap-1">
-                            <Users className="h-3 w-3" />
-                            {reply.post.subreddit?.followers ? reply.post.subreddit.followers.toLocaleString() : '0'}
-                          </span>
-                        )}
-                      </div>
-                    </CardDescription>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className={getStatusColor(reply.status)}>
-                      {reply.status.replace(/_/g, ' ')}
-                    </Badge>
-                    <a
-                      href={`https://reddit.com${reply.post.link}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                    </a>
+            <div key={reply.id} className="bg-gray-800/50 p-4 rounded-lg border border-gray-700/50">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <h3 className="text-white font-medium text-lg mb-2">{reply.post.title}</h3>
+                  <div className="flex items-center gap-4 text-sm text-gray-400 mb-3">
+                    <span>Reddit Score: {reply.post.subreddit?.followers || 0}</span>
+                    <span>Subreddit: r/{reply.post.subreddit?.name}</span>
+                    <span className="text-blue-400 font-medium">Relevance: {reply.relevanceScore}%</span>
                   </div>
                 </div>
-              </CardHeader>
+              </div>
               
-              <CardContent>
-                <div className="space-y-4">
-                  {/* Original Post Preview */}
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-sm text-gray-700 line-clamp-3">
-                      {reply.post.body}
-                    </p>
-                  </div>
-
-                  {/* Reply Text */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">Your Reply:</span>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs">
-                          <TrendingUp className="h-3 w-3 mr-1" />
-                          {reply.relevanceScore}% relevance
-                        </Badge>
-                        <Badge variant="outline" className="text-xs">
-                          {reply.validationScore}% validation
-                        </Badge>
+              <div className="mb-4">
+                <p className="text-gray-300 text-sm bg-gray-900/30 p-3 rounded">
+                  {reply.post.body?.substring(0, 300) || 'No content available'}
+                  {reply.post.body && reply.post.body.length > 300 && '...'}
+                </p>
+              </div>
+              
+              {reply.text && (
+                <div className="mb-4">
+                  <h4 className="text-gray-300 font-medium mb-2">Generated AI Response:</h4>
+                  {editingReply === reply.id ? (
+                    <div className="space-y-2">
+                      <Textarea
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                        className="bg-gray-900 border-gray-600 text-white"
+                        rows={4}
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          size="small"
+                          onClick={() => saveEdit(reply.id)}
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="secondary"
+                          onClick={() => setEditingReply(null)}
+                        >
+                          Cancel
+                        </Button>
                       </div>
                     </div>
-                    
-                    {editingReply === reply.id ? (
-                      <div className="space-y-2">
-                        <Textarea
-                          value={editText}
-                          onChange={(e) => setEditText(e.target.value)}
-                          className="min-h-[100px]"
-                        />
-                        <div className="flex gap-2">
-                          <Button 
-                            size="small" 
-                            onClick={() => saveEdit(reply.id)}
-                          >
-                            Save
-                          </Button>
-                          <Button 
-                            size="small" 
-                            variant="secondary"
-                            onClick={() => setEditingReply(null)}
-                          >
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div 
-                        className="bg-blue-50 p-3 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors"
+                  ) : (
+                    <div className="bg-gray-900/50 p-3 rounded">
+                      <p className="text-white text-sm mb-2">{reply.text}</p>
+                      <Button
+                        size="small"
+                        variant="secondary"
                         onClick={() => handleEdit(reply)}
+                        className="text-gray-400 hover:text-white"
                       >
-                        <p className="text-sm">{reply.text}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Click to edit
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex gap-2 pt-2">
-                    <Button
-                      onClick={() => handlePost(reply)}
-                      disabled={posting === reply.id || editingReply === reply.id}
-                      className="flex-1"
-                    >
-                      {posting === reply.id ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Posting...
-                        </>
-                      ) : (
-                        'Post to Reddit'
-                      )}
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      onClick={() => handleEdit(reply)}
-                      disabled={posting === reply.id}
-                    >
-                      Edit
-                    </Button>
-                  </div>
+                        Edit Reply
+                      </Button>
+                    </div>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
+              )}
+              
+              <div className="flex items-center justify-between pt-3 border-t border-gray-700/50">
+                <a
+                  href={reply.post.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-1"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  View on Reddit
+                </a>
+                
+                <Button
+                  onClick={() => handlePost(reply)}
+                  disabled={posting === reply.id}
+                  className="bg-green-600 hover:bg-green-500"
+                >
+                  {posting === reply.id ? 'Posting...' : 'Post Reply'}
+                </Button>
+              </div>
+            </div>
           ))}
         </div>
       )}
     </div>
   );
+}
 }

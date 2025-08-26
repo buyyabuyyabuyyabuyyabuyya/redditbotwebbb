@@ -6,7 +6,7 @@ import AutoPosterSettings from './AutoPosterSettings';
 import { DiscussionItem } from '../../types/beno-workflow';
 import { redditReplyService } from '../../lib/redditReplyService';
 
-type WorkflowStep = 'input' | 'describe' | 'segments' | 'discussions' | 'auto-reply' | 'posting' | 'automation';
+type WorkflowStep = 'input' | 'describe' | 'segments' | 'discussions' | 'posting' | 'automation';
 
 export default function BenoWorkflow() {
   const [currentStep, setCurrentStep] = useState<WorkflowStep>('input');
@@ -60,8 +60,6 @@ export default function BenoWorkflow() {
     if (currentStep === 'automation') {
       setCurrentStep('posting');
     } else if (currentStep === 'posting') {
-      setCurrentStep('auto-reply');
-    } else if (currentStep === 'auto-reply') {
       setCurrentStep('discussions');
     } else if (currentStep === 'discussions') {
       setCurrentStep('segments');
@@ -124,17 +122,10 @@ export default function BenoWorkflow() {
           selectedSegments={selectedSegments}
           onDiscussionsFound={handleDiscussionsFound}
           onBack={handleBack}
-          onAutoReply={() => setCurrentStep('auto-reply')}
+          onAutoReply={() => {}}
         />
       )}
 
-      {currentStep === 'auto-reply' && (
-        <AutoReplyStep
-          discussions={discussions}
-          onBack={handleBack}
-          onContinue={() => setCurrentStep('posting')}
-        />
-      )}
 
       {currentStep === 'posting' && (
         <div className="bg-gray-800/70 rounded-xl p-6 border border-gray-700/50">
@@ -464,8 +455,8 @@ function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFoun
         await autoGenerateReplies(uniqueDiscussions.slice(0, 3));
       }
       
-      // Transition to auto-reply step to show results
-      onAutoReply();
+      // Transition directly to posting step with generated replies
+      onDiscussionsFound(productId, uniqueDiscussions);
     } catch (error) {
       console.error('Failed to find discussions:', error);
     } finally {
