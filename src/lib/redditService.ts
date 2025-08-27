@@ -118,7 +118,7 @@ export async function searchMultipleSubreddits(
   const allDiscussions: RedditDiscussion[] = [];
   
   // Search each subreddit
-  for (const subreddit of subreddits.slice(0, 5)) { // Limit to 5 subreddits to avoid rate limits
+  for (const subreddit of subreddits.slice(0, 10)) { // Limit to 10 subreddits to avoid rate limits
     try {
       const result = await getRedditDiscussions(query, subreddit, limitPerSubreddit);
       allDiscussions.push(...result.items);

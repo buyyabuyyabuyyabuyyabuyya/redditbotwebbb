@@ -613,13 +613,15 @@ function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFoun
               </div>
             ))}
           </div>
-          <div className="flex space-x-4">
-            <button
-              onClick={handleContinue}
-              className="flex-1 bg-purple-600 hover:bg-purple-500 text-white py-3 px-4 rounded-lg transition-colors"
-            >
-              Continue to Post Replies →
-            </button>
+          <div className="flex justify-center">
+            <div className="flex items-center space-x-3 text-purple-400">
+              <div className="flex space-x-1">
+                <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              </div>
+              <span className="text-lg font-medium">Generating replies...</span>
+            </div>
           </div>
         </div>
       )}
