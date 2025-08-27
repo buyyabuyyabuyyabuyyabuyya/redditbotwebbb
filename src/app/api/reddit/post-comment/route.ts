@@ -68,12 +68,11 @@ export async function POST(req: Request) {
       }
     }
 
-    // Load Reddit account - ensure it's a discussion poster account
+    // Load Reddit account - use admin-controlled discussion poster account
     const { data: account } = await supabaseAdmin
       .from('reddit_accounts')
       .select('*')
       .eq('id', accountId)
-      .eq('user_id', body.userId || userId)
       .eq('is_discussion_poster', true)
       .eq('is_validated', true)
       .single();
