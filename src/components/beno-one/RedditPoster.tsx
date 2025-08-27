@@ -97,12 +97,24 @@ export default function RedditPoster({ productId, generatedReplies = [] }: Reddi
     try {
       setPosting(reply.id);
       
+      // Get a valid Reddit account for discussion posting
+      const accountRes = await fetch('/api/reddit/accounts/discussion-poster', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!accountRes.ok) {
+        throw new Error('No valid Reddit discussion poster account found');
+      }
+      
+      const accountData = await accountRes.json();
+      
       // Post comment to Reddit using our API
       const postRes = await fetch('/api/reddit/post-comment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          accountId: 'default', // You'll need to get this from user's selected account
+          accountId: accountData.accountId,
           postId: reply.post.redditId,
           comment: reply.text,
           subreddit: reply.post.subreddit?.name || 'unknown'
