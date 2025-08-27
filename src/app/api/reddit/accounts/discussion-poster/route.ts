@@ -15,19 +15,22 @@ export async function GET(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY || ''
     );
 
-    // Get a valid Reddit account for discussion posting
-    const { data: account } = await supabaseAdmin
+    // Get any admin-controlled Reddit account for discussion posting
+    // These are shared accounts set by admin, not user-specific
+    const { data: account, error: accountError } = await supabaseAdmin
       .from('reddit_accounts')
-      .select('id')
-      .eq('user_id', userId)
+      .select('id, username')
       .eq('is_discussion_poster', true)
       .eq('is_validated', true)
       .limit(1)
       .single();
 
+    console.log('Discussion poster account found:', account);
+    console.log('Discussion poster query error:', accountError);
+
     if (!account) {
       return NextResponse.json({ 
-        error: 'No valid Reddit discussion poster account found. Please add a Reddit account with discussion posting enabled.' 
+        error: 'No admin-controlled Reddit discussion poster accounts available. Contact admin to set up discussion posting accounts.'
       }, { status: 404 });
     }
 
