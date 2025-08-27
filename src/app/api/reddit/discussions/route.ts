@@ -5,7 +5,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const query = searchParams.get('query');
     const subreddit = searchParams.get('subreddit') || 'all';
-    const limit = parseInt(searchParams.get('limit') || '10');
+    const limit = parseInt(searchParams.get('limit') || '20');
 
     if (!query) {
       return NextResponse.json({ error: 'query parameter required' }, { status: 400 });

@@ -26,12 +26,24 @@ export async function getRedditDiscussions(
 ): Promise<RedditDiscussionsResponse> {
   // Make direct client-side request to Reddit to bypass server-side blocking
   const redditUrl = `https://old.reddit.com/r/${subreddit}/hot.json?limit=${limit}`;
+
+
+  const userAgents = [
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0',
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1',
+    'Mozilla/5.0 (Linux; Android 14; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36'
+  ];
   
   const response = await fetch(redditUrl, {
     headers: {
       'Accept': 'application/json',
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-    }
+      'User-Agent': userAgents[Math.floor(Math.random() * userAgents.length)],
+    },
+    
   });
   
   if (!response.ok) {
@@ -113,7 +125,7 @@ export const BUSINESS_SUBREDDITS = [
 export async function searchMultipleSubreddits(
   query: string,
   subreddits: string[] = BUSINESS_SUBREDDITS,
-  limitPerSubreddit: number = 5
+  limitPerSubreddit: number = 25
 ): Promise<RedditDiscussion[]> {
   const allDiscussions: RedditDiscussion[] = [];
   
