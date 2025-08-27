@@ -114,9 +114,9 @@ export default function CustomerFinding({ url, name, description, segments, onCu
         
         // Search Reddit for relevant discussions
         const allDiscussions = [];
-        for (const query of queries.slice(0, 3)) { // Limit to top 3 queries
+        for (const query of queries.slice(0, 5)) { // Limit to top 5 queries
           try {
-            const discussions = await searchMultipleSubreddits(query, undefined, 3);
+            const discussions = await searchMultipleSubreddits(query, undefined, 25);
             allDiscussions.push(...discussions);
             setProgress(p => Math.min(85, p + 5)); // Update progress
           } catch (error) {

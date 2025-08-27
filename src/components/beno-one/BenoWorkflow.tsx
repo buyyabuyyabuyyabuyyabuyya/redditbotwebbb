@@ -390,9 +390,9 @@ function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFoun
       
       // Search Reddit for relevant discussions
       const allDiscussions = [];
-      for (const query of queries.slice(0, 3)) { // Limit to top 3 queries
+      for (const query of queries.slice(0, 5)) { // Limit to top 5 queries
         try {
-          const discussions = await searchMultipleSubreddits(query, undefined, 3);
+          const discussions = await searchMultipleSubreddits(query, undefined, 25);
           allDiscussions.push(...discussions);
         } catch (error) {
           console.warn('Failed to search Reddit for query:', query, error);
