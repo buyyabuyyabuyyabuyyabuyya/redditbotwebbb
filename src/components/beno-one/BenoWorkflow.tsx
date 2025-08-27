@@ -456,7 +456,7 @@ function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFoun
       }
       
       // Transition directly to posting step with generated replies
-      onDiscussionsFound(productId, uniqueDiscussions);
+      onDiscussionsFound(productData.product_id, uniqueDiscussions);
     } catch (error) {
       console.error('Failed to find discussions:', error);
     } finally {
