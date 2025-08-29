@@ -1,5 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
-
 export interface PostedDiscussion {
   id: string;
   website_config_id: string;
@@ -13,53 +11,28 @@ export interface PostedDiscussion {
 }
 
 export class DuplicatePostPrevention {
-  private supabase;
-
   constructor() {
-    this.supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-    );
+    // Client-side version - use API endpoints instead of direct Supabase
   }
 
   /**
    * Check if a Reddit post has already been messaged for a specific website config
    */
   async hasBeenPosted(websiteConfigId: string, redditPostId: string): Promise<boolean> {
-    const { data, error } = await this.supabase
-      .from('posted_reddit_discussions')
-      .select('id')
-      .eq('website_config_id', websiteConfigId)
-      .eq('reddit_post_id', redditPostId)
-      .single();
-
-    if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
-      console.error('Error checking posted discussions:', error);
-      return false;
+    try {
+      const response = await fetch(`/api/posted-discussions?action=check&websiteConfigId=${websiteConfigId}&redditPostId=${redditPostId}`);
+      if (response.ok) {
+        const data = await response.json();
+        return data.exists || false;
+      }
+    } catch (error) {
+      console.error('Error checking if post has been posted:', error);
     }
-
-    return !!data;
+    return false; // Assume not posted if there's an error
   }
 
   /**
-   * Get all posted Reddit post IDs for a specific website config
-   */
-  async getPostedDiscussionIds(websiteConfigId: string): Promise<string[]> {
-    const { data, error } = await this.supabase
-      .from('posted_reddit_discussions')
-      .select('reddit_post_id')
-      .eq('website_config_id', websiteConfigId);
-
-    if (error) {
-      console.error('Error fetching posted discussions:', error);
-      return [];
-    }
-
-    return data?.map(item => item.reddit_post_id) || [];
-  }
-
-  /**
-   * Record a successful post to prevent future duplicates
+   * Record that a Reddit post has been messaged for a specific website config
    */
   async recordPostedDiscussion(
     websiteConfigId: string,
@@ -69,22 +42,68 @@ export class DuplicatePostPrevention {
     redditAccountId: string,
     commentId?: string,
     commentUrl?: string
-  ): Promise<void> {
-    const { error } = await this.supabase
-      .from('posted_reddit_discussions')
-      .insert({
-        website_config_id: websiteConfigId,
-        reddit_post_id: redditPostId,
-        subreddit,
-        post_title: postTitle,
-        reddit_account_id: redditAccountId,
-        comment_id: commentId,
-        comment_url: commentUrl
+  ): Promise<boolean> {
+    try {
+      const response = await fetch('/api/posted-discussions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          website_config_id: websiteConfigId,
+          reddit_post_id: redditPostId,
+          subreddit: subreddit,
+          post_title: postTitle,
+          reddit_account_id: redditAccountId,
+          comment_id: commentId,
+          comment_url: commentUrl
+        })
       });
-
-    if (error) {
+      return response.ok;
+    } catch (error) {
       console.error('Error recording posted discussion:', error);
-      throw error;
+      return false;
+    }
+  }
+
+  /**
+   * Get all posted discussions for a specific website config
+   */
+  async getPostedDiscussions(websiteConfigId: string, limit: number = 50): Promise<PostedDiscussion[]> {
+    try {
+      const response = await fetch(`/api/posted-discussions?action=list&websiteConfigId=${websiteConfigId}&limit=${limit}`);
+      if (response.ok) {
+        const data = await response.json();
+        return data.posts || [];
+      }
+    } catch (error) {
+      console.error('Error fetching posted discussions:', error);
+    }
+    return [];
+  }
+
+  /**
+   * Get posted discussion IDs for filtering
+   */
+  async getPostedDiscussionIds(websiteConfigId: string): Promise<string[]> {
+    try {
+      const response = await fetch(`/api/posted-discussions?action=ids&websiteConfigId=${websiteConfigId}`);
+      if (response.ok) {
+        const data = await response.json();
+        return data.ids || [];
+      }
+    } catch (error) {
+      console.error('Error fetching posted discussion IDs:', error);
+    }
+    return [];
+  }
+
+  /**
+   * Clean up old posted discussions (older than 30 days)
+   */
+  async cleanupOldDiscussions(): Promise<void> {
+    try {
+      await fetch('/api/posted-discussions?action=cleanup', { method: 'DELETE' });
+    } catch (error) {
+      console.error('Error cleaning up old discussions:', error);
     }
   }
 
@@ -102,28 +121,6 @@ export class DuplicatePostPrevention {
   }
 
   /**
-   * Get posting history for a website config
-   */
-  async getPostingHistory(
-    websiteConfigId: string,
-    limit: number = 50
-  ): Promise<PostedDiscussion[]> {
-    const { data, error } = await this.supabase
-      .from('posted_reddit_discussions')
-      .select('*')
-      .eq('website_config_id', websiteConfigId)
-      .order('posted_at', { ascending: false })
-      .limit(limit);
-
-    if (error) {
-      console.error('Error fetching posting history:', error);
-      return [];
-    }
-
-    return data || [];
-  }
-
-  /**
    * Check if multiple posts have been posted for a website config
    */
   async checkMultiplePosted(
@@ -132,38 +129,39 @@ export class DuplicatePostPrevention {
   ): Promise<{ [postId: string]: boolean }> {
     if (redditPostIds.length === 0) return {};
 
-    const { data, error } = await this.supabase
-      .from('posted_reddit_discussions')
-      .select('reddit_post_id')
-      .eq('website_config_id', websiteConfigId)
-      .in('reddit_post_id', redditPostIds);
-
-    if (error) {
+    try {
+      const response = await fetch('/api/posted-discussions?action=check-multiple', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ websiteConfigId, redditPostIds })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        return data.results || {};
+      }
+    } catch (error) {
       console.error('Error checking multiple posted discussions:', error);
-      return {};
     }
-
-    const postedIds = new Set(data?.map(item => item.reddit_post_id) || []);
-    const result: { [postId: string]: boolean } = {};
     
-    redditPostIds.forEach(postId => {
-      result[postId] = postedIds.has(postId);
-    });
-
-    return result;
+    return {};
   }
 
   /**
    * Remove a posted discussion record (for testing or corrections)
    */
   async removePostedDiscussion(websiteConfigId: string, redditPostId: string): Promise<void> {
-    const { error } = await this.supabase
-      .from('posted_reddit_discussions')
-      .delete()
-      .eq('website_config_id', websiteConfigId)
-      .eq('reddit_post_id', redditPostId);
-
-    if (error) {
+    try {
+      const response = await fetch('/api/posted-discussions', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ websiteConfigId, redditPostId })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to remove posted discussion');
+      }
+    } catch (error) {
       console.error('Error removing posted discussion:', error);
       throw error;
     }

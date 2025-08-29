@@ -1,9 +1,16 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { AutoPoster, AutoPosterStatus } from '../lib/autoPoster';
+import React, { useState, useEffect } from 'react';
 import { WebsiteConfig } from '../lib/relevanceFiltering';
 import { useUser } from '@clerk/nextjs';
+
+interface AutoPosterStatus {
+  isRunning: boolean;
+  nextPostTime: Date | null;
+  postsToday: number;
+  lastPostResult: string | null;
+  currentWebsiteConfig: WebsiteConfig | null;
+}
 
 interface AutoPosterManagerProps {
   websiteConfigs: WebsiteConfig[];
@@ -26,25 +33,6 @@ export default function AutoPosterManager({ websiteConfigs, onRefreshConfigs }: 
     lastPostTime: null as string | null
   });
   const [showTabWarning, setShowTabWarning] = useState(false);
-  
-  const autoPosterRef = useRef<AutoPoster | null>(null);
-
-  useEffect(() => {
-    if (user?.id) {
-      autoPosterRef.current = new AutoPoster(user.id, (newStatus) => {
-        setStatus(newStatus);
-        if (newStatus.isRunning) {
-          setShowTabWarning(true);
-        }
-      });
-    }
-
-    return () => {
-      if (autoPosterRef.current) {
-        autoPosterRef.current.stop();
-      }
-    };
-  }, [user?.id]);
 
   useEffect(() => {
     // Load posting stats on component mount
@@ -83,7 +71,7 @@ export default function AutoPosterManager({ websiteConfigs, onRefreshConfigs }: 
   };
 
   const handleStart = async () => {
-    if (!selectedConfigId || !autoPosterRef.current) {
+    if (!selectedConfigId) {
       alert('Please select a website configuration first');
       return;
     }
@@ -94,18 +82,50 @@ export default function AutoPosterManager({ websiteConfigs, onRefreshConfigs }: 
       return;
     }
 
-    const success = await autoPosterRef.current.start(selectedConfig, 30);
-    if (success) {
-      setShowTabWarning(true);
-    } else {
+    try {
+      const response = await fetch('/api/auto-poster/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          websiteConfigId: selectedConfigId,
+          intervalMinutes: 30 
+        })
+      });
+
+      if (response.ok) {
+        setStatus(prev => ({
+          ...prev,
+          isRunning: true,
+          currentWebsiteConfig: selectedConfig,
+          nextPostTime: new Date(Date.now() + 30 * 60 * 1000)
+        }));
+        setShowTabWarning(true);
+      } else {
+        alert('Failed to start auto-poster');
+      }
+    } catch (error) {
+      console.error('Error starting auto-poster:', error);
       alert('Failed to start auto-poster');
     }
   };
 
-  const handleStop = () => {
-    if (autoPosterRef.current) {
-      autoPosterRef.current.stop();
-      setShowTabWarning(false);
+  const handleStop = async () => {
+    try {
+      const response = await fetch('/api/auto-poster/stop', {
+        method: 'POST'
+      });
+
+      if (response.ok) {
+        setStatus(prev => ({
+          ...prev,
+          isRunning: false,
+          currentWebsiteConfig: null,
+          nextPostTime: null
+        }));
+        setShowTabWarning(false);
+      }
+    } catch (error) {
+      console.error('Error stopping auto-poster:', error);
     }
   };
 

@@ -1,9 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Client-side version - use API endpoints instead of direct Supabase
 
 export interface PaginationState {
   subreddit: string;
@@ -25,23 +20,15 @@ export class RedditPaginationManager {
    */
   async getPaginationState(subreddit: string): Promise<PaginationState | null> {
     try {
-      const { data, error } = await supabase
-        .from('reddit_pagination_state')
-        .select('*')
-        .eq('user_id', this.userId)
-        .eq('subreddit', subreddit)
-        .single();
-
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-        console.error('Error fetching pagination state:', error);
-        return null;
+      const response = await fetch(`/api/reddit/pagination?userId=${this.userId}&subreddit=${subreddit}`);
+      if (response.ok) {
+        const data = await response.json();
+        return data.state || null;
       }
-
-      return data;
     } catch (error) {
       console.error('Error in getPaginationState:', error);
-      return null;
     }
+    return null;
   }
 
   /**
@@ -54,29 +41,18 @@ export class RedditPaginationManager {
     incrementFetched: number = 0
   ): Promise<boolean> {
     try {
-      const existingState = await this.getPaginationState(subreddit);
-      
-      const updateData = {
-        user_id: this.userId,
-        subreddit,
-        after,
-        before,
-        last_fetched: new Date().toISOString(),
-        total_fetched: (existingState?.total_fetched || 0) + incrementFetched
-      };
-
-      const { error } = await supabase
-        .from('reddit_pagination_state')
-        .upsert(updateData, {
-          onConflict: 'user_id,subreddit'
-        });
-
-      if (error) {
-        console.error('Error updating pagination state:', error);
-        return false;
-      }
-
-      return true;
+      const response = await fetch('/api/reddit/pagination', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: this.userId,
+          subreddit,
+          after,
+          before,
+          incrementFetched
+        })
+      });
+      return response.ok;
     } catch (error) {
       console.error('Error in updatePaginationState:', error);
       return false;
@@ -88,18 +64,12 @@ export class RedditPaginationManager {
    */
   async resetPaginationState(subreddit: string): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('reddit_pagination_state')
-        .delete()
-        .eq('user_id', this.userId)
-        .eq('subreddit', subreddit);
-
-      if (error) {
-        console.error('Error resetting pagination state:', error);
-        return false;
-      }
-
-      return true;
+      const response = await fetch('/api/reddit/pagination', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: this.userId, subreddit })
+      });
+      return response.ok;
     } catch (error) {
       console.error('Error in resetPaginationState:', error);
       return false;
@@ -111,22 +81,15 @@ export class RedditPaginationManager {
    */
   async getAllPaginationStates(): Promise<PaginationState[]> {
     try {
-      const { data, error } = await supabase
-        .from('reddit_pagination_state')
-        .select('*')
-        .eq('user_id', this.userId)
-        .order('last_fetched', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching all pagination states:', error);
-        return [];
+      const response = await fetch(`/api/reddit/pagination?userId=${this.userId}&action=all`);
+      if (response.ok) {
+        const data = await response.json();
+        return data.states || [];
       }
-
-      return data || [];
     } catch (error) {
       console.error('Error in getAllPaginationStates:', error);
-      return [];
     }
+    return [];
   }
 
   /**
@@ -134,21 +97,10 @@ export class RedditPaginationManager {
    */
   async cleanupOldStates(): Promise<boolean> {
     try {
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-      const { error } = await supabase
-        .from('reddit_pagination_state')
-        .delete()
-        .eq('user_id', this.userId)
-        .lt('last_fetched', sevenDaysAgo.toISOString());
-
-      if (error) {
-        console.error('Error cleaning up old pagination states:', error);
-        return false;
-      }
-
-      return true;
+      const response = await fetch(`/api/reddit/pagination?userId=${this.userId}&action=cleanup`, {
+        method: 'DELETE'
+      });
+      return response.ok;
     } catch (error) {
       console.error('Error in cleanupOldStates:', error);
       return false;
