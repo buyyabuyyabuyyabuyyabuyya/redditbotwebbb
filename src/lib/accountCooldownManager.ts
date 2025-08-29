@@ -40,7 +40,8 @@ export class AccountCooldownManager {
    */
   async getAvailableAccounts(): Promise<AvailableAccount[]> {
     try {
-      const response = await fetch('/api/reddit/accounts/available?action=list');
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || 'https://redditoutreach.com';
+      const response = await fetch(`${baseUrl}/api/reddit/accounts/available?action=list`);
       if (response.ok) {
         const data = await response.json();
         return data.accounts || [];
@@ -70,7 +71,8 @@ export class AccountCooldownManager {
    */
   async markAccountAsUsed(accountId: string): Promise<void> {
     try {
-      const response = await fetch('/api/reddit/accounts/cooldown', {
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || 'https://redditoutreach.com';
+      const response = await fetch(`${baseUrl}/api/reddit/accounts/cooldown`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ accountId, cooldownMinutes: this.COOLDOWN_MINUTES })
@@ -90,7 +92,8 @@ export class AccountCooldownManager {
    */
   async isAccountAvailable(accountId: string): Promise<boolean> {
     try {
-      const response = await fetch(`/api/reddit/accounts/available?action=check&accountId=${accountId}`);
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || 'https://redditoutreach.com';
+      const response = await fetch(`${baseUrl}/api/reddit/accounts/available?action=check&accountId=${accountId}`);
       if (response.ok) {
         const data = await response.json();
         return data.available || false;
@@ -109,7 +112,8 @@ export class AccountCooldownManager {
     onCooldown: Array<AvailableAccount & { cooldownEndsAt: string; minutesRemaining: number }>;
   }> {
     try {
-      const response = await fetch('/api/reddit/accounts/available?action=status');
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || 'https://redditoutreach.com';
+      const response = await fetch(`${baseUrl}/api/reddit/accounts/available?action=status`);
       if (response.ok) {
         const data = await response.json();
         return {
@@ -128,7 +132,8 @@ export class AccountCooldownManager {
    */
   async resetAccountCooldown(accountId: string): Promise<void> {
     try {
-      const response = await fetch('/api/reddit/accounts/cooldown', {
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || 'https://redditoutreach.com';
+      const response = await fetch(`${baseUrl}/api/reddit/accounts/cooldown`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ accountId })
@@ -162,7 +167,8 @@ export class AccountCooldownManager {
    */
   async cleanupExpiredCooldowns(): Promise<void> {
     try {
-      const response = await fetch('/api/reddit/accounts/cooldown?action=cleanup', {
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || 'https://redditoutreach.com';
+      const response = await fetch(`${baseUrl}/api/reddit/accounts/cooldown?action=cleanup`, {
         method: 'POST'
       });
       

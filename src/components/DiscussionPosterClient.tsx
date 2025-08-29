@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import AutoPosterManager from './AutoPosterManager';
-import WebsiteConfigManager from './WebsiteConfigManager';
+import WebsiteConfigManagerStepByStep from './WebsiteConfigManagerStepByStep';
 import { WebsiteConfig } from '../lib/relevanceFiltering';
 
 interface RedditDiscussion {
@@ -365,7 +365,7 @@ export default function DiscussionPosterClient() {
 
             {/* Website Config Tab */}
             {activeTab === 'config' && (
-              <WebsiteConfigManager onConfigsChange={loadWebsiteConfigs} />
+              <WebsiteConfigManagerStepByStep onConfigsChange={loadWebsiteConfigs} />
             )}
 
             {/* History Tab */}

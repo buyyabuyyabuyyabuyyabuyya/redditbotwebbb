@@ -28,13 +28,11 @@ export async function GET(req: Request) {
         const { data: todayPosts } = await supabase
           .from('posted_reddit_discussions')
           .select('id')
-          .eq('user_id', userId)
           .gte('created_at', today.toISOString());
 
         const { data: totalPosts } = await supabase
           .from('posted_reddit_discussions')
           .select('id, created_at')
-          .eq('user_id', userId)
           .order('created_at', { ascending: false })
           .limit(1);
 
@@ -52,7 +50,6 @@ export async function GET(req: Request) {
         let query = supabase
           .from('posted_reddit_discussions')
           .select('*')
-          .eq('user_id', userId)
           .order('created_at', { ascending: false })
           .range(offset, offset + limit - 1);
 
@@ -121,7 +118,6 @@ export async function POST(req: Request) {
     const { data, error } = await supabase
       .from('posted_reddit_discussions')
       .insert({
-        user_id: userId,
         website_config_id,
         reddit_post_id,
         subreddit,
@@ -163,8 +159,7 @@ export async function DELETE(req: Request) {
       const { error } = await supabase
         .from('posted_reddit_discussions')
         .delete()
-        .eq('id', id)
-        .eq('user_id', userId);
+        .eq('id', id);
 
       if (error) {
         console.error('Error deleting posted discussion:', error);
@@ -177,8 +172,7 @@ export async function DELETE(req: Request) {
       const { error } = await supabase
         .from('posted_reddit_discussions')
         .delete()
-        .eq('website_config_id', websiteConfigId)
-        .eq('user_id', userId);
+        .eq('website_config_id', websiteConfigId);
 
       if (error) {
         console.error('Error deleting posted discussions for website config:', error);
