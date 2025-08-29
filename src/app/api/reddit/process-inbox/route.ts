@@ -190,16 +190,22 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
           if (isOptOut) {
             const { error: insertErr } = await supabase
               .from('opt_outs')
-              .insert({ id: crypto.randomUUID(), user_id: userId, recipient: msg.author.name.toLowerCase() });
+              .upsert({ 
+                id: crypto.randomUUID(), 
+                user_id: userId, 
+                recipient: msg.author.name.toLowerCase() 
+              }, {
+                onConflict: 'user_id,recipient'
+              });
             if (insertErr) {
-              console.error('opt_outs insert error', insertErr);
+              console.error('opt_outs upsert error', insertErr);
               // fire-and-forget diagnostic log, ignore failure
               const logRes = await supabase.from('bot_logs').insert({
                 user_id: userId,
-                action: 'opt_out_insert_error',
+                action: 'opt_out_upsert_error',
                 subreddit: '_system',
                 status: 'error',
-                error_message: insertErr.message?.slice(0, 250) || 'insert error',
+                error_message: insertErr.message?.slice(0, 250) || 'upsert error',
               });
               if (logRes.error) {
                 console.error('bot_logs insert error', logRes.error);

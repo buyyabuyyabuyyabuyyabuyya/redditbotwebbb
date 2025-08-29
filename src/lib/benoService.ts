@@ -44,3 +44,45 @@ export async function createProduct(
 // Removed getDiscussions - replaced with custom logic
 
 // Removed publishReply function - replaced with custom Reddit posting logic
+
+/**
+ * Generate Reddit search queries based on product description and customer segments
+ */
+export function generateRedditSearchQueries(
+  description: string,
+  customerSegments: string[]
+): string[] {
+  const queries: string[] = [];
+  
+  // Extract key terms from description
+  const descriptionWords = description.toLowerCase()
+    .split(/\s+/)
+    .filter(word => word.length > 3)
+    .slice(0, 5); // Take first 5 meaningful words
+  
+  // Generate queries combining description terms with customer segments
+  customerSegments.forEach(segment => {
+    const segmentWords = segment.toLowerCase().split(/\s+/);
+    
+    // Combine segment with description words
+    descriptionWords.forEach(word => {
+      queries.push(`${segment} ${word}`);
+    });
+    
+    // Use segment alone
+    queries.push(segment);
+  });
+  
+  // Add description-based queries
+  descriptionWords.forEach(word => {
+    queries.push(word);
+  });
+  
+  // Add some generic business queries if no specific segments
+  if (customerSegments.length === 0) {
+    queries.push('business help', 'startup advice', 'productivity tools');
+  }
+  
+  // Remove duplicates and return top 10
+  return Array.from(new Set(queries)).slice(0, 10);
+}

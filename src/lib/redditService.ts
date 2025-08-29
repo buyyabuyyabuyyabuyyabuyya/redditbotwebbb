@@ -1,4 +1,7 @@
 // Custom Reddit service to replace Beno discussions API
+import { filterRelevantDiscussions, WebsiteConfig } from './relevanceFiltering';
+import { DuplicatePostPrevention } from './duplicatePostPrevention';
+import { RedditPaginationManager, buildRedditUrlWithPagination, extractPaginationTokens } from './redditPagination';
 
 export interface RedditDiscussion {
   id: string;
@@ -12,11 +15,32 @@ export interface RedditDiscussion {
   num_comments: number;
   created_utc: number;
   raw_comment: string;
+  is_self?: boolean;
 }
 
 export interface RedditDiscussionsResponse {
   items: RedditDiscussion[];
   total: number;
+}
+
+const userAgents = [
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+];
+
+export function generateUserAgent(config?: { enabled?: boolean; type?: string; custom?: string }): string {
+  if (!config?.enabled) {
+    return userAgents[Math.floor(Math.random() * userAgents.length)];
+  }
+  
+  if (config.type === 'custom' && config.custom) {
+    return config.custom;
+  }
+  
+  return userAgents[Math.floor(Math.random() * userAgents.length)];
 }
 
 export async function getRedditDiscussions(
@@ -27,17 +51,6 @@ export async function getRedditDiscussions(
   // Make direct client-side request to Reddit to bypass server-side blocking
   const redditUrl = `https://old.reddit.com/r/${subreddit}/hot.json?limit=${limit}`;
 
-
-  const userAgents = [
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0',
-    'Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1',
-    'Mozilla/5.0 (Linux; Android 14; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36'
-  ];
-  
   const response = await fetch(redditUrl, {
     headers: {
       'Accept': 'application/json',
@@ -71,7 +84,8 @@ export async function getRedditDiscussions(
       score: post.data.score,
       num_comments: post.data.num_comments,
       created_utc: post.data.created_utc,
-      raw_comment: post.data.selftext || post.data.title
+      raw_comment: post.data.selftext || post.data.title,
+      is_self: post.data.is_self
     })) || [];
   
   return {
@@ -122,10 +136,116 @@ export const BUSINESS_SUBREDDITS = [
   'technology'
 ];
 
+export async function searchMultipleSubredditsWithPagination(
+  query: string,
+  userId: string,
+  subreddits: string[] = BUSINESS_SUBREDDITS,
+  limitPerSubreddit: number = 25,
+  websiteConfig?: WebsiteConfig,
+  usePagination: boolean = true
+): Promise<RedditDiscussion[]> {
+  const allDiscussions: RedditDiscussion[] = [];
+  const paginationManager = usePagination ? new RedditPaginationManager(userId) : null;
+
+  for (const subreddit of subreddits.slice(0, 10)) {
+    try {
+      let redditUrl: string;
+      let paginationState = null;
+
+      if (paginationManager) {
+        // Get existing pagination state
+        paginationState = await paginationManager.getPaginationState(subreddit);
+        redditUrl = buildRedditUrlWithPagination(
+          subreddit,
+          limitPerSubreddit,
+          paginationState?.after,
+          null,
+          'hot'
+        );
+      } else {
+        redditUrl = `https://old.reddit.com/r/${subreddit}/hot.json?limit=${limitPerSubreddit}`;
+      }
+
+      const response = await fetch(redditUrl, {
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': userAgents[Math.floor(Math.random() * userAgents.length)],
+        },
+      });
+
+      if (!response.ok) {
+        console.warn(`Failed to fetch from r/${subreddit}: ${response.status}`);
+        continue;
+      }
+
+      const data = await response.json();
+      
+      // Update pagination state if using pagination
+      if (paginationManager && data?.data) {
+        const { after, before } = extractPaginationTokens(data);
+        const fetchedCount = data.data.children?.length || 0;
+        await paginationManager.updatePaginationState(subreddit, after, before, fetchedCount);
+      }
+
+      // Process discussions
+      const discussions = data.data?.children
+        ?.filter((post: any) => {
+          const title = post.data.title.toLowerCase();
+          const selftext = (post.data.selftext || '').toLowerCase();
+          const queryLower = query.toLowerCase();
+          
+          return title.includes(queryLower) || selftext.includes(queryLower);
+        })
+        ?.map((post: any) => ({
+          id: post.data.id,
+          title: post.data.title,
+          content: post.data.selftext || '',
+          description: post.data.selftext || post.data.title,
+          url: `https://reddit.com${post.data.permalink}`,
+          subreddit: post.data.subreddit,
+          author: post.data.author,
+          score: post.data.score,
+          num_comments: post.data.num_comments,
+          created_utc: post.data.created_utc,
+          raw_comment: post.data.selftext || post.data.title,
+          is_self: post.data.is_self || false,
+        })) || [];
+
+      allDiscussions.push(...discussions);
+    } catch (error) {
+      console.warn(`Error fetching from r/${subreddit}:`, error);
+    }
+  }
+
+  // Remove duplicates
+  const uniqueDiscussions = allDiscussions.filter((discussion, index, self) =>
+    index === self.findIndex(d => d.id === discussion.id)
+  );
+
+  // Apply relevance filtering if website config is provided
+  if (websiteConfig) {
+    const duplicatePrevention = new DuplicatePostPrevention();
+    
+    // Filter out already posted discussions
+    const unpostedDiscussions = await duplicatePrevention.filterUnpostedDiscussions(
+      uniqueDiscussions, 
+      websiteConfig.id
+    );
+    
+    // Apply relevance scoring and filtering
+    const relevantDiscussions = filterRelevantDiscussions(unpostedDiscussions, websiteConfig);
+    
+    return relevantDiscussions.map(item => item.discussion).slice(0, 20);
+  }
+
+  return uniqueDiscussions.slice(0, 50);
+}
+
 export async function searchMultipleSubreddits(
   query: string,
   subreddits: string[] = BUSINESS_SUBREDDITS,
-  limitPerSubreddit: number = 25
+  limitPerSubreddit: number = 25,
+  websiteConfig?: WebsiteConfig
 ): Promise<RedditDiscussion[]> {
   const allDiscussions: RedditDiscussion[] = [];
   
@@ -139,12 +259,30 @@ export async function searchMultipleSubreddits(
     }
   }
   
-  // Remove duplicates and sort by relevance (score)
+  // Remove duplicates
   const uniqueDiscussions = allDiscussions
     .filter((discussion, index, self) => 
       index === self.findIndex(d => d.id === discussion.id)
-    )
-    .sort((a, b) => b.score - a.score);
+    );
   
-  return uniqueDiscussions.slice(0, 20); // Return top 20 results
+  // Apply relevance filtering if website config is provided
+  if (websiteConfig) {
+    const duplicatePrevention = new DuplicatePostPrevention();
+    
+    // Filter out already posted discussions
+    const unpostedDiscussions = await duplicatePrevention.filterUnpostedDiscussions(
+      uniqueDiscussions, 
+      websiteConfig.id
+    );
+    
+    // Apply relevance scoring and filtering
+    const relevantDiscussions = filterRelevantDiscussions(unpostedDiscussions, websiteConfig);
+    
+    return relevantDiscussions.map(item => item.discussion).slice(0, 20);
+  }
+  
+  // Fallback to original sorting if no website config
+  return uniqueDiscussions
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 20);
 }

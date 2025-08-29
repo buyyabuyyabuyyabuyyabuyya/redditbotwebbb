@@ -17,6 +17,11 @@ pnpm-debug.log*
 *.log
 *.logs
 
+*.txt
+*.sql
+*.json
+
+
 .log
 .logs
 logs/

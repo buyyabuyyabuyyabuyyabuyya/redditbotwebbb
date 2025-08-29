@@ -2,7 +2,13 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
 import { createClient } from '@supabase/supabase-js';
 import snoowrap from 'snoowrap';
-import { generateUserAgent } from '../../../../utils/userAgents';
+import { AccountCooldownManager } from '../../../../lib/accountCooldownManager';
+import { generateUserAgent } from '../../../../lib/redditService';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function POST(req: Request) {
   try {
@@ -68,17 +74,43 @@ export async function POST(req: Request) {
       }
     }
 
-    // Load Reddit account - use admin-controlled discussion poster account
-    const { data: account } = await supabaseAdmin
-      .from('reddit_accounts')
-      .select('*')
-      .eq('id', accountId)
-      .eq('is_discussion_poster', true)
-      .eq('is_validated', true)
-      .single();
+    // Use cooldown manager to get available account
+    const cooldownManager = new AccountCooldownManager();
+    let account;
 
-    if (!account) {
-      return NextResponse.json({ error: 'Reddit account not found' }, { status: 404 });
+    if (accountId && accountId !== 'auto') {
+      // Use specific account if provided and available
+      const isAvailable = await cooldownManager.isAccountAvailable(accountId);
+      if (!isAvailable) {
+        return NextResponse.json({ 
+          error: 'Account is on cooldown',
+          status: 'rate_limited'
+        }, { status: 429 });
+      }
+
+      const { data: specificAccount } = await supabaseAdmin
+        .from('reddit_accounts')
+        .select('*')
+        .eq('id', accountId)
+        .eq('is_discussion_poster', true)
+        .eq('is_validated', true)
+        .single();
+
+      if (!specificAccount) {
+        return NextResponse.json({ error: 'Reddit account not found' }, { status: 404 });
+      }
+      account = specificAccount;
+    } else {
+      // Get next available account automatically
+      account = await cooldownManager.getNextAvailableAccount();
+      if (!account) {
+        const waitTime = await cooldownManager.getEstimatedWaitTime();
+        return NextResponse.json({ 
+          error: 'No accounts available',
+          status: 'rate_limited',
+          estimatedWaitMinutes: waitTime
+        }, { status: 429 });
+      }
     }
 
     // Apply proxy settings (same as send-message)
@@ -147,6 +179,9 @@ export async function POST(req: Request) {
           .update({ message_count: (userRow?.message_count ?? 0) + 1 })
           .eq('id', body.userId || userId);
 
+        // Mark account as used (cooldown starts)
+        await cooldownManager.markAccountAsUsed(account.id);
+
         // Log success
         await supabaseAdmin.from('bot_logs').insert({
           user_id: body.userId || userId,
@@ -159,7 +194,8 @@ export async function POST(req: Request) {
         return NextResponse.json({ 
           success: true, 
           commentId: commentResponse.id,
-          commentUrl 
+          commentUrl,
+          accountId: account.id
         });
 
       } catch (err: any) {
@@ -188,8 +224,9 @@ export async function POST(req: Request) {
           return NextResponse.json({ skipped: true, reason: 'user_blocked' });
         }
 
-        // Rate limiting
+        // Rate limiting - mark account as used since it attempted to post
         if (msg.includes('RATELIMIT') || msg.includes('you are doing that too much')) {
+          await cooldownManager.markAccountAsUsed(account.id);
           await supabaseAdmin.from('bot_logs').insert({
             user_id: body.userId || userId,
             action: 'rate_limited',
@@ -197,7 +234,10 @@ export async function POST(req: Request) {
             subreddit,
             message: 'Reddit rate limit hit',
           });
-          return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
+          return NextResponse.json({ 
+            error: 'rate_limited', 
+            accountId: account.id 
+          }, { status: 429 });
         }
 
         // Generic error
