@@ -309,7 +309,7 @@ export default function DiscussionPosterClient() {
                       <option value="">Select a website configuration...</option>
                       {websiteConfigs.map((config) => (
                         <option key={config.id} value={config.id}>
-                          {config.url} - {config.description.substring(0, 40)}...
+                          {config.url} - {config.description?.substring(0, 40) || 'No description'}...
                         </option>
                       ))}
                     </select>
@@ -463,9 +463,9 @@ function DiscussionCard({ discussion, onPostComment, websiteConfig }: Discussion
       {discussion.content && (
         <div className="mb-3">
           <p className="text-gray-700 text-sm">
-            {isExpanded ? discussion.content : `${discussion.content.substring(0, 200)}...`}
+            {isExpanded ? discussion.content : `${discussion.content?.substring(0, 200) || 'No content'}...`}
           </p>
-          {discussion.content.length > 200 && (
+          {(discussion.content?.length || 0) > 200 && (
             <button
               onClick={() => setIsExpanded(!isExpanded)}
               className="text-blue-600 hover:text-blue-800 text-sm mt-1"

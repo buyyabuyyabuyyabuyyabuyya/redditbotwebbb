@@ -119,7 +119,7 @@ export default function CreateMessageTemplate({
                 <div key={index} className="bg-gray-700 rounded-lg p-4 border border-gray-600">
                   <h4 className="font-medium text-white mb-2 text-sm">{template.name}</h4>
                   <p className="text-xs text-gray-300 mb-3 leading-relaxed">
-                    {template.content.substring(0, 150)}...
+                    {template.content?.substring(0, 150) || 'No content'}...
                   </p>
                   <button
                     type="button"

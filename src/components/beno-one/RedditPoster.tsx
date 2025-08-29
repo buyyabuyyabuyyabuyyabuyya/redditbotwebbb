@@ -240,7 +240,7 @@ export default function RedditPoster({ productId, generatedReplies = [] }: Reddi
               <div className="mb-4">
                 <p className="text-gray-300 text-sm bg-gray-900/30 p-3 rounded">
                   {reply.post.body?.substring(0, 300) || 'No content available'}
-                  {reply.post.body && reply.post.body.length > 300 && '...'}
+                  {(reply.post.body?.length || 0) > 300 && '...'}
                 </p>
               </div>
               

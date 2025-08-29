@@ -592,7 +592,7 @@ function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFoun
             {discussions.slice(0, 3).map((discussion, index) => (
               <div key={index} className="bg-gray-700/50 p-4 rounded-lg">
                 <h4 className="text-white font-semibold mb-2">{(discussion as any).title || 'Discussion'}</h4>
-                <p className="text-gray-300 text-sm mb-2">{((discussion as any).content || (discussion as any).description || '').substring(0, 200)}...</p>
+                <p className="text-gray-300 text-sm mb-2">{(((discussion as any).content || (discussion as any).description || '')?.substring(0, 200) || 'No content')}...</p>
                 <div className="flex items-center space-x-4 text-xs text-gray-400 mb-3">
                   <span>Reddit Score: {(discussion as any).score || 0}</span>
                   <span>Subreddit: r/{(discussion as any).subreddit || 'unknown'}</span>
@@ -607,7 +607,7 @@ function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFoun
                 {(discussion as any).generatedReply && (
                   <div className="bg-gray-800 p-3 rounded text-sm">
                     <div className="text-green-400 font-medium mb-1">✓ Generated Reply:</div>
-                    <div className="text-gray-300">{(discussion as any).generatedReply.substring(0, 150)}...</div>
+                    <div className="text-gray-300">{(discussion as any).generatedReply?.substring(0, 150) || 'No reply'}...</div>
                   </div>
                 )}
               </div>

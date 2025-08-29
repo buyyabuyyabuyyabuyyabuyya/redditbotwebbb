@@ -137,7 +137,7 @@ export default function DescriptionReview({ scrapedData, onDescriptionConfirmed,
                 <div>
                   <strong>Content Preview:</strong> 
                   <div className="mt-1 ml-4 text-gray-500">
-                    {scrapedData.main_content.substring(0, 200)}...
+                    {scrapedData.main_content?.substring(0, 200) || 'No content'}...
                   </div>
                 </div>
               )}

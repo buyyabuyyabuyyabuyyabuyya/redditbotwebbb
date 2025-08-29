@@ -409,7 +409,7 @@ export default function MessageInbox({ accounts, userId }: MessageInboxProps) {
                       </p>
                       {/* Conversation preview */}
                       <div className="mt-2 text-sm text-gray-400">
-                        <span className="text-gray-500">Latest:</span> {group.messages[0]?.body.substring(0, 80)}{group.messages[0]?.body.length > 80 ? '...' : ''}
+                        <span className="text-gray-500">Latest:</span> {group.messages[0]?.body?.substring(0, 80) || 'No content'}{(group.messages[0]?.body?.length || 0) > 80 ? '...' : ''}
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">

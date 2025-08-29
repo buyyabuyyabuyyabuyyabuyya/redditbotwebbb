@@ -129,8 +129,12 @@ export default function WebsiteConfigManagerStepByStep({
     setSaving(true);
     try {
       const method = config.id ? 'PUT' : 'POST';
+      
+      // Generate a product ID if not provided
+      const finalProductId = productId || `product_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
       const body = {
-        productId,
+        productId: finalProductId,
         configId: config.id,
         websiteUrl: config.website_url,
         websiteDescription: config.website_description,

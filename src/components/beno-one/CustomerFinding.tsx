@@ -36,7 +36,7 @@ export default function CustomerFinding({ url, name, description, segments, onCu
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            name: name || description.substring(0, 80),
+            name: name || description?.substring(0, 80) || 'Unnamed Product',
             description,
             product_url: (() => {
               try {
@@ -73,7 +73,7 @@ export default function CustomerFinding({ url, name, description, segments, onCu
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                name: name || description.substring(0, 80),
+                name: name || description?.substring(0, 80) || 'Unnamed Product',
                 url,
                 description,
               }),
@@ -150,7 +150,7 @@ export default function CustomerFinding({ url, name, description, segments, onCu
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              name: name || description.substring(0, 80),
+              name: name || description?.substring(0, 80) || 'Unnamed Product',
               url,
               description,
             }),
