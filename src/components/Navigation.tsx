@@ -23,6 +23,7 @@ export default function Navigation() {
 
   const navItems = [
     { name: 'Dashboard', href: '/dashboard' },
+    { name: 'Discussion Poster', href: '/discussion-poster' },
     { name: 'Private Messages', href: '/messages' },
     { name: 'Pricing', href: '/pricing' },
     { name: 'File Logs', href: '/file-logs' },
