@@ -130,9 +130,16 @@ export default function WebsiteConfigManagerStepByStep({
     try {
       const method = config.id ? 'PUT' : 'POST';
       const body = {
-        ...config,
         productId,
-        configId: config.id
+        configId: config.id,
+        websiteUrl: config.website_url,
+        websiteDescription: config.website_description,
+        customerSegments: config.customer_segments || [],
+        targetKeywords: config.target_keywords || [],
+        negativeKeywords: config.negative_keywords || [],
+        businessContextTerms: config.business_context_terms || [],
+        relevanceThreshold: config.relevance_threshold || 70,
+        autoPostersEnabled: config.auto_poster_enabled || false
       };
 
       const response = await fetch('/api/website-config', {
