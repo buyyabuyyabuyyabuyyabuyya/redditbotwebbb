@@ -214,7 +214,7 @@ export default function AutoPosterManager({ websiteConfigs, onRefreshConfigs }: 
             <option value="">Select a website configuration...</option>
             {websiteConfigs.map((config) => (
               <option key={config.id} value={config.id}>
-                {config.url} - {config.description.substring(0, 50)}...
+                {config.url} - {config.description?.substring(0, 50) || 'No description'}...
               </option>
             ))}
           </select>
