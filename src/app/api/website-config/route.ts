@@ -111,12 +111,12 @@ export async function POST(req: Request) {
       }
     }
 
-    // Create new config
+    // Create new config (set product_id to null if not provided or doesn't exist)
     const { data: newConfig, error } = await supabaseAdmin
       .from('website_configs')
       .insert({
         user_id: userId,
-        product_id: productId,
+        product_id: null, // Set to null since we don't have a products table setup
         website_url: websiteUrl,
         website_description: websiteDescription,
         customer_segments: customerSegments,
