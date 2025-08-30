@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs';
+import { auth } from '@clerk/nextjs/server';
 import { AccountCooldownManager } from '../../../../../lib/accountCooldownManager';
 
 export async function GET(req: Request) {
