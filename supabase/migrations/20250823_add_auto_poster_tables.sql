@@ -24,6 +24,9 @@ CREATE TABLE auto_poster_configs (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   
+  -- Upstash integration
+  upstash_schedule_id TEXT,
+  
   -- Constraints
   UNIQUE(user_id, product_id, account_id)
 );

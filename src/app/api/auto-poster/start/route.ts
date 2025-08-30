@@ -46,29 +46,60 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to start auto-poster' }, { status: 500 });
     }
 
-    // Calculate next post time (30 minutes from now for subsequent posts)
-    const nextPostTime = new Date();
-    nextPostTime.setMinutes(nextPostTime.getMinutes() + 30);
+    // Get available Reddit account
+    const { data: account } = await supabaseAdmin
+      .from('reddit_accounts')
+      .select('id')
+      .eq('is_discussion_poster', true)
+      .limit(1)
+      .single();
 
-    // Create or update auto-poster status
-    const { error: statusError } = await supabaseAdmin
-      .from('auto_poster_status')
+    if (!account) {
+      return NextResponse.json({ error: 'No Reddit accounts available for posting' }, { status: 400 });
+    }
+
+    // Create auto-poster config entry
+    const { error: autoposterError } = await supabaseAdmin
+      .from('auto_poster_configs')
       .upsert({
         user_id: userId,
-        website_config_id: websiteConfigId,
-        is_running: true,
-        started_at: new Date().toISOString(),
-        next_post_time: nextPostTime.toISOString(),
+        product_id: config.id, // Use website config ID as product ID
+        account_id: account.id,
+        enabled: true,
+        interval_minutes: 30,
+        max_posts_per_day: 10,
+        status: 'active',
+        next_post_at: new Date().toISOString(), // Post immediately
         posts_today: 0,
-        last_post_result: 'Starting auto-poster...',
-        should_post_immediately: true
+        last_reset_date: new Date().toISOString().split('T')[0]
       }, {
-        onConflict: 'user_id,website_config_id'
+        onConflict: 'user_id,product_id,account_id'
       });
 
-    if (statusError) {
-      console.error('Error updating auto-poster status:', statusError);
-      // Continue even if status update fails
+    if (autoposterError) {
+      console.error('Error creating auto-poster config:', autoposterError);
+      return NextResponse.json({ error: 'Failed to create auto-poster config' }, { status: 500 });
+    }
+
+    // Auto-create Upstash cron job
+    try {
+      const cronResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/upstash/setup-cron`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: config.id,
+          accountId: account.id,
+          intervalMinutes: 5 // Check every 5 minutes
+        })
+      });
+
+      if (!cronResponse.ok) {
+        console.error('Failed to create Upstash cron job');
+        // Continue anyway - manual fallback available
+      }
+    } catch (cronError) {
+      console.error('Error setting up cron job:', cronError);
+      // Continue anyway - manual fallback available
     }
 
     return NextResponse.json({ 

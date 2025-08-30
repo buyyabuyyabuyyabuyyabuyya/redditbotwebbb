@@ -35,19 +35,35 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to stop auto-poster' }, { status: 500 });
     }
 
-    // Update auto-poster status
+    // Update auto-poster config status
     const { error: statusError } = await supabaseAdmin
-      .from('auto_poster_status')
+      .from('auto_poster_configs')
       .update({
-        is_running: false,
-        stopped_at: new Date().toISOString()
+        enabled: false,
+        status: 'paused',
+        next_post_at: null
       })
       .eq('user_id', userId)
-      .eq('website_config_id', websiteConfigId);
+      .eq('product_id', websiteConfigId);
 
     if (statusError) {
       console.error('Error updating auto-poster status:', statusError);
       // Continue even if status update fails
+    }
+
+    // Auto-delete Upstash cron job
+    try {
+      const cronResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/upstash/setup-cron?configId=${websiteConfigId}`, {
+        method: 'DELETE'
+      });
+
+      if (!cronResponse.ok) {
+        console.error('Failed to delete Upstash cron job');
+        // Continue anyway
+      }
+    } catch (cronError) {
+      console.error('Error deleting cron job:', cronError);
+      // Continue anyway
     }
 
     return NextResponse.json({ 

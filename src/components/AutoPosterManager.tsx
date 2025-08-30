@@ -27,6 +27,7 @@ export default function AutoPosterManager({ websiteConfigs, onRefreshConfigs }: 
     lastPostResult: null,
     currentWebsiteConfig: null
   });
+  const [isPolling, setIsPolling] = useState(false);
   const [postingStats, setPostingStats] = useState({
     postsToday: 0,
     totalPosts: 0,
@@ -38,6 +39,41 @@ export default function AutoPosterManager({ websiteConfigs, onRefreshConfigs }: 
     // Load posting stats on component mount
     loadPostingStats();
   }, []);
+
+  // Real-time status polling
+  useEffect(() => {
+    let pollInterval: NodeJS.Timeout;
+
+    const pollStatus = async () => {
+      if (!selectedConfigId || !isPolling) return;
+
+      try {
+        const response = await fetch(`/api/auto-poster/status?websiteConfigId=${selectedConfigId}`);
+        if (response.ok) {
+          const statusData = await response.json();
+          setStatus(prev => ({
+            ...prev,
+            isRunning: statusData.isRunning,
+            nextPostTime: statusData.nextPostTime ? new Date(statusData.nextPostTime) : null,
+            postsToday: statusData.postsToday,
+            lastPostResult: statusData.lastPostResult,
+            currentWebsiteConfig: statusData.currentWebsiteConfig
+          }));
+        }
+      } catch (error) {
+        console.error('Error polling status:', error);
+      }
+    };
+
+    if (isPolling && selectedConfigId) {
+      pollInterval = setInterval(pollStatus, 3000); // Poll every 3 seconds
+      pollStatus(); // Initial poll
+    }
+
+    return () => {
+      if (pollInterval) clearInterval(pollInterval);
+    };
+  }, [selectedConfigId, isPolling]);
 
   useEffect(() => {
     // Warn user before closing tab if auto-poster is running
@@ -93,6 +129,7 @@ export default function AutoPosterManager({ websiteConfigs, onRefreshConfigs }: 
       });
 
       if (response.ok) {
+        setIsPolling(true); // Start polling for status updates
         setStatus(prev => ({
           ...prev,
           isRunning: true,
@@ -116,6 +153,7 @@ export default function AutoPosterManager({ websiteConfigs, onRefreshConfigs }: 
       });
 
       if (response.ok) {
+        setIsPolling(false); // Stop polling
         setStatus(prev => ({
           ...prev,
           isRunning: false,

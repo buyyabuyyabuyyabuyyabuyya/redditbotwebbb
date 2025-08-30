@@ -21,17 +21,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Website config ID is required' }, { status: 400 });
     }
 
-    // Get auto-poster status
-    const { data: status, error: statusError } = await supabaseAdmin
-      .from('auto_poster_status')
-      .select('*')
+    // Get auto-poster config with website config details
+    const { data: autoposterConfig, error: autoposterError } = await supabaseAdmin
+      .from('auto_poster_configs')
+      .select(`
+        *,
+        reddit_accounts(username, status)
+      `)
       .eq('user_id', userId)
-      .eq('website_config_id', websiteConfigId)
+      .eq('product_id', websiteConfigId)
       .single();
 
-    if (statusError && statusError.code !== 'PGRST116') {
-      console.error('Error fetching auto-poster status:', statusError);
-      return NextResponse.json({ error: 'Failed to fetch status' }, { status: 500 });
+    if (autoposterError && autoposterError.code !== 'PGRST116') {
+      console.error('Error fetching auto-poster config:', autoposterError);
+      return NextResponse.json({ error: 'Failed to fetch auto-poster status' }, { status: 500 });
     }
 
     // Get website config
@@ -47,22 +50,25 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Website config not found' }, { status: 404 });
     }
 
-    // Get today's post count
+    // Get today's post count from auto-posting logs
     const today = new Date().toISOString().split('T')[0];
     const { count: postsToday } = await supabaseAdmin
-      .from('posted_reddit_discussions')
+      .from('auto_posting_logs')
       .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
       .gte('created_at', `${today}T00:00:00.000Z`)
-      .lt('created_at', `${today}T23:59:59.999Z`);
+      .lt('created_at', `${today}T23:59:59.999Z`)
+      .eq('status', 'posted');
 
     return NextResponse.json({
-      isRunning: status?.is_running || false,
-      nextPostTime: status?.next_post_time || null,
-      postsToday: postsToday || 0,
-      lastPostResult: status?.last_post_result || null,
+      isRunning: autoposterConfig?.enabled && autoposterConfig?.status === 'active',
+      nextPostTime: autoposterConfig?.next_post_at || null,
+      postsToday: autoposterConfig?.posts_today || 0,
+      lastPostResult: autoposterConfig?.status === 'active' ? 'Running...' : 'Stopped',
       currentWebsiteConfig: config,
-      startedAt: status?.started_at || null,
-      stoppedAt: status?.stopped_at || null
+      intervalMinutes: autoposterConfig?.interval_minutes || 30,
+      maxPostsPerDay: autoposterConfig?.max_posts_per_day || 10,
+      redditAccount: autoposterConfig?.reddit_accounts?.username || 'No account assigned'
     });
 
   } catch (error) {
