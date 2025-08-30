@@ -1,0 +1,251 @@
+# Universal Relevance Filtering & Auto-Poster System Implementation Plan
+
+## OVERVIEW
+Build a universal relevance filtering system that works for any website type, plus an automated posting system with account cooldowns and pagination support.
+
+## DATABASE CHANGES NEEDED
+
+### New Tables to Create:
+1. **website_configs**
+   - id (uuid, primary key)
+   - user_id (text, foreign key to users.user_id)
+   - product_id (uuid, foreign key to products.id)
+   - website_url (text)
+   - website_description (text)
+   - customer_segments (ARRAY)
+   - target_keywords (ARRAY)
+   - negative_keywords (ARRAY)
+   - business_context_terms (ARRAY)
+   - relevance_threshold (integer, default 70)
+   - auto_poster_enabled (boolean, default false)
+   - created_at (timestamp)
+   - updated_at (timestamp)
+
+2. **reddit_account_cooldowns**
+   - id (uuid, primary key)
+   - reddit_account_id (uuid, foreign key to reddit_accounts.id)
+   - last_used_at (timestamp)
+   - cooldown_until (timestamp)
+   - is_available (boolean, default true)
+   - created_at (timestamp)
+   - updated_at (timestamp)
+
+3. **reddit_pagination_state**
+   - id (uuid, primary key)
+   - subreddit (text)
+   - last_after_token (text)
+   - last_fetched_at (timestamp)
+   - created_at (timestamp)
+   - updated_at (timestamp)
+
+4. **posted_reddit_discussions**
+   - id (uuid, primary key)
+   - website_config_id (uuid, foreign key to website_configs.id)
+   - reddit_post_id (text)
+   - subreddit (text)
+   - post_title (text)
+   - posted_at (timestamp)
+   - reddit_account_id (uuid, foreign key to reddit_accounts.id)
+   - comment_id (text)
+   - comment_url (text)
+   - created_at (timestamp)
+   - UNIQUE constraint on (website_config_id, reddit_post_id)
+
+5. **relevance_scores**
+   - id (uuid, primary key)
+   - discussion_id (uuid, foreign key to discussions.id)
+   - website_config_id (uuid, foreign key to website_configs.id)
+   - intent_score (integer)
+   - context_match_score (integer)
+   - quality_score (integer)
+   - engagement_score (integer)
+   - final_relevance_score (integer)
+   - filtering_reason (text)
+   - created_at (timestamp)
+
+### Existing Tables to Modify:
+1. **reddit_accounts** - Add columns:
+   - current_cooldown_until (timestamp)
+   - total_messages_sent (integer, default 0)
+   - last_message_sent_at (timestamp)
+
+2. **auto_poster_configs** - Add columns:
+   - website_config_id (uuid, foreign key to website_configs.id)
+   - posting_interval_minutes (integer, default 30)
+   - require_tab_open (boolean, default true)
+
+## IMPLEMENTATION STEPS
+
+### STEP 1: Universal Relevance Filtering System
+**Files to Create/Modify:**
+- `src/lib/relevanceFiltering.ts` (new)
+- `src/lib/redditService.ts` (modify)
+- `src/lib/duplicatePostPrevention.ts` (new)
+
+**Features:**
+1. **Intent-Based Filtering**
+   - Problem statements: "I can't", "struggling with", "issue with", "problem with"
+   - Seeking recommendations: "best", "recommend", "suggestions", "alternatives", "looking for"
+   - Questions: Posts with "?" or starting with "How", "What", "Where", "Why", "Anyone know"
+   - Experience sharing: "anyone tried", "has anyone used", "experience with"
+
+2. **Dynamic Context Matching**
+   - Extract keywords from website description
+   - Match customer segments to post content
+   - Industry-specific term expansion
+   - Semantic keyword matching
+
+3. **Post Quality Indicators**
+   - Prioritize discussion posts (is_self: true)
+   - Calculate engagement ratio (num_comments/score)
+   - Recency scoring (newer = higher score)
+   - Subreddit relevance matching
+
+4. **Content Structure Analysis**
+   - Question detection and scoring
+   - List post identification ("Top 5", "Best tools")
+   - Problem description length analysis
+   - Help-seeking language detection
+
+5. **Adaptive Scoring Algorithm**
+   ```
+   Final Score = (Intent Match × 0.25) + (Context Match × 0.35) + (Quality × 0.25) + (Engagement × 0.15)
+   ```
+
+6. **Duplicate Post Prevention**
+   - Filter out posts already messaged for same website config
+   - Allow same post for different website configs
+   - Track posted discussions per website configuration
+   - Exclude already-posted discussions from fetching results
+
+### STEP 2: Website Configuration System
+**Files to Create/Modify:**
+- `src/app/api/website-config/route.ts` (new)
+- `src/components/WebsiteConfigManager.tsx` (new)
+
+**Features:**
+- Save website analysis results to database
+- Allow users to customize relevance parameters
+- Store negative keywords and business context terms
+- Link configurations to user_id via Clerk
+
+### STEP 3: Reddit Account Cooldown System
+**Files to Create/Modify:**
+- `src/lib/accountCooldownManager.ts` (new)
+- `src/app/api/reddit/accounts/available/route.ts` (new)
+
+**Features:**
+- 30-minute cooldown after each message sent
+- Automatic account availability tracking
+- Round-robin account selection
+- Cooldown status checking
+
+### STEP 4: Reddit Pagination System
+**Files to Create/Modify:**
+- `src/lib/redditPagination.ts` (new)
+- Modify `src/lib/redditService.ts`
+
+**Features:**
+- Store "after" tokens for each subreddit
+- Continuous fetching of new posts
+- Avoid duplicate post processing
+- Efficient pagination state management
+
+### STEP 5: Auto-Poster System
+**Files to Create/Modify:**
+- `src/components/AutoPoster.tsx` (new)
+- `src/app/api/auto-poster/start/route.ts` (new)
+- `src/app/api/auto-poster/stop/route.ts` (new)
+- `src/app/api/auto-poster/status/route.ts` (new)
+- `src/app/api/posted-discussions/route.ts` (new)
+
+**Features:**
+- Client-side auto-posting (requires tab open)
+- 30-minute interval between posts
+- "Don't close this tab" warning message
+- Automatic account rotation with cooldown respect
+- Real-time status updates
+- Start/stop controls
+- **Duplicate Prevention Integration:**
+  - Check `posted_reddit_discussions` before posting
+  - Record successful posts to prevent re-posting
+  - Filter out already-posted discussions from queue
+  - Allow same post for different website configs
+
+### STEP 6: Dedicated Discussion-Poster Page
+**Files to Create:**
+- `src/app/discussion-poster/page.tsx` (new)
+- `src/app/discussion-poster/layout.tsx` (new)
+
+**Features:**
+- Dedicated route: `redditoutreach.com/discussion-poster`
+- Consolidate all existing UI components and logic
+- Move BenoWorkflow, CustomerFinding, RedditPoster components
+- Centralized location for all discussion posting features
+- All future updates go to this page's code files
+- Clean, simple navigation structure
+
+### STEP 7: Auto-Poster Integration
+**Files to Modify:**
+- `src/components/beno-one/RedditPoster.tsx`
+- `src/components/beno-one/BenoWorkflow.tsx`
+- `src/app/discussion-poster/page.tsx`
+
+**Features:**
+- Automatic redirect to auto-poster after manual posting
+- Seamless workflow integration within discussion-poster page
+- Configuration persistence
+
+### STEP 8: Database Migration Scripts
+**Files to Create:**
+- `supabase/migrations/add_website_configs.sql`
+- `supabase/migrations/add_account_cooldowns.sql`
+- `supabase/migrations/add_pagination_state.sql`
+- `supabase/migrations/add_posted_discussions.sql`
+- `supabase/migrations/add_relevance_scores.sql`
+- `supabase/migrations/modify_existing_tables.sql`
+
+## TECHNICAL CONSIDERATIONS
+
+### Client-Side Requirements:
+- Auto-poster runs in browser tab (must stay open)
+- Real-time cooldown tracking
+- Automatic page refresh prevention
+- Background task management
+
+### Performance Optimizations:
+- Batch relevance scoring
+- Efficient database queries
+- Caching of website configurations
+- Optimized Reddit API calls
+
+### Error Handling:
+- Account ban detection
+- Rate limit management
+- Network failure recovery
+- Graceful degradation
+
+### Security:
+- User isolation (user_id based filtering)
+- API key rotation
+- Secure credential storage
+- Rate limit enforcement
+
+## SUCCESS METRICS
+- Relevance accuracy improvement (target: 80%+ relevant posts)
+- Reduced manual intervention
+- Successful auto-posting with cooldowns
+- Zero account bans from proper cooldown management
+- Seamless pagination without duplicates
+
+## ROLLOUT STRATEGY
+1. Implement and test relevance filtering first
+2. Add database tables and migrations
+3. Build cooldown system
+4. Implement pagination
+5. Create auto-poster UI
+6. Integration testing
+7. User acceptance testing
+8. Production deployment
+
+Each step should be thoroughly tested before moving to the next phase.

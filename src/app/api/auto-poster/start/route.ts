@@ -46,6 +46,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to start auto-poster' }, { status: 500 });
     }
 
+    // Calculate next post time (30 minutes from now for subsequent posts)
+    const nextPostTime = new Date();
+    nextPostTime.setMinutes(nextPostTime.getMinutes() + 30);
+
     // Create or update auto-poster status
     const { error: statusError } = await supabaseAdmin
       .from('auto_poster_status')
@@ -54,8 +58,10 @@ export async function POST(request: NextRequest) {
         website_config_id: websiteConfigId,
         is_running: true,
         started_at: new Date().toISOString(),
+        next_post_time: nextPostTime.toISOString(),
         posts_today: 0,
-        last_post_result: null
+        last_post_result: 'Starting auto-poster...',
+        should_post_immediately: true
       }, {
         onConflict: 'user_id,website_config_id'
       });

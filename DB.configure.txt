@@ -1,0 +1,1249 @@
+[
+  {
+    "table_name": "api_keys",
+    "columns": [
+      {
+        "column": "id",
+        "type": "uuid"
+      },
+      {
+        "column": "key",
+        "type": "text"
+      },
+      {
+        "column": "provider",
+        "type": "character varying"
+      },
+      {
+        "column": "model",
+        "type": "character varying"
+      },
+      {
+        "column": "is_active",
+        "type": "boolean"
+      },
+      {
+        "column": "last_used",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "rate_limit_reset",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "usage_count",
+        "type": "integer"
+      },
+      {
+        "column": "error_count",
+        "type": "integer"
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "being_used",
+        "type": "boolean"
+      }
+    ],
+    "child_tables": null
+  },
+  {
+    "table_name": "archived_logs",
+    "columns": [
+      {
+        "column": "id",
+        "type": "uuid"
+      },
+      {
+        "column": "user_id",
+        "type": "text"
+      },
+      {
+        "column": "config_id",
+        "type": "uuid"
+      },
+      {
+        "column": "file_path",
+        "type": "text"
+      },
+      {
+        "column": "log_count",
+        "type": "integer"
+      },
+      {
+        "column": "date_range_start",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "date_range_end",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone"
+      }
+    ],
+    "child_tables": null
+  },
+  {
+    "table_name": "auto_poster_configs",
+    "columns": [
+      {
+        "column": "id",
+        "type": "uuid"
+      },
+      {
+        "column": "user_id",
+        "type": "text"
+      },
+      {
+        "column": "product_id",
+        "type": "text"
+      },
+      {
+        "column": "account_id",
+        "type": "uuid"
+      },
+      {
+        "column": "enabled",
+        "type": "boolean"
+      },
+      {
+        "column": "interval_minutes",
+        "type": "integer"
+      },
+      {
+        "column": "max_posts_per_day",
+        "type": "integer"
+      },
+      {
+        "column": "only_high_score_replies",
+        "type": "boolean"
+      },
+      {
+        "column": "min_relevance_score",
+        "type": "integer"
+      },
+      {
+        "column": "min_validation_score",
+        "type": "integer"
+      },
+      {
+        "column": "status",
+        "type": "text"
+      },
+      {
+        "column": "last_posted_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "next_post_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "posts_today",
+        "type": "integer"
+      },
+      {
+        "column": "last_reset_date",
+        "type": "date"
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "website_config_id",
+        "type": "uuid"
+      },
+      {
+        "column": "posting_interval_minutes",
+        "type": "integer"
+      },
+      {
+        "column": "require_tab_open",
+        "type": "boolean"
+      }
+    ],
+    "child_tables": [
+      "auto_posting_logs"
+    ]
+  },
+  {
+    "table_name": "auto_posting_logs",
+    "columns": [
+      {
+        "column": "id",
+        "type": "uuid"
+      },
+      {
+        "column": "config_id",
+        "type": "uuid"
+      },
+      {
+        "column": "user_id",
+        "type": "text"
+      },
+      {
+        "column": "beno_reply_id",
+        "type": "text"
+      },
+      {
+        "column": "product_id",
+        "type": "text"
+      },
+      {
+        "column": "account_id",
+        "type": "uuid"
+      },
+      {
+        "column": "subreddit",
+        "type": "text"
+      },
+      {
+        "column": "post_id",
+        "type": "text"
+      },
+      {
+        "column": "comment_id",
+        "type": "text"
+      },
+      {
+        "column": "comment_url",
+        "type": "text"
+      },
+      {
+        "column": "reply_text",
+        "type": "text"
+      },
+      {
+        "column": "relevance_score",
+        "type": "integer"
+      },
+      {
+        "column": "validation_score",
+        "type": "integer"
+      },
+      {
+        "column": "status",
+        "type": "text"
+      },
+      {
+        "column": "error_message",
+        "type": "text"
+      },
+      {
+        "column": "skip_reason",
+        "type": "text"
+      },
+      {
+        "column": "scheduled_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "posted_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone"
+      }
+    ],
+    "child_tables": null
+  },
+  {
+    "table_name": "background_worker_status",
+    "columns": [
+      {
+        "column": "id",
+        "type": "uuid"
+      },
+      {
+        "column": "worker_type",
+        "type": "text"
+      },
+      {
+        "column": "status",
+        "type": "text"
+      },
+      {
+        "column": "last_run_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "next_run_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "total_runs",
+        "type": "integer"
+      },
+      {
+        "column": "successful_runs",
+        "type": "integer"
+      },
+      {
+        "column": "failed_runs",
+        "type": "integer"
+      },
+      {
+        "column": "current_run_started_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "current_run_products_processed",
+        "type": "integer"
+      },
+      {
+        "column": "current_run_replies_generated",
+        "type": "integer"
+      },
+      {
+        "column": "current_run_posts_made",
+        "type": "integer"
+      },
+      {
+        "column": "last_error_message",
+        "type": "text"
+      },
+      {
+        "column": "last_error_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone"
+      }
+    ],
+    "child_tables": null
+  },
+  {
+    "table_name": "bot_logs",
+    "columns": [
+      {
+        "column": "id",
+        "type": "uuid"
+      },
+      {
+        "column": "user_id",
+        "type": "text"
+      },
+      {
+        "column": "account_id",
+        "type": "uuid"
+      },
+      {
+        "column": "recipient",
+        "type": "text"
+      },
+      {
+        "column": "subreddit",
+        "type": "text"
+      },
+      {
+        "column": "message_template",
+        "type": "text"
+      },
+      {
+        "column": "action",
+        "type": "text"
+      },
+      {
+        "column": "status",
+        "type": "text"
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "config_id",
+        "type": "uuid"
+      },
+      {
+        "column": "analysis_data",
+        "type": "jsonb"
+      },
+      {
+        "column": "error_message",
+        "type": "text"
+      }
+    ],
+    "child_tables": null
+  },
+  {
+    "table_name": "cache",
+    "columns": [
+      {
+        "column": "key",
+        "type": "character varying"
+      },
+      {
+        "column": "value",
+        "type": "text"
+      },
+      {
+        "column": "expiration",
+        "type": "integer"
+      }
+    ],
+    "child_tables": null
+  },
+  {
+    "table_name": "cache_locks",
+    "columns": [
+      {
+        "column": "key",
+        "type": "character varying"
+      },
+      {
+        "column": "owner",
+        "type": "character varying"
+      },
+      {
+        "column": "expiration",
+        "type": "integer"
+      }
+    ],
+    "child_tables": null
+  },
+  {
+    "table_name": "clerk_emails",
+    "columns": [
+      {
+        "column": "user_id",
+        "type": "text"
+      },
+      {
+        "column": "email",
+        "type": "text"
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone"
+      }
+    ],
+    "child_tables": null
+  },
+  {
+    "table_name": "discussion_replies",
+    "columns": [
+      {
+        "column": "id",
+        "type": "uuid"
+      },
+      {
+        "column": "discussion_id",
+        "type": "uuid"
+      },
+      {
+        "column": "reddit_account_id",
+        "type": "uuid"
+      },
+      {
+        "column": "reply_content",
+        "type": "text"
+      },
+      {
+        "column": "reddit_comment_id",
+        "type": "text"
+      },
+      {
+        "column": "status",
+        "type": "text"
+      },
+      {
+        "column": "error_message",
+        "type": "text"
+      },
+      {
+        "column": "posted_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone"
+      }
+    ],
+    "child_tables": null
+  },
+  {
+    "table_name": "discussions",
+    "columns": [
+      {
+        "column": "id",
+        "type": "uuid"
+      },
+      {
+        "column": "product_id",
+        "type": "uuid"
+      },
+      {
+        "column": "subreddit",
+        "type": "text"
+      },
+      {
+        "column": "post_id",
+        "type": "text"
+      },
+      {
+        "column": "title",
+        "type": "text"
+      },
+      {
+        "column": "content",
+        "type": "text"
+      },
+      {
+        "column": "author",
+        "type": "text"
+      },
+      {
+        "column": "relevance_score",
+        "type": "integer"
+      },
+      {
+        "column": "status",
+        "type": "text"
+      },
+      {
+        "column": "post_url",
+        "type": "text"
+      },
+      {
+        "column": "post_created_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone"
+      }
+    ],
+    "child_tables": [
+      "discussion_replies",
+      "relevance_scores"
+    ]
+  },
+  {
+    "table_name": "message_queue_counters",
+    "columns": [
+      {
+        "column": "user_id",
+        "type": "text"
+      },
+      {
+        "column": "window_start",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "counter",
+        "type": "integer"
+      }
+    ],
+    "child_tables": null
+  },
+  {
+    "table_name": "message_templates",
+    "columns": [
+      {
+        "column": "id",
+        "type": "uuid"
+      },
+      {
+        "column": "user_id",
+        "type": "text"
+      },
+      {
+        "column": "name",
+        "type": "text"
+      },
+      {
+        "column": "content",
+        "type": "text"
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "ai_prompt",
+        "type": "text"
+      }
+    ],
+    "child_tables": [
+      "scan_configs"
+    ]
+  },
+  {
+    "table_name": "migrations",
+    "columns": [
+      {
+        "column": "id",
+        "type": "integer"
+      },
+      {
+        "column": "migration",
+        "type": "character varying"
+      },
+      {
+        "column": "batch",
+        "type": "integer"
+      }
+    ],
+    "child_tables": null
+  },
+  {
+    "table_name": "opt_outs",
+    "columns": [
+      {
+        "column": "id",
+        "type": "uuid"
+      },
+      {
+        "column": "user_id",
+        "type": "text"
+      },
+      {
+        "column": "recipient",
+        "type": "text"
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone"
+      }
+    ],
+    "child_tables": null
+  },
+  {
+    "table_name": "posted_reddit_discussions",
+    "columns": [
+      {
+        "column": "id",
+        "type": "uuid"
+      },
+      {
+        "column": "website_config_id",
+        "type": "uuid"
+      },
+      {
+        "column": "reddit_post_id",
+        "type": "text"
+      },
+      {
+        "column": "subreddit",
+        "type": "text"
+      },
+      {
+        "column": "post_title",
+        "type": "text"
+      },
+      {
+        "column": "posted_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "reddit_account_id",
+        "type": "uuid"
+      },
+      {
+        "column": "comment_id",
+        "type": "text"
+      },
+      {
+        "column": "comment_url",
+        "type": "text"
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone"
+      }
+    ],
+    "child_tables": null
+  },
+  {
+    "table_name": "products",
+    "columns": [
+      {
+        "column": "id",
+        "type": "uuid"
+      },
+      {
+        "column": "user_id",
+        "type": "text"
+      },
+      {
+        "column": "name",
+        "type": "text"
+      },
+      {
+        "column": "url",
+        "type": "text"
+      },
+      {
+        "column": "scraped_content",
+        "type": "jsonb"
+      },
+      {
+        "column": "ai_description",
+        "type": "text"
+      },
+      {
+        "column": "customer_segments",
+        "type": "ARRAY"
+      },
+      {
+        "column": "is_active",
+        "type": "boolean"
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone"
+      }
+    ],
+    "child_tables": [
+      "discussions",
+      "website_configs"
+    ]
+  },
+  {
+    "table_name": "reddit_account_cooldowns",
+    "columns": [
+      {
+        "column": "id",
+        "type": "uuid"
+      },
+      {
+        "column": "reddit_account_id",
+        "type": "uuid"
+      },
+      {
+        "column": "last_used_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "cooldown_until",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "is_available",
+        "type": "boolean"
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone"
+      }
+    ],
+    "child_tables": null
+  },
+  {
+    "table_name": "reddit_accounts",
+    "columns": [
+      {
+        "column": "id",
+        "type": "uuid"
+      },
+      {
+        "column": "user_id",
+        "type": "text"
+      },
+      {
+        "column": "username",
+        "type": "text"
+      },
+      {
+        "column": "password",
+        "type": "text"
+      },
+      {
+        "column": "is_validated",
+        "type": "boolean"
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "client_id",
+        "type": "text"
+      },
+      {
+        "column": "client_secret",
+        "type": "text"
+      },
+      {
+        "column": "status",
+        "type": "text"
+      },
+      {
+        "column": "banned_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "credential_error_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "proxy_enabled",
+        "type": "boolean"
+      },
+      {
+        "column": "proxy_type",
+        "type": "text"
+      },
+      {
+        "column": "proxy_host",
+        "type": "text"
+      },
+      {
+        "column": "proxy_port",
+        "type": "integer"
+      },
+      {
+        "column": "proxy_username",
+        "type": "text"
+      },
+      {
+        "column": "proxy_password",
+        "type": "text"
+      },
+      {
+        "column": "proxy_status",
+        "type": "text"
+      },
+      {
+        "column": "proxy_last_checked",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "user_agent_enabled",
+        "type": "boolean"
+      },
+      {
+        "column": "user_agent_type",
+        "type": "text"
+      },
+      {
+        "column": "user_agent_custom",
+        "type": "text"
+      },
+      {
+        "column": "user_agent_last_checked",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "is_discussion_poster",
+        "type": "boolean"
+      },
+      {
+        "column": "current_cooldown_until",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "total_messages_sent",
+        "type": "integer"
+      },
+      {
+        "column": "last_message_sent_at",
+        "type": "timestamp with time zone"
+      }
+    ],
+    "child_tables": [
+      "auto_poster_configs",
+      "auto_posting_logs",
+      "bot_logs",
+      "discussion_replies",
+      "posted_reddit_discussions",
+      "reddit_account_cooldowns",
+      "scan_configs",
+      "sent_messages"
+    ]
+  },
+  {
+    "table_name": "reddit_pagination_state",
+    "columns": [
+      {
+        "column": "id",
+        "type": "uuid"
+      },
+      {
+        "column": "subreddit",
+        "type": "text"
+      },
+      {
+        "column": "last_after_token",
+        "type": "text"
+      },
+      {
+        "column": "last_fetched_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone"
+      }
+    ],
+    "child_tables": null
+  },
+  {
+    "table_name": "relevance_scores",
+    "columns": [
+      {
+        "column": "id",
+        "type": "uuid"
+      },
+      {
+        "column": "discussion_id",
+        "type": "uuid"
+      },
+      {
+        "column": "website_config_id",
+        "type": "uuid"
+      },
+      {
+        "column": "intent_score",
+        "type": "integer"
+      },
+      {
+        "column": "context_match_score",
+        "type": "integer"
+      },
+      {
+        "column": "quality_score",
+        "type": "integer"
+      },
+      {
+        "column": "engagement_score",
+        "type": "integer"
+      },
+      {
+        "column": "final_relevance_score",
+        "type": "integer"
+      },
+      {
+        "column": "filtering_reason",
+        "type": "text"
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone"
+      }
+    ],
+    "child_tables": null
+  },
+  {
+    "table_name": "scan_configs",
+    "columns": [
+      {
+        "column": "id",
+        "type": "uuid"
+      },
+      {
+        "column": "user_id",
+        "type": "text"
+      },
+      {
+        "column": "subreddit",
+        "type": "text"
+      },
+      {
+        "column": "keywords",
+        "type": "ARRAY"
+      },
+      {
+        "column": "message_template_id",
+        "type": "uuid"
+      },
+      {
+        "column": "reddit_account_id",
+        "type": "uuid"
+      },
+      {
+        "column": "is_active",
+        "type": "boolean"
+      },
+      {
+        "column": "scan_interval",
+        "type": "integer"
+      },
+      {
+        "column": "last_scan_time",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "use_ai_check",
+        "type": "boolean"
+      },
+      {
+        "column": "anti_ban_config",
+        "type": "jsonb"
+      },
+      {
+        "column": "base_delay_minutes",
+        "type": "integer"
+      },
+      {
+        "column": "max_messages_per_hour",
+        "type": "integer"
+      },
+      {
+        "column": "enable_jitter",
+        "type": "boolean"
+      },
+      {
+        "column": "enable_user_history_check",
+        "type": "boolean"
+      },
+      {
+        "column": "enable_subreddit_limits",
+        "type": "boolean"
+      },
+      {
+        "column": "enable_long_pauses",
+        "type": "boolean"
+      },
+      {
+        "column": "conservative_mode",
+        "type": "boolean"
+      },
+      {
+        "column": "last_safety_score",
+        "type": "integer"
+      },
+      {
+        "column": "rate_limit_hits",
+        "type": "integer"
+      },
+      {
+        "column": "messages_sent_today",
+        "type": "integer"
+      },
+      {
+        "column": "last_message_time",
+        "type": "timestamp with time zone"
+      }
+    ],
+    "child_tables": [
+      "archived_logs",
+      "sent_messages"
+    ]
+  },
+  {
+    "table_name": "sent_messages",
+    "columns": [
+      {
+        "column": "id",
+        "type": "uuid"
+      },
+      {
+        "column": "user_id",
+        "type": "text"
+      },
+      {
+        "column": "account_id",
+        "type": "uuid"
+      },
+      {
+        "column": "recipient",
+        "type": "text"
+      },
+      {
+        "column": "subreddit",
+        "type": "text"
+      },
+      {
+        "column": "message_template",
+        "type": "text"
+      },
+      {
+        "column": "sent_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "analysis_data",
+        "type": "jsonb"
+      },
+      {
+        "column": "post_id",
+        "type": "text"
+      },
+      {
+        "column": "config_id",
+        "type": "uuid"
+      }
+    ],
+    "child_tables": null
+  },
+  {
+    "table_name": "users",
+    "columns": [
+      {
+        "column": "id",
+        "type": "text"
+      },
+      {
+        "column": "user_id",
+        "type": "text"
+      },
+      {
+        "column": "subscription_status",
+        "type": "text"
+      },
+      {
+        "column": "message_count",
+        "type": "integer"
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "is_admin",
+        "type": "boolean"
+      },
+      {
+        "column": "message_count_reset_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "email",
+        "type": "text"
+      },
+      {
+        "column": "stripe_customer_id",
+        "type": "text"
+      }
+    ],
+    "child_tables": [
+      "archived_logs",
+      "auto_poster_configs",
+      "auto_posting_logs",
+      "bot_logs",
+      "message_templates",
+      "products",
+      "reddit_accounts",
+      "scan_configs",
+      "sent_messages",
+      "website_configs"
+    ]
+  },
+  {
+    "table_name": "website_configs",
+    "columns": [
+      {
+        "column": "id",
+        "type": "uuid"
+      },
+      {
+        "column": "user_id",
+        "type": "text"
+      },
+      {
+        "column": "product_id",
+        "type": "uuid"
+      },
+      {
+        "column": "website_url",
+        "type": "text"
+      },
+      {
+        "column": "website_description",
+        "type": "text"
+      },
+      {
+        "column": "customer_segments",
+        "type": "ARRAY"
+      },
+      {
+        "column": "target_keywords",
+        "type": "ARRAY"
+      },
+      {
+        "column": "negative_keywords",
+        "type": "ARRAY"
+      },
+      {
+        "column": "business_context_terms",
+        "type": "ARRAY"
+      },
+      {
+        "column": "relevance_threshold",
+        "type": "integer"
+      },
+      {
+        "column": "auto_poster_enabled",
+        "type": "boolean"
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone"
+      }
+    ],
+    "child_tables": [
+      "auto_poster_configs",
+      "posted_reddit_discussions",
+      "relevance_scores"
+    ]
+  }
+]

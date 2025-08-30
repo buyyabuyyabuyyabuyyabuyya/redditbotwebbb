@@ -214,7 +214,7 @@ export default function AutoPosterManager({ websiteConfigs, onRefreshConfigs }: 
             <option value="">Select a website configuration...</option>
             {websiteConfigs.map((config) => (
               <option key={config.id} value={config.id}>
-                {config.url} - {config.description?.substring(0, 50) || 'No description'}...
+                {config.website_url || config.url} - {config.website_description?.substring(0, 50) || config.description?.substring(0, 50) || 'No description'}...
               </option>
             ))}
           </select>
@@ -242,7 +242,7 @@ export default function AutoPosterManager({ websiteConfigs, onRefreshConfigs }: 
             <h3 className="text-lg font-medium text-gray-900 mb-2">Current Status</h3>
             <div className="space-y-2 text-sm">
               <div>
-                <span className="font-medium">Website:</span> {status.currentWebsiteConfig?.url}
+                <span className="font-medium">Website:</span> {status.currentWebsiteConfig?.website_url || status.currentWebsiteConfig?.url}
               </div>
               <div>
                 <span className="font-medium">Interval:</span> Every 30 minutes
@@ -261,7 +261,7 @@ export default function AutoPosterManager({ websiteConfigs, onRefreshConfigs }: 
         )}
 
         <div className="text-xs text-gray-500 space-y-1">
-          <p>• Auto-posting runs every 30 minutes</p>
+          <p>• First post happens immediately, then every 30 minutes</p>
           <p>• Only one post per cycle to respect Reddit rate limits</p>
           <p>• Duplicate posts are automatically prevented</p>
           <p>• Keep this browser tab open while auto-posting is active</p>

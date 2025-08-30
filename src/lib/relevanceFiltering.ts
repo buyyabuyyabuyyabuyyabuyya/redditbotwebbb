@@ -12,9 +12,12 @@ export interface RelevanceScores {
 export interface WebsiteConfig {
   id: string;
   url: string;
+  website_url?: string;
   description: string;
+  website_description?: string;
   customer_segments: string[];
   keywords: string[];
+  target_keywords?: string[];
   negative_keywords: string[];
   business_context_terms: string[];
   relevance_threshold: number;
