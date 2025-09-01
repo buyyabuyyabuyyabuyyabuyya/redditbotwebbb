@@ -46,14 +46,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to start auto-poster' }, { status: 500 });
     }
 
-    // Get available Reddit account
+    // Get first available Reddit account with discussion posting enabled
     const { data: account } = await supabaseAdmin
       .from('reddit_accounts')
-      .select('id')
+      .select('*')
       .eq('is_discussion_poster', true)
       .eq('is_validated', true)
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (!account) {
       return NextResponse.json({ error: 'No Reddit accounts available for posting' }, { status: 400 });
@@ -82,11 +82,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to create auto-poster config' }, { status: 500 });
     }
 
-    // Auto-create Upstash cron job
+    // Auto-create Upstash cron job with internal auth
     try {
       const cronResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/upstash/setup-cron`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Internal-API': 'true',
+          'X-User-ID': userId
+        },
         body: JSON.stringify({
           productId: config.id,
           accountId: account.id,

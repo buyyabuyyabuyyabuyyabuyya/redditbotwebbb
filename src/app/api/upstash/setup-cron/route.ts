@@ -5,8 +5,19 @@ import { createClient } from '@supabase/supabase-js';
 // Setup Upstash QStash cron job for auto-posting
 export async function POST(req: Request) {
   try {
-    const { userId } = auth();
-    if (!userId) {
+    const internal = req.headers.get('X-Internal-API') === 'true';
+    const userIdFromHeader = req.headers.get('X-User-ID');
+    
+    let effectiveUserId: string | null = null;
+    
+    if (internal && userIdFromHeader) {
+      effectiveUserId = userIdFromHeader;
+    } else {
+      const { userId } = auth();
+      effectiveUserId = userId;
+    }
+    
+    if (!effectiveUserId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -35,7 +46,7 @@ export async function POST(req: Request) {
     const { data: config } = await supabaseAdmin
       .from('auto_poster_configs')
       .select('id')
-      .eq('user_id', userId)
+      .eq('user_id', effectiveUserId)
       .eq('product_id', productId)
       .eq('account_id', accountId)
       .single();

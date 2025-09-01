@@ -59,13 +59,13 @@ export async function GET(req: Request) {
           continue;
         }
 
-        // Get available Reddit account
+        // Get available Reddit account directly from database
         const { data: redditAccount } = await supabaseAdmin
           .from('reddit_accounts')
           .select('*')
-          .eq('id', config.account_id)
           .eq('is_discussion_poster', true)
           .eq('is_validated', true)
+          .limit(1)
           .single();
 
         if (!redditAccount) {
