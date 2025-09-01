@@ -90,29 +90,22 @@ export async function POST(req: Request) {
     
     console.log('[UPSTASH] Cron expression:', cronExpression);
 
-    const requestBody = {
-      destination: targetUrl,
-      cron: cronExpression,
-      body: JSON.stringify({
-        productId,
-        configId: config.id,
-        source: 'upstash'
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.CRON_SECRET}`
-      }
-    };
+    const requestBody = JSON.stringify({
+      productId,
+      configId: config.id,
+      source: 'upstash'
+    });
     
-    console.log('[UPSTASH] Request body:', JSON.stringify(requestBody, null, 2));
+    console.log('[UPSTASH] Request body:', requestBody);
     
-    const scheduleResponse = await fetch(scheduleUrl, {
+    const scheduleResponse = await fetch(`${scheduleUrl}/${targetUrl}`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${qstashToken}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Upstash-Cron': cronExpression
       },
-      body: JSON.stringify(requestBody)
+      body: requestBody
     });
     
     console.log('[UPSTASH] Schedule response status:', scheduleResponse.status);
