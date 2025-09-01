@@ -27,9 +27,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('[UPSTASH] Request body:', await req.json());
+    const body = await req.json();
+    console.log('[UPSTASH] Request body:', body);
     
-    const { productId, accountId, intervalMinutes } = await req.json();
+    const { productId, accountId, intervalMinutes } = body;
 
     if (!productId || !accountId || !intervalMinutes) {
       return NextResponse.json({ 
