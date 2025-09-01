@@ -75,8 +75,8 @@ export async function POST(req: Request) {
     console.log('[UPSTASH] Found config:', config.id);
 
     // Create Upstash QStash schedule
-    const scheduleUrl = 'https://qstash.upstash.io/v2/schedules';
     const targetUrl = `https://redditoutreach.com/api/cron/auto-poster`;
+    const scheduleUrl = `https://qstash.upstash.io/v2/schedules/${encodeURIComponent(targetUrl)}`;
     
     console.log('[UPSTASH] Target URL:', targetUrl);
     console.log('[UPSTASH] Schedule URL:', scheduleUrl);
@@ -88,29 +88,23 @@ export async function POST(req: Request) {
     
     console.log('[UPSTASH] Cron expression:', cronExpression);
 
-    const requestBody = {
-      destination: targetUrl,
-      cron: cronExpression,
-      body: JSON.stringify({
-        productId,
-        configId: config.id,
-        source: 'upstash'
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.CRON_SECRET}`
-      }
-    };
+    const requestBody = JSON.stringify({
+      productId,
+      configId: config.id,
+      source: 'upstash'
+    });
     
-    console.log('[UPSTASH] Request body:', JSON.stringify(requestBody, null, 2));
+    console.log('[UPSTASH] Request body:', requestBody);
     
     const scheduleResponse = await fetch(scheduleUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${qstashToken}`,
         'Content-Type': 'application/json',
+        'Upstash-Cron': cronExpression,
+        'Upstash-Forward-Authorization': `Bearer ${process.env.CRON_SECRET}`
       },
-      body: JSON.stringify(requestBody)
+      body: requestBody
     });
     
     console.log('[UPSTASH] Schedule response status:', scheduleResponse.status);
