@@ -14,7 +14,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { websiteConfigId } = await request.json();
+    const body = await request.text();
+    console.log('[STOP] Raw request body:', body);
+    
+    let websiteConfigId;
+    if (body.trim()) {
+      try {
+        const parsed = JSON.parse(body);
+        websiteConfigId = parsed.websiteConfigId;
+      } catch (parseError) {
+        console.error('[STOP] JSON parse error:', parseError);
+        return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 });
+      }
+    } else {
+      console.error('[STOP] Empty request body');
+      return NextResponse.json({ error: 'Request body is empty' }, { status: 400 });
+    }
 
     if (!websiteConfigId) {
       return NextResponse.json({ error: 'Website config ID is required' }, { status: 400 });
@@ -51,19 +66,33 @@ export async function POST(request: NextRequest) {
       // Continue even if status update fails
     }
 
-    // Auto-delete Upstash cron job
-    try {
-      const cronResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/upstash/setup-cron?configId=${websiteConfigId}`, {
-        method: 'DELETE'
-      });
+    // Get the Upstash schedule ID to delete
+    const { data: configData } = await supabaseAdmin
+      .from('auto_poster_configs')
+      .select('upstash_schedule_id')
+      .eq('user_id', userId)
+      .eq('product_id', websiteConfigId)
+      .single();
 
-      if (!cronResponse.ok) {
-        console.error('Failed to delete Upstash cron job');
-        // Continue anyway
+    // Auto-delete Upstash cron job
+    if (configData?.upstash_schedule_id) {
+      try {
+        const deleteUrl = `https://qstash.upstash.io/v2/schedules/${configData.upstash_schedule_id}`;
+        const cronResponse = await fetch(deleteUrl, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${process.env.QSTASH_TOKEN}`
+          }
+        });
+
+        if (cronResponse.ok) {
+          console.log('[STOP] Successfully deleted Upstash schedule:', configData.upstash_schedule_id);
+        } else {
+          console.error('[STOP] Failed to delete Upstash schedule:', await cronResponse.text());
+        }
+      } catch (cronError) {
+        console.error('[STOP] Error deleting Upstash schedule:', cronError);
       }
-    } catch (cronError) {
-      console.error('Error deleting cron job:', cronError);
-      // Continue anyway
     }
 
     return NextResponse.json({ 

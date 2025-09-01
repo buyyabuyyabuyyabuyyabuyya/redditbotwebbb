@@ -173,11 +173,77 @@
       {
         "column": "require_tab_open",
         "type": "boolean"
+      },
+      {
+        "column": "upstash_schedule_id",
+        "type": "text"
+      },
+      {
+        "column": "current_subreddit_index",
+        "type": "integer"
+      },
+      {
+        "column": "last_subreddit_used",
+        "type": "text"
       }
     ],
     "child_tables": [
       "auto_posting_logs"
     ]
+  },
+  {
+    "table_name": "auto_poster_status",
+    "columns": [
+      {
+        "column": "id",
+        "type": "uuid"
+      },
+      {
+        "column": "user_id",
+        "type": "text"
+      },
+      {
+        "column": "website_config_id",
+        "type": "uuid"
+      },
+      {
+        "column": "is_running",
+        "type": "boolean"
+      },
+      {
+        "column": "started_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "stopped_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "next_post_time",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "posts_today",
+        "type": "integer"
+      },
+      {
+        "column": "last_post_result",
+        "type": "text"
+      },
+      {
+        "column": "should_post_immediately",
+        "type": "boolean"
+      },
+      {
+        "column": "created_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "updated_at",
+        "type": "timestamp with time zone"
+      }
+    ],
+    "child_tables": null
   },
   {
     "table_name": "auto_posting_logs",
@@ -686,6 +752,34 @@
       {
         "column": "created_at",
         "type": "timestamp with time zone"
+      },
+      {
+        "column": "relevance_score",
+        "type": "integer"
+      },
+      {
+        "column": "intent_score",
+        "type": "integer"
+      },
+      {
+        "column": "context_match_score",
+        "type": "integer"
+      },
+      {
+        "column": "quality_score",
+        "type": "integer"
+      },
+      {
+        "column": "engagement_score",
+        "type": "integer"
+      },
+      {
+        "column": "ai_confidence",
+        "type": "numeric"
+      },
+      {
+        "column": "comment_text",
+        "type": "text"
       }
     ],
     "child_tables": null
@@ -887,6 +981,22 @@
       {
         "column": "last_message_sent_at",
         "type": "timestamp with time zone"
+      },
+      {
+        "column": "last_used_at",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column": "cooldown_minutes",
+        "type": "integer"
+      },
+      {
+        "column": "total_posts_made",
+        "type": "integer"
+      },
+      {
+        "column": "is_available",
+        "type": "boolean"
       }
     ],
     "child_tables": [
@@ -1242,6 +1352,7 @@
     ],
     "child_tables": [
       "auto_poster_configs",
+      "auto_poster_status",
       "posted_reddit_discussions",
       "relevance_scores"
     ]
