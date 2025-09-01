@@ -43,10 +43,12 @@ export async function POST(req: Request) {
     // Use admin's QStash token from environment
     const qstashToken = process.env.QSTASH_TOKEN;
     if (!qstashToken) {
+      console.error('[UPSTASH] QSTASH_TOKEN environment variable not found');
       return NextResponse.json({ 
         error: 'QStash token not configured on server' 
       }, { status: 500 });
     }
+    console.log('[UPSTASH] QStash token found, length:', qstashToken.length);
 
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -74,9 +76,9 @@ export async function POST(req: Request) {
     }
     console.log('[UPSTASH] Found config:', config.id);
 
-    // Create Upstash QStash schedule
+    // Create Upstash QStash schedule using correct API format
     const targetUrl = `https://redditoutreach.com/api/cron/auto-poster`;
-    const scheduleUrl = `https://qstash.upstash.io/v2/schedules/${encodeURIComponent(targetUrl)}`;
+    const scheduleUrl = `https://qstash.upstash.io/v2/schedules`;
     
     console.log('[UPSTASH] Target URL:', targetUrl);
     console.log('[UPSTASH] Schedule URL:', scheduleUrl);
@@ -88,23 +90,29 @@ export async function POST(req: Request) {
     
     console.log('[UPSTASH] Cron expression:', cronExpression);
 
-    const requestBody = JSON.stringify({
-      productId,
-      configId: config.id,
-      source: 'upstash'
-    });
+    const requestBody = {
+      destination: targetUrl,
+      cron: cronExpression,
+      body: JSON.stringify({
+        productId,
+        configId: config.id,
+        source: 'upstash'
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.CRON_SECRET}`
+      }
+    };
     
-    console.log('[UPSTASH] Request body:', requestBody);
+    console.log('[UPSTASH] Request body:', JSON.stringify(requestBody, null, 2));
     
     const scheduleResponse = await fetch(scheduleUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${qstashToken}`,
-        'Content-Type': 'application/json',
-        'Upstash-Cron': cronExpression,
-        'Upstash-Forward-Authorization': `Bearer ${process.env.CRON_SECRET}`
+        'Content-Type': 'application/json'
       },
-      body: requestBody
+      body: JSON.stringify(requestBody)
     });
     
     console.log('[UPSTASH] Schedule response status:', scheduleResponse.status);
