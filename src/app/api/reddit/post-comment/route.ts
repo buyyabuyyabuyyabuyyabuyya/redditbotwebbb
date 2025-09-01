@@ -5,6 +5,19 @@ import snoowrap from 'snoowrap';
 import { AccountCooldownManager } from '../../../../lib/accountCooldownManager';
 import { generateUserAgent } from '../../../../lib/redditService';
 
+// Generate auto comment based on website config and discussion
+function generateAutoComment(websiteConfig: any, discussion: any): string {
+  const templates = [
+    `Hey! I've been working on something that might help with this. Check out ${websiteConfig.website_url} - ${websiteConfig.website_description}`,
+    `This is exactly what ${websiteConfig.website_url} was built for! ${websiteConfig.website_description}`,
+    `I actually built a tool for this: ${websiteConfig.website_url}. ${websiteConfig.website_description}`,
+    `You might find ${websiteConfig.website_url} useful for this. ${websiteConfig.website_description}`,
+    `I've been working on ${websiteConfig.website_url} which does exactly this - ${websiteConfig.website_description}`
+  ];
+  
+  return templates[Math.floor(Math.random() * templates.length)];
+}
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -23,13 +36,22 @@ export async function POST(req: Request) {
       userId?: string;
       accountId: string;
       postId: string; // Reddit post ID (e.g., "1mx4yal")
-      comment: string;
-      subreddit: string;
+      comment?: string;
+      subreddit?: string;
+      websiteConfig?: any;
+      discussion?: any;
     };
 
     if (!internal) body.userId = userId!;
 
-    const { accountId, postId, comment, subreddit } = body;
+    const { accountId, postId, websiteConfig, discussion } = body;
+    let { comment, subreddit } = body;
+
+    // Auto-generate comment if not provided (for auto-poster)
+    if (!comment && websiteConfig && discussion) {
+      comment = generateAutoComment(websiteConfig, discussion);
+      subreddit = discussion.subreddit;
+    }
 
     if (!accountId || !postId || !comment) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });

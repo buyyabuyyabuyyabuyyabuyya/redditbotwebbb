@@ -46,26 +46,135 @@ export async function GET(req: Request) {
       try {
         console.log(`[CRON] Processing config ${config.id} for product ${config.product_id}`);
 
-        // Call the background worker for this specific product
-        const workerRes = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/beno/background-worker`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            action: 'auto_post',
-            productId: config.product_id,
-            configId: config.id 
-          })
-        });
+        // Get website config details
+        const { data: websiteConfig } = await supabaseAdmin
+          .from('website_configs')
+          .select('*')
+          .eq('id', config.product_id)
+          .single();
 
-        const workerData = await workerRes.json();
-        
-        if (workerData.success) {
-          totalPosts += workerData.stats?.successfulPosts || 0;
-          console.log(`[CRON] Successfully processed config ${config.id}: ${workerData.stats?.successfulPosts || 0} posts`);
-        } else {
+        if (!websiteConfig) {
+          console.error(`[CRON] Website config not found for ${config.product_id}`);
           totalErrors++;
-          console.error(`[CRON] Worker failed for config ${config.id}:`, workerData.error);
+          continue;
         }
+
+        // Get available Reddit account
+        const { data: redditAccount } = await supabaseAdmin
+          .from('reddit_accounts')
+          .select('*')
+          .eq('id', config.account_id)
+          .eq('is_discussion_poster', true)
+          .single();
+
+        if (!redditAccount) {
+          console.error(`[CRON] Reddit account not found or not enabled for posting`);
+          totalErrors++;
+          continue;
+        }
+
+        // Search for relevant discussions using existing Reddit service
+        const searchResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/reddit/discussions?query=${encodeURIComponent(websiteConfig.target_keywords?.join(' ') || websiteConfig.customer_segments?.join(' ') || '')}&limit=10`);
+        
+        if (!searchResponse.ok) {
+          console.error(`[CRON] Failed to search Reddit discussions`);
+          totalErrors++;
+          continue;
+        }
+
+        const { items: discussions } = await searchResponse.json();
+        
+        if (!discussions || discussions.length === 0) {
+          console.log(`[CRON] No relevant discussions found for config ${config.id}`);
+          continue;
+        }
+
+        // Filter for relevance and check for duplicates
+        let posted = false;
+        for (const discussion of discussions) {
+          // Check if we've already posted to this discussion
+          const { data: existingPost } = await supabaseAdmin
+            .from('posted_reddit_discussions')
+            .select('id')
+            .eq('reddit_post_id', discussion.id)
+            .single();
+
+          if (existingPost) {
+            console.log(`[CRON] Already posted to discussion ${discussion.id}, skipping`);
+            continue;
+          }
+
+          // Post comment using Reddit API
+          const commentResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/reddit/post-comment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              postId: discussion.id,
+              accountId: redditAccount.id,
+              websiteConfig: websiteConfig,
+              discussion: discussion
+            })
+          });
+
+          if (commentResponse.ok) {
+            const commentResult = await commentResponse.json();
+            
+            // Log the successful post
+            await supabaseAdmin
+              .from('auto_posting_logs')
+              .insert({
+                config_id: config.id,
+                user_id: websiteConfig.user_id,
+                beno_reply_id: `auto_${Date.now()}`,
+                product_id: config.product_id,
+                account_id: redditAccount.id,
+                subreddit: discussion.subreddit,
+                post_id: discussion.id,
+                comment_id: commentResult.commentId,
+                comment_url: commentResult.commentUrl,
+                reply_text: commentResult.comment,
+                relevance_score: 85, // Default score for auto-posts
+                validation_score: 80,
+                status: 'posted',
+                posted_at: new Date().toISOString()
+              });
+
+            // Record in posted_reddit_discussions for duplicate prevention
+            await supabaseAdmin
+              .from('posted_reddit_discussions')
+              .insert({
+                reddit_post_id: discussion.id,
+                reddit_account_id: redditAccount.id,
+                comment_text: commentResult.comment,
+                subreddit: discussion.subreddit,
+                post_title: discussion.title,
+                post_url: discussion.url,
+                relevance_score: 85,
+                status: 'posted'
+              });
+
+            totalPosts++;
+            posted = true;
+            console.log(`[CRON] Successfully posted to r/${discussion.subreddit}: ${discussion.title}`);
+            break; // Only post once per config per run
+          } else {
+            console.error(`[CRON] Failed to post comment:`, await commentResponse.text());
+          }
+        }
+
+        if (!posted) {
+          console.log(`[CRON] No suitable discussions found for posting for config ${config.id}`);
+        }
+
+        // Update config's next post time and stats
+        await supabaseAdmin
+          .from('auto_poster_configs')
+          .update({
+            last_posted_at: posted ? new Date().toISOString() : config.last_posted_at,
+            next_post_at: new Date(Date.now() + config.interval_minutes * 60 * 1000).toISOString(),
+            posts_today: posted ? (config.posts_today || 0) + 1 : config.posts_today
+          })
+          .eq('id', config.id);
 
       } catch (error) {
         totalErrors++;
