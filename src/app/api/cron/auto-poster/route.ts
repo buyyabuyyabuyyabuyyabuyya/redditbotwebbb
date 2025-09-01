@@ -65,6 +65,7 @@ export async function GET(req: Request) {
           .select('*')
           .eq('id', config.account_id)
           .eq('is_discussion_poster', true)
+          .eq('is_validated', true)
           .single();
 
         if (!redditAccount) {
@@ -73,8 +74,16 @@ export async function GET(req: Request) {
           continue;
         }
 
-        // Search for relevant discussions using existing Reddit service
-        const searchResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/reddit/discussions?query=${encodeURIComponent(websiteConfig.target_keywords?.join(' ') || websiteConfig.customer_segments?.join(' ') || '')}&limit=10`);
+        // Search for relevant discussions using Reddit hot posts
+        const query = websiteConfig.target_keywords?.join(' ') || websiteConfig.customer_segments?.join(' ') || 'business';
+        const redditUrl = `https://old.reddit.com/r/entrepreneur/hot.json?limit=25`;
+        
+        const searchResponse = await fetch(redditUrl, {
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+          }
+        });
         
         if (!searchResponse.ok) {
           console.error(`[CRON] Failed to search Reddit discussions`);
@@ -82,7 +91,29 @@ export async function GET(req: Request) {
           continue;
         }
 
-        const { items: discussions } = await searchResponse.json();
+        const redditData = await searchResponse.json();
+        
+        // Transform Reddit data to match expected format and filter by query
+        const discussions = redditData.data?.children
+          ?.filter((post: any) => {
+            const title = post.data.title.toLowerCase();
+            const content = (post.data.selftext || '').toLowerCase();
+            const queryLower = query.toLowerCase();
+            return title.includes(queryLower) || content.includes(queryLower);
+          })
+          ?.map((post: any) => ({
+            id: post.data.id,
+            title: post.data.title,
+            content: post.data.selftext || '',
+            description: post.data.selftext || post.data.title,
+            url: `https://reddit.com${post.data.permalink}`,
+            subreddit: post.data.subreddit,
+            author: post.data.author,
+            score: post.data.score,
+            num_comments: post.data.num_comments,
+            created_utc: post.data.created_utc,
+            raw_comment: post.data.selftext || post.data.title
+          })) || [];
         
         if (!discussions || discussions.length === 0) {
           console.log(`[CRON] No relevant discussions found for config ${config.id}`);

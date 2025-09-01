@@ -51,6 +51,7 @@ export async function POST(request: NextRequest) {
       .from('reddit_accounts')
       .select('id')
       .eq('is_discussion_poster', true)
+      .eq('is_validated', true)
       .limit(1)
       .single();
 
