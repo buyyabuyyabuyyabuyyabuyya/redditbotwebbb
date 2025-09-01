@@ -17,9 +17,10 @@ export async function GET(req: Request) {
 
     // Get all admin-controlled Reddit accounts for discussion posting
     // Only accounts with is_discussion_poster=true (set by admin) are returned
+    // Hide sensitive credentials from users
     const { data: accounts } = await supabaseAdmin
       .from('reddit_accounts')
-      .select('*')
+      .select('id, username, is_validated, is_discussion_poster, status, is_available, total_posts_made, last_used_at')
       .eq('is_discussion_poster', true)
       .eq('is_validated', true);
 

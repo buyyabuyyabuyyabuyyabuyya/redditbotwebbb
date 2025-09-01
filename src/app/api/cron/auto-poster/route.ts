@@ -2,13 +2,13 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 // Cron job endpoint for automated posting
-export async function GET(req: Request) {
+export async function POST(req: Request) {
   try {
-    // Verify cron secret to prevent unauthorized access
-    const { searchParams } = new URL(req.url);
-    const cronSecret = searchParams.get('secret');
+    // Verify cron secret from headers (Upstash sends it this way)
+    const authHeader = req.headers.get('Authorization');
+    const expectedAuth = `Bearer ${process.env.CRON_SECRET}`;
     
-    if (cronSecret !== process.env.CRON_SECRET) {
+    if (authHeader !== expectedAuth) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -255,7 +255,7 @@ export async function GET(req: Request) {
 }
 
 // Health check endpoint
-export async function POST(req: Request) {
+export async function GET(req: Request) {
   return NextResponse.json({ 
     status: 'healthy', 
     timestamp: new Date().toISOString() 

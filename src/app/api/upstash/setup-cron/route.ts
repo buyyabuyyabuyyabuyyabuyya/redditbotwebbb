@@ -57,7 +57,7 @@ export async function POST(req: Request) {
 
     // Create Upstash QStash schedule
     const scheduleUrl = 'https://qstash.upstash.io/v2/schedules';
-    const targetUrl = `https://redditoutreach.com/api/cron/auto-poster?secret=${process.env.CRON_SECRET}`;
+    const targetUrl = `https://redditoutreach.com/api/cron/auto-poster`;
     
     // Convert minutes to cron expression
     const cronExpression = intervalMinutes >= 60 
@@ -79,7 +79,8 @@ export async function POST(req: Request) {
           source: 'upstash'
         }),
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.CRON_SECRET}`
         }
       })
     });
