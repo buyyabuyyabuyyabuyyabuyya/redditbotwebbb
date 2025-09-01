@@ -59,14 +59,14 @@ export async function GET(req: Request) {
           continue;
         }
 
-        // Get available Reddit account directly from database
+        // Get any admin-controlled Reddit account
         const { data: redditAccount } = await supabaseAdmin
           .from('reddit_accounts')
           .select('*')
           .eq('is_discussion_poster', true)
           .eq('is_validated', true)
           .limit(1)
-          .single();
+          .maybeSingle();
 
         if (!redditAccount) {
           console.error(`[CRON] Reddit account not found or not enabled for posting`);

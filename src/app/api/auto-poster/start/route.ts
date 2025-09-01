@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to start auto-poster' }, { status: 500 });
     }
 
-    // Get first available Reddit account with discussion posting enabled
+    // Get first available admin-controlled Reddit account
     const { data: account } = await supabaseAdmin
       .from('reddit_accounts')
       .select('*')
