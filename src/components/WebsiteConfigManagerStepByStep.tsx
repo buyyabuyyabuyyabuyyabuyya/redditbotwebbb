@@ -275,98 +275,264 @@ export default function WebsiteConfigManagerStepByStep({
     </div>
   );
 
-  const renderStep3 = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h3 className="text-lg font-semibold text-white mb-2">Step 3: Customer Segments & Keywords</h3>
-        <p className="text-gray-400">Define your target audience and keywords</p>
-      </div>
+  const renderStep3 = () => {
+    const [newSegment, setNewSegment] = useState('');
+    const [newTargetKeyword, setNewTargetKeyword] = useState('');
+    const [newNegativeKeyword, setNewNegativeKeyword] = useState('');
+    const [newBusinessTerm, setNewBusinessTerm] = useState('');
 
-      {/* Customer Segments */}
-      <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
-          Customer Segments
-        </label>
-        <div className="flex flex-wrap gap-2 mb-3">
-          {(config.customer_segments || []).map((segment, index) => (
-            <span
-              key={index}
-              className="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm"
+    const handleAddItem = (arrayName: keyof WebsiteConfig, value: string, setValue: (val: string) => void) => {
+      if (value.trim()) {
+        addKeyword(arrayName, value.trim());
+        setValue('');
+      }
+    };
+
+    const handleKeyPress = (e: React.KeyboardEvent, arrayName: keyof WebsiteConfig, value: string, setValue: (val: string) => void) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleAddItem(arrayName, value, setValue);
+      }
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-white mb-2">Step 3: Customer Segments & Keywords</h3>
+          <p className="text-gray-400">Define your target audience and keywords for AI scoring</p>
+        </div>
+
+        {/* Customer Segments */}
+        <div className="bg-gray-700 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <label className="block text-sm font-medium text-gray-300">
+              Customer Segments
+            </label>
+            <div className="group relative">
+              <span className="text-gray-400 cursor-help">ℹ️</span>
+              <div className="invisible group-hover:visible absolute left-6 top-0 bg-gray-900 text-white text-xs rounded p-2 w-64 z-10">
+                <strong>Scoring Impact:</strong> Posts mentioning these segments get +20 points. Used to find discussions where your target customers are active.
+              </div>
+            </div>
+          </div>
+          <p className="text-xs text-gray-400 mb-3">Who are your ideal customers? (e.g., entrepreneurs, small business owners, marketers)</p>
+          
+          <div className="flex gap-2 mb-3">
+            <input
+              type="text"
+              value={newSegment}
+              onChange={(e) => setNewSegment(e.target.value)}
+              onKeyPress={(e) => handleKeyPress(e, 'customer_segments', newSegment, setNewSegment)}
+              placeholder="Add customer segment..."
+              className="flex-1 px-3 py-2 bg-gray-600 border border-gray-500 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+            <button
+              onClick={() => handleAddItem('customer_segments', newSegment, setNewSegment)}
+              className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 text-sm"
             >
-              {segment}
-              <button
-                onClick={() => removeKeyword('customer_segments', index)}
-                className="ml-2 text-purple-600 hover:text-purple-800"
+              Add
+            </button>
+          </div>
+          
+          <div className="flex flex-wrap gap-2">
+            {(config.customer_segments || []).map((segment, index) => (
+              <span
+                key={index}
+                className="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm"
               >
-                ×
-              </button>
-            </span>
-          ))}
+                {segment}
+                <button
+                  onClick={() => removeKeyword('customer_segments', index)}
+                  className="ml-2 text-purple-600 hover:text-purple-800"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Target Keywords */}
+        <div className="bg-gray-700 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <label className="block text-sm font-medium text-gray-300">
+              Target Keywords
+            </label>
+            <div className="group relative">
+              <span className="text-gray-400 cursor-help">ℹ️</span>
+              <div className="invisible group-hover:visible absolute left-6 top-0 bg-gray-900 text-white text-xs rounded p-2 w-64 z-10">
+                <strong>Scoring Impact:</strong> Posts containing these keywords get +15 points. Primary terms that indicate relevant discussions.
+              </div>
+            </div>
+          </div>
+          <p className="text-xs text-gray-400 mb-3">Keywords that indicate relevant discussions for your business</p>
+          
+          <div className="flex gap-2 mb-3">
+            <input
+              type="text"
+              value={newTargetKeyword}
+              onChange={(e) => setNewTargetKeyword(e.target.value)}
+              onKeyPress={(e) => handleKeyPress(e, 'target_keywords', newTargetKeyword, setNewTargetKeyword)}
+              placeholder="Add target keyword..."
+              className="flex-1 px-3 py-2 bg-gray-600 border border-gray-500 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              onClick={() => handleAddItem('target_keywords', newTargetKeyword, setNewTargetKeyword)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
+            >
+              Add
+            </button>
+          </div>
+          
+          <div className="flex flex-wrap gap-2">
+            {(config.target_keywords || []).map((keyword, index) => (
+              <span
+                key={index}
+                className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+              >
+                {keyword}
+                <button
+                  onClick={() => removeKeyword('target_keywords', index)}
+                  className="ml-2 text-blue-600 hover:text-blue-800"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Business Context Terms */}
+        <div className="bg-gray-700 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <label className="block text-sm font-medium text-gray-300">
+              Business Context Terms
+            </label>
+            <div className="group relative">
+              <span className="text-gray-400 cursor-help">ℹ️</span>
+              <div className="invisible group-hover:visible absolute left-6 top-0 bg-gray-900 text-white text-xs rounded p-2 w-64 z-10">
+                <strong>Scoring Impact:</strong> Posts with these terms get +10 points. Industry-specific terminology that adds context relevance.
+              </div>
+            </div>
+          </div>
+          <p className="text-xs text-gray-400 mb-3">Industry-specific terms that provide business context</p>
+          
+          <div className="flex gap-2 mb-3">
+            <input
+              type="text"
+              value={newBusinessTerm}
+              onChange={(e) => setNewBusinessTerm(e.target.value)}
+              onKeyPress={(e) => handleKeyPress(e, 'business_context_terms', newBusinessTerm, setNewBusinessTerm)}
+              placeholder="Add business term..."
+              className="flex-1 px-3 py-2 bg-gray-600 border border-gray-500 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+            <button
+              onClick={() => handleAddItem('business_context_terms', newBusinessTerm, setNewBusinessTerm)}
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm"
+            >
+              Add
+            </button>
+          </div>
+          
+          <div className="flex flex-wrap gap-2">
+            {(config.business_context_terms || []).map((term, index) => (
+              <span
+                key={index}
+                className="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm"
+              >
+                {term}
+                <button
+                  onClick={() => removeKeyword('business_context_terms', index)}
+                  className="ml-2 text-green-600 hover:text-green-800"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Negative Keywords */}
+        <div className="bg-gray-700 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <label className="block text-sm font-medium text-gray-300">
+              Negative Keywords
+            </label>
+            <div className="group relative">
+              <span className="text-gray-400 cursor-help">ℹ️</span>
+              <div className="invisible group-hover:visible absolute left-6 top-0 bg-gray-900 text-white text-xs rounded p-2 w-64 z-10">
+                <strong>Scoring Impact:</strong> Posts with these keywords get -25 points and are filtered out. Use to avoid irrelevant or inappropriate content.
+              </div>
+            </div>
+          </div>
+          <p className="text-xs text-gray-400 mb-3">Keywords that indicate posts to avoid (e.g., politics, entertainment, memes)</p>
+          
+          <div className="flex gap-2 mb-3">
+            <input
+              type="text"
+              value={newNegativeKeyword}
+              onChange={(e) => setNewNegativeKeyword(e.target.value)}
+              onKeyPress={(e) => handleKeyPress(e, 'negative_keywords', newNegativeKeyword, setNewNegativeKeyword)}
+              placeholder="Add negative keyword..."
+              className="flex-1 px-3 py-2 bg-gray-600 border border-gray-500 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+            />
+            <button
+              onClick={() => handleAddItem('negative_keywords', newNegativeKeyword, setNewNegativeKeyword)}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm"
+            >
+              Add
+            </button>
+          </div>
+          
+          <div className="flex flex-wrap gap-2">
+            {(config.negative_keywords || []).map((keyword, index) => (
+              <span
+                key={index}
+                className="inline-flex items-center px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm"
+              >
+                {keyword}
+                <button
+                  onClick={() => removeKeyword('negative_keywords', index)}
+                  className="ml-2 text-red-600 hover:text-red-800"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Scoring Logic Explanation */}
+        <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-4">
+          <h4 className="text-sm font-medium text-blue-300 mb-2">🎯 How Scoring Works</h4>
+          <div className="text-xs text-gray-300 space-y-1">
+            <div>• <strong className="text-purple-300">Customer Segments:</strong> +20 points when mentioned</div>
+            <div>• <strong className="text-blue-300">Target Keywords:</strong> +15 points when found</div>
+            <div>• <strong className="text-green-300">Business Terms:</strong> +10 points for context relevance</div>
+            <div>• <strong className="text-red-300">Negative Keywords:</strong> -25 points and filtered out</div>
+            <div className="pt-1 border-t border-blue-700">
+              <strong>Final Score:</strong> Posts above your relevance threshold get AI-generated replies
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            onClick={() => setCurrentStep(2)}
+            className="px-6 py-3 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+          >
+            Back
+          </button>
+          <button
+            onClick={() => setCurrentStep(4)}
+            className="flex-1 px-6 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700"
+          >
+            Continue
+          </button>
         </div>
       </div>
-
-      {/* Target Keywords */}
-      <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
-          Target Keywords
-        </label>
-        <div className="flex flex-wrap gap-2 mb-3">
-          {(config.target_keywords || []).map((keyword, index) => (
-            <span
-              key={index}
-              className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
-            >
-              {keyword}
-              <button
-                onClick={() => removeKeyword('target_keywords', index)}
-                className="ml-2 text-blue-600 hover:text-blue-800"
-              >
-                ×
-              </button>
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* Negative Keywords */}
-      <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
-          Negative Keywords (posts to avoid)
-        </label>
-        <div className="flex flex-wrap gap-2 mb-3">
-          {(config.negative_keywords || []).map((keyword, index) => (
-            <span
-              key={index}
-              className="inline-flex items-center px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm"
-            >
-              {keyword}
-              <button
-                onClick={() => removeKeyword('negative_keywords', index)}
-                className="ml-2 text-red-600 hover:text-red-800"
-              >
-                ×
-              </button>
-            </span>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex gap-3">
-        <button
-          onClick={() => setCurrentStep(2)}
-          className="px-6 py-3 bg-gray-600 text-white rounded-md hover:bg-gray-700"
-        >
-          Back
-        </button>
-        <button
-          onClick={() => setCurrentStep(4)}
-          className="flex-1 px-6 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700"
-        >
-          Continue
-        </button>
-      </div>
-    </div>
-  );
+    );
+  };
 
   const renderStep4 = () => (
     <div className="space-y-6">

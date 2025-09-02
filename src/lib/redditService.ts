@@ -85,7 +85,10 @@ export async function getRedditDiscussions(
         if (endpoint.type === 'rss') {
           // Parse RSS feed
           const rssText = await response.text();
-          const discussions = parseRedditRSS(rssText, query);
+          console.log(`[REDDIT_SERVICE] RSS content length: ${rssText.length} chars`);
+          console.log(`[REDDIT_SERVICE] RSS sample: ${rssText.substring(0, 500)}...`);
+          const discussions = parseRedditRSS(rssText, query, subreddit);
+          console.log(`[REDDIT_SERVICE] RSS parsed ${discussions.length} discussions`);
           return {
             items: discussions,
             total: discussions.length
@@ -138,7 +141,7 @@ export async function getRedditDiscussions(
 }
 
 // Parse Reddit RSS feed to extract discussions
-function parseRedditRSS(rssText: string, query: string): RedditDiscussion[] {
+function parseRedditRSS(rssText: string, query: string, subreddit: string): RedditDiscussion[] {
   const discussions: RedditDiscussion[] = [];
   
   try {
@@ -160,12 +163,25 @@ function parseRedditRSS(rssText: string, query: string): RedditDiscussion[] {
         const description = descMatch?.[1] || '';
         const author = authorMatch?.[1] || 'unknown';
         
-        // Filter by query relevance
+        // Filter by query relevance (more lenient for RSS)
         const titleLower = title.toLowerCase();
         const descLower = description.toLowerCase();
         const queryLower = query.toLowerCase();
         
-        if (titleLower.includes(queryLower) || descLower.includes(queryLower)) {
+        console.log(`[RSS_PARSER] Checking post: "${title}" against query: "${query}"`);
+        
+        // More lenient matching for business-relevant posts
+        const businessKeywords = ['business', 'startup', 'entrepreneur', 'marketing', 'saas', 'platform', 'service', 'product', 'company', 'revenue', 'growth', 'customer', 'market'];
+        const isBusinessRelevant = businessKeywords.some(keyword => 
+          titleLower.includes(keyword) || descLower.includes(keyword)
+        );
+        
+        const isRelevant = titleLower.includes(queryLower) || 
+                          descLower.includes(queryLower) || 
+                          isBusinessRelevant || // Include business-relevant posts
+                          query.length < 4; // Include all posts for short queries
+        
+        if (isRelevant) {
           // Extract Reddit post ID from URL
           const idMatch = url.match(/\/comments\/([a-z0-9]+)\//);
           const postId = idMatch?.[1] || Math.random().toString(36);
@@ -176,7 +192,7 @@ function parseRedditRSS(rssText: string, query: string): RedditDiscussion[] {
             content: description,
             description: description,
             url: url,
-            subreddit: query,
+            subreddit: subreddit,
             author: author,
             score: 0,
             num_comments: 0,
