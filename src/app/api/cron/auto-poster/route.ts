@@ -3,7 +3,6 @@ import { createClient } from '@supabase/supabase-js';
 import { BUSINESS_SUBREDDITS, searchMultipleSubredditsWithPagination } from '../../../../lib/redditService';
 import { filterRelevantDiscussions } from '../../../../lib/relevanceFiltering';
 import { redditReplyService } from '../../../../lib/redditReplyService';
-import { AccountCooldownManager } from '../../../../lib/accountCooldownManager';
 
 // Cron job endpoint for automated posting
 export async function POST(req: Request) {
@@ -77,13 +76,21 @@ export async function POST(req: Request) {
         
         console.log(`[CRON] Using subreddit: r/${targetSubreddit} (index ${currentIndex})`);
 
-        // Use AccountCooldownManager to get next available account with rotation
-        const cooldownManager = new AccountCooldownManager();
-        const redditAccount = await cooldownManager.getNextAvailableAccount();
+        // Get next available Reddit account directly from database (bypass HTTP layer)
+        const { data: availableAccounts } = await supabaseAdmin
+          .from('reddit_accounts')
+          .select('*')
+          .eq('is_validated', true)
+          .eq('is_discussion_poster', true)
+          .eq('status', 'active')
+          .eq('is_available', true)
+          .order('last_used_at', { ascending: true, nullsFirst: true })
+          .limit(1);
+
+        const redditAccount = availableAccounts?.[0];
 
         if (!redditAccount) {
-          const waitTime = await cooldownManager.getEstimatedWaitTime();
-          console.error(`[CRON] No Reddit accounts available for posting. Wait time: ${waitTime} minutes`);
+          console.error(`[CRON] No Reddit accounts available for posting`);
           totalErrors++;
           continue;
         }
@@ -166,8 +173,15 @@ export async function POST(req: Request) {
               console.log(`[CRON] Comment URL: ${result.commentUrl}`);
               console.log(`[CRON] Account ${redditAccount.username} will be available again in 30 minutes`);
               
-              // Mark account as used (starts 30min cooldown)
-              await cooldownManager.markAccountAsUsed(redditAccount.id);
+              // Mark account as used (starts 30min cooldown) - direct database update
+              await supabaseAdmin
+                .from('reddit_accounts')
+                .update({
+                  last_used_at: new Date().toISOString(),
+                  is_available: false,
+                  total_posts_made: (redditAccount.total_posts_made || 0) + 1
+                })
+                .eq('id', redditAccount.id);
               
               // Store posted discussion with relevance scores and account info
               await supabaseAdmin.from('posted_reddit_discussions').insert({
