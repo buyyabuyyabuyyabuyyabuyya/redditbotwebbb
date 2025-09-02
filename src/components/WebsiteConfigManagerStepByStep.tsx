@@ -50,6 +50,10 @@ export default function WebsiteConfigManagerStepByStep({
   const [saving, setSaving] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [existingConfigs, setExistingConfigs] = useState<WebsiteConfig[]>([]);
+  const [newSegment, setNewSegment] = useState('');
+  const [newTargetKeyword, setNewTargetKeyword] = useState('');
+  const [newNegativeKeyword, setNewNegativeKeyword] = useState('');
+  const [newBusinessTerm, setNewBusinessTerm] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -70,8 +74,9 @@ export default function WebsiteConfigManagerStepByStep({
         setExistingConfigs(data.configs);
         
         if (data.configs.length > 0 && !initialConfig) {
-          setConfig(data.configs[0]);
-          setCurrentStep(4); // Skip to final step if config exists
+          // Don't auto-load existing config, always start fresh
+          // setConfig(data.configs[0]);
+          // setCurrentStep(4);
         }
       }
     } catch (error) {
@@ -275,25 +280,21 @@ export default function WebsiteConfigManagerStepByStep({
     </div>
   );
 
+  const handleAddItem = (arrayName: keyof WebsiteConfig, value: string, setValue: (val: string) => void) => {
+    if (value.trim()) {
+      addKeyword(arrayName, value.trim());
+      setValue('');
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent, arrayName: keyof WebsiteConfig, value: string, setValue: (val: string) => void) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddItem(arrayName, value, setValue);
+    }
+  };
+
   const renderStep3 = () => {
-    const [newSegment, setNewSegment] = useState('');
-    const [newTargetKeyword, setNewTargetKeyword] = useState('');
-    const [newNegativeKeyword, setNewNegativeKeyword] = useState('');
-    const [newBusinessTerm, setNewBusinessTerm] = useState('');
-
-    const handleAddItem = (arrayName: keyof WebsiteConfig, value: string, setValue: (val: string) => void) => {
-      if (value.trim()) {
-        addKeyword(arrayName, value.trim());
-        setValue('');
-      }
-    };
-
-    const handleKeyPress = (e: React.KeyboardEvent, arrayName: keyof WebsiteConfig, value: string, setValue: (val: string) => void) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        handleAddItem(arrayName, value, setValue);
-      }
-    };
 
     return (
       <div className="space-y-6">
@@ -638,6 +639,71 @@ export default function WebsiteConfigManagerStepByStep({
       {currentStep === 2 && renderStep2()}
       {currentStep === 3 && renderStep3()}
       {currentStep === 4 && renderStep4()}
+
+      {/* Existing Configurations */}
+      {existingConfigs.length > 0 && (
+        <div className="mt-8 pt-6 border-t border-gray-600">
+          <h4 className="text-lg font-semibold text-white mb-4">Your Website Configurations</h4>
+          <div className="grid gap-4">
+            {existingConfigs.map((existingConfig) => (
+              <div key={existingConfig.id} className="bg-gray-700 rounded-lg p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h5 className="font-medium text-white mb-1">{existingConfig.website_url}</h5>
+                    <p className="text-sm text-gray-300 mb-2">{existingConfig.website_description}</p>
+                    <div className="flex flex-wrap gap-2 text-xs">
+                      <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded">
+                        {existingConfig.customer_segments?.length || 0} segments
+                      </span>
+                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                        {existingConfig.target_keywords?.length || 0} keywords
+                      </span>
+                      <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
+                        {existingConfig.business_context_terms?.length || 0} business terms
+                      </span>
+                      <span className="bg-red-100 text-red-800 px-2 py-1 rounded">
+                        {existingConfig.negative_keywords?.length || 0} negative keywords
+                      </span>
+                      <span className={`px-2 py-1 rounded ${existingConfig.auto_poster_enabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                        Auto-poster: {existingConfig.auto_poster_enabled ? 'ON' : 'OFF'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 ml-4">
+                    <button
+                      onClick={() => {
+                        setConfig(existingConfig);
+                        setCurrentStep(1);
+                      }}
+                      className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => {
+                        setConfig({
+                          website_url: '',
+                          website_description: '',
+                          customer_segments: [],
+                          target_keywords: [],
+                          negative_keywords: [],
+                          business_context_terms: [],
+                          relevance_threshold: 70,
+                          auto_poster_enabled: false,
+                        });
+                        setCurrentStep(1);
+                      }}
+                      className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                    >
+                      New Config
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
