@@ -102,14 +102,69 @@ export async function POST(req: Request) {
         
         console.log(`[CRON] Fetching hot posts from r/${targetSubreddit} with query: ${query}`);
         
-        const discussions = await searchMultipleSubredditsWithPagination(
-          query,
-          config.user_id,
-          [targetSubreddit], // Focus on one subreddit per cycle
-          25,
-          websiteConfig,
-          false // Disable pagination for cron job
-        );
+        let discussions;
+        try {
+          discussions = await searchMultipleSubredditsWithPagination(
+            query,
+            config.user_id,
+            [targetSubreddit], // Focus on one subreddit per cycle
+            25,
+            websiteConfig,
+            false // Disable pagination for cron job
+          );
+        } catch (error) {
+          console.error(`[CRON] Direct Reddit fetch failed for r/${targetSubreddit}:`, error);
+          
+          // Try proxy endpoint as fallback for 403 errors
+          if (error instanceof Error && error.message.includes('403')) {
+            console.log(`[CRON] Trying proxy endpoint for r/${targetSubreddit}`);
+            
+            try {
+              const proxyResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://redditoutreach.com'}/api/reddit/proxy`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${process.env.CRON_SECRET}`
+                },
+                body: JSON.stringify({
+                  query,
+                  subreddit: targetSubreddit,
+                  limit: 25
+                })
+              });
+
+              if (proxyResponse.ok) {
+                const proxyData = await proxyResponse.json();
+                if (proxyData.success && proxyData.discussions) {
+                  discussions = proxyData.discussions;
+                  console.log(`[CRON] Successfully fetched ${discussions.length} discussions via proxy`);
+                } else {
+                  throw new Error('Proxy returned no discussions');
+                }
+              } else {
+                throw new Error(`Proxy failed: ${proxyResponse.status}`);
+              }
+            } catch (proxyError) {
+              console.error(`[CRON] Proxy also failed for r/${targetSubreddit}:`, proxyError);
+              
+              // Rotate to next subreddit
+              const nextIndex = (currentIndex + 1) % BUSINESS_SUBREDDITS.length;
+              await supabaseAdmin
+                .from('auto_poster_configs')
+                .update({
+                  current_subreddit_index: nextIndex,
+                  last_subreddit_used: BUSINESS_SUBREDDITS[nextIndex]
+                })
+                .eq('id', config.id);
+              
+              totalErrors++;
+              continue;
+            }
+          } else {
+            totalErrors++;
+            continue;
+          }
+        }
         
         if (!discussions || discussions.length === 0) {
           console.log(`[CRON] No discussions found in r/${targetSubreddit} for config ${config.id}`);

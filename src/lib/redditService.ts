@@ -48,50 +48,72 @@ export async function getRedditDiscussions(
   subreddit: string = 'all',
   limit: number = 10
 ): Promise<RedditDiscussionsResponse> {
-  // Make direct client-side request to Reddit to bypass server-side blocking
-  const redditUrl = `https://old.reddit.com/r/${subreddit}/hot.json?limit=${limit}`;
+  // Try multiple Reddit endpoints to avoid blocking
+  const endpoints = [
+    `https://old.reddit.com/r/${subreddit}/hot.json?limit=${limit}`,
+    `https://www.reddit.com/r/${subreddit}/hot.json?limit=${limit}`,
+    `https://reddit.com/r/${subreddit}/hot.json?limit=${limit}`
+  ];
 
-  const response = await fetch(redditUrl, {
-    headers: {
-      'Accept': 'application/json',
-      'User-Agent': userAgents[Math.floor(Math.random() * userAgents.length)],
-    },
-    
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Failed to fetch Reddit discussions: ${response.status}`);
+  let lastError: Error | null = null;
+
+  for (const redditUrl of endpoints) {
+    try {
+      const response = await fetch(redditUrl, {
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': userAgents[Math.floor(Math.random() * userAgents.length)],
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'DNT': '1',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+        },
+        
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Filter posts by query relevance since we're using hot posts instead of search
+        const discussions = data.data?.children
+          ?.filter((post: any) => {
+            const title = post.data.title.toLowerCase();
+            const content = (post.data.selftext || '').toLowerCase();
+            const queryLower = query.toLowerCase();
+            return title.includes(queryLower) || content.includes(queryLower);
+          })
+          ?.map((post: any) => ({
+            id: post.data.id,
+            title: post.data.title,
+            content: post.data.selftext || '',
+            description: post.data.selftext || post.data.title,
+            url: `https://reddit.com${post.data.permalink}`,
+            subreddit: post.data.subreddit,
+            author: post.data.author,
+            score: post.data.score,
+            num_comments: post.data.num_comments,
+            created_utc: post.data.created_utc,
+            raw_comment: post.data.selftext || post.data.title,
+            is_self: post.data.is_self
+          })) || [];
+        
+        return {
+          items: discussions,
+          total: discussions.length
+        };
+      } else {
+        lastError = new Error(`Failed to fetch from ${redditUrl}: ${response.status}`);
+        console.log(`Failed to fetch from r/${subreddit}: ${response.status}`);
+      }
+    } catch (error) {
+      lastError = error as Error;
+      console.log(`Error fetching from ${redditUrl}:`, error);
+    }
   }
-  
-  const data = await response.json();
-  
-  // Filter posts by query relevance since we're using hot posts instead of search
-  const discussions = data.data?.children
-    ?.filter((post: any) => {
-      const title = post.data.title.toLowerCase();
-      const content = (post.data.selftext || '').toLowerCase();
-      const queryLower = query.toLowerCase();
-      return title.includes(queryLower) || content.includes(queryLower);
-    })
-    ?.map((post: any) => ({
-      id: post.data.id,
-      title: post.data.title,
-      content: post.data.selftext || '',
-      description: post.data.selftext || post.data.title,
-      url: `https://reddit.com${post.data.permalink}`,
-      subreddit: post.data.subreddit,
-      author: post.data.author,
-      score: post.data.score,
-      num_comments: post.data.num_comments,
-      created_utc: post.data.created_utc,
-      raw_comment: post.data.selftext || post.data.title,
-      is_self: post.data.is_self
-    })) || [];
-  
-  return {
-    items: discussions,
-    total: discussions.length
-  };
+
+  // If all endpoints failed, throw the last error
+  throw lastError || new Error(`Failed to fetch Reddit discussions from r/${subreddit}`);
 }
 
 // Generate search queries based on product description and segments
