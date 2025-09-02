@@ -101,6 +101,7 @@ export async function POST(req: Request) {
         const query = websiteConfig.target_keywords?.join(' ') || websiteConfig.customer_segments?.join(' ') || 'business';
         
         console.log(`[CRON] Fetching hot posts from r/${targetSubreddit} with query: ${query}`);
+        console.log(`[CRON] Target URL will be: https://old.reddit.com/r/${targetSubreddit}/hot.json?limit=25`);
         
         let discussions;
         try {

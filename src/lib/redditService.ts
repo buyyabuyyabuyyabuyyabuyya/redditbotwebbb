@@ -188,15 +188,33 @@ export async function searchMultipleSubredditsWithPagination(
         redditUrl = `https://old.reddit.com/r/${subreddit}/hot.json?limit=${limitPerSubreddit}`;
       }
 
+      console.log(`[REDDIT_SERVICE] Fetching URL: ${redditUrl}`);
+
+      // Add delay to avoid aggressive rate limiting
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       const response = await fetch(redditUrl, {
         headers: {
           'Accept': 'application/json',
           'User-Agent': userAgents[Math.floor(Math.random() * userAgents.length)],
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'DNT': '1',
+          'Connection': 'keep-alive',
+          'Sec-Fetch-Dest': 'empty',
+          'Sec-Fetch-Mode': 'cors',
+          'Sec-Fetch-Site': 'cross-site',
         },
       });
 
+      console.log(`[REDDIT_SERVICE] Response status for r/${subreddit}: ${response.status}`);
+
       if (!response.ok) {
         console.warn(`Failed to fetch from r/${subreddit}: ${response.status}`);
+        // For cron jobs, throw 403 errors to trigger proxy fallback
+        if (response.status === 403) {
+          throw new Error(`Failed to fetch from r/${subreddit}: ${response.status}`);
+        }
         continue;
       }
 
@@ -236,6 +254,10 @@ export async function searchMultipleSubredditsWithPagination(
       allDiscussions.push(...discussions);
     } catch (error) {
       console.warn(`Error fetching from r/${subreddit}:`, error);
+      // Re-throw 403 errors to allow cron job fallback logic
+      if (error instanceof Error && error.message.includes('403')) {
+        throw error;
+      }
     }
   }
 
