@@ -52,75 +52,146 @@ export async function getRedditDiscussions(
   subreddit: string = 'all',
   limit: number = 10
 ): Promise<RedditDiscussionsResponse> {
-  // Try multiple Reddit endpoints to avoid blocking
+  // Try RSS feed first (less blocked), then JSON endpoints
   const endpoints = [
-    `https://old.reddit.com/r/${subreddit}/hot.json?limit=${limit}`,
-    `https://www.reddit.com/r/${subreddit}/hot.json?limit=${limit}`,
-    `https://reddit.com/r/${subreddit}/hot.json?limit=${limit}`
+    { url: `https://www.reddit.com/r/${subreddit}/hot.rss?limit=${limit}`, type: 'rss' },
+    { url: `https://old.reddit.com/r/${subreddit}/hot.json?limit=${limit}`, type: 'json' },
+    { url: `https://www.reddit.com/r/${subreddit}/hot.json?limit=${limit}`, type: 'json' },
+    { url: `https://reddit.com/r/${subreddit}/hot.json?limit=${limit}`, type: 'json' }
   ];
 
   let lastError: Error | null = null;
 
-  for (const redditUrl of endpoints) {
+  for (const endpoint of endpoints) {
     try {
-      const response = await fetch(redditUrl, {
+      console.log(`[REDDIT_SERVICE] Trying ${endpoint.type.toUpperCase()}: ${endpoint.url}`);
+      
+      const response = await fetch(endpoint.url, {
         headers: {
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+          'Accept': endpoint.type === 'rss' ? 'application/rss+xml, application/xml, text/xml' : 'application/json',
           'User-Agent': getRandomUserAgent(),
           'Accept-Language': 'en-US,en;q=0.5',
           'Accept-Encoding': 'gzip, deflate, br',
           'DNT': '1',
           'Connection': 'keep-alive',
           'Upgrade-Insecure-Requests': '1',
-          'Sec-Fetch-Dest': 'document',
-          'Sec-Fetch-Mode': 'navigate',
-          'Sec-Fetch-Site': 'none',
           'Cache-Control': 'max-age=0',
         },
       });
       
+      console.log(`[REDDIT_SERVICE] ${endpoint.type.toUpperCase()} Response: ${response.status}`);
+      
       if (response.ok) {
-        const data = await response.json();
-        
-        // Filter posts by query relevance since we're using hot posts instead of search
-        const discussions = data.data?.children
-          ?.filter((post: any) => {
-            const title = post.data.title.toLowerCase();
-            const content = (post.data.selftext || '').toLowerCase();
-            const queryLower = query.toLowerCase();
-            return title.includes(queryLower) || content.includes(queryLower);
-          })
-          ?.map((post: any) => ({
-            id: post.data.id,
-            title: post.data.title,
-            content: post.data.selftext || '',
-            description: post.data.selftext || post.data.title,
-            url: `https://reddit.com${post.data.permalink}`,
-            subreddit: post.data.subreddit,
-            author: post.data.author,
-            score: post.data.score,
-            num_comments: post.data.num_comments,
-            created_utc: post.data.created_utc,
-            raw_comment: post.data.selftext || post.data.title,
-            is_self: post.data.is_self
-          })) || [];
-        
-        return {
-          items: discussions,
-          total: discussions.length
-        };
+        if (endpoint.type === 'rss') {
+          // Parse RSS feed
+          const rssText = await response.text();
+          const discussions = parseRedditRSS(rssText, query);
+          return {
+            items: discussions,
+            total: discussions.length
+          };
+        } else {
+          // Parse JSON
+          const data = await response.json();
+          const discussions = data.data?.children
+            ?.filter((post: any) => {
+              const title = post.data.title.toLowerCase();
+              const content = (post.data.selftext || '').toLowerCase();
+              const queryLower = query.toLowerCase();
+              return title.includes(queryLower) || content.includes(queryLower);
+            })
+            ?.map((post: any) => ({
+              id: post.data.id,
+              title: post.data.title,
+              content: post.data.selftext || '',
+              description: post.data.selftext || post.data.title,
+              url: `https://reddit.com${post.data.permalink}`,
+              subreddit: post.data.subreddit,
+              author: post.data.author,
+              score: post.data.score,
+              num_comments: post.data.num_comments,
+              created_utc: post.data.created_utc,
+              raw_comment: post.data.selftext || post.data.title,
+              is_self: post.data.is_self
+            })) || [];
+          
+          return {
+            items: discussions,
+            total: discussions.length
+          };
+        }
       } else {
-        lastError = new Error(`Failed to fetch from ${redditUrl}: ${response.status}`);
-        console.log(`Failed to fetch from r/${subreddit}: ${response.status}`);
+        lastError = new Error(`Failed to fetch from ${endpoint.url}: ${response.status}`);
+        console.log(`Failed to fetch from r/${subreddit} (${endpoint.type}): ${response.status}`);
       }
     } catch (error) {
       lastError = error as Error;
-      console.log(`Error fetching from ${redditUrl}:`, error);
+      console.log(`Error fetching from ${endpoint.url}:`, error);
     }
+    
+    // Add delay between attempts
+    await new Promise(resolve => setTimeout(resolve, 500));
   }
 
   // If all endpoints failed, throw the last error
   throw lastError || new Error(`Failed to fetch Reddit discussions from r/${subreddit}`);
+}
+
+// Parse Reddit RSS feed to extract discussions
+function parseRedditRSS(rssText: string, query: string): RedditDiscussion[] {
+  const discussions: RedditDiscussion[] = [];
+  
+  try {
+    // Split by <item> tags and process each item
+    const items = rssText.split('<item>').slice(1); // Remove first empty element
+    
+    for (const itemText of items.slice(0, 25)) {
+      const endIndex = itemText.indexOf('</item>');
+      const item = endIndex > -1 ? itemText.substring(0, endIndex) : itemText;
+      
+      const titleMatch = item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/);
+      const linkMatch = item.match(/<link>(.*?)<\/link>/);
+      const descMatch = item.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/);
+      const authorMatch = item.match(/<dc:creator><!\[CDATA\[\/u\/(.*?)\]\]><\/dc:creator>/);
+      
+      if (titleMatch && linkMatch) {
+        const title = titleMatch[1];
+        const url = linkMatch[1];
+        const description = descMatch?.[1] || '';
+        const author = authorMatch?.[1] || 'unknown';
+        
+        // Filter by query relevance
+        const titleLower = title.toLowerCase();
+        const descLower = description.toLowerCase();
+        const queryLower = query.toLowerCase();
+        
+        if (titleLower.includes(queryLower) || descLower.includes(queryLower)) {
+          // Extract Reddit post ID from URL
+          const idMatch = url.match(/\/comments\/([a-z0-9]+)\//);
+          const postId = idMatch?.[1] || Math.random().toString(36);
+          
+          discussions.push({
+            id: postId,
+            title: title,
+            content: description,
+            description: description,
+            url: url,
+            subreddit: query,
+            author: author,
+            score: 0,
+            num_comments: 0,
+            created_utc: Date.now() / 1000,
+            raw_comment: description || title,
+            is_self: true
+          });
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error parsing RSS:', error);
+  }
+  
+  return discussions;
 }
 
 // Generate search queries based on product description and segments
