@@ -31,18 +31,22 @@ export async function POST(req: Request) {
     await supabaseAdmin.rpc('reset_daily_post_counts');
 
     // Get configs that are ready to post
-    const { data: readyConfigs, error: configError } = await supabaseAdmin
+    const { data: allConfigs, error: configError } = await supabaseAdmin
       .from('auto_poster_configs')
       .select('*')
       .eq('enabled', true)
       .eq('status', 'active')
-      .or('next_post_at.is.null,next_post_at.lt.' + new Date().toISOString())
-      .filter('posts_today', 'lt', 'max_posts_per_day');
+      .or('next_post_at.is.null,next_post_at.lt.' + new Date().toISOString());
 
     if (configError) {
       console.error('[CRON] Error fetching configs:', configError);
       return NextResponse.json({ error: 'Database error' }, { status: 500 });
     }
+
+    // Filter configs that haven't reached daily limit
+    const readyConfigs = allConfigs?.filter(config => 
+      config.posts_today < config.max_posts_per_day
+    ) || [];
 
     console.log(`[CRON] Found ${readyConfigs?.length || 0} configs ready to post`);
 
