@@ -149,7 +149,9 @@ export default function AutoPosterManager({ websiteConfigs, onRefreshConfigs }: 
   const handleStop = async () => {
     try {
       const response = await fetch('/api/auto-poster/stop', {
-        method: 'POST'
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ websiteConfigId: selectedConfigId })
       });
 
       if (response.ok) {
@@ -161,9 +163,14 @@ export default function AutoPosterManager({ websiteConfigs, onRefreshConfigs }: 
           nextPostTime: null
         }));
         setShowTabWarning(false);
+      } else {
+        const errorData = await response.json();
+        console.error('Stop auto-poster error:', errorData);
+        alert(`Failed to stop auto-poster: ${errorData.error}`);
       }
     } catch (error) {
       console.error('Error stopping auto-poster:', error);
+      alert('Failed to stop auto-poster');
     }
   };
 

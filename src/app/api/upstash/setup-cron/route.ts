@@ -103,7 +103,8 @@ export async function POST(req: Request) {
       headers: {
         'Authorization': `Bearer ${qstashToken}`,
         'Content-Type': 'application/json',
-        'Upstash-Cron': cronExpression
+        'Upstash-Cron': cronExpression,
+        'Upstash-Forward-Authorization': `Bearer ${process.env.CRON_SECRET}`
       },
       body: requestBody
     });
