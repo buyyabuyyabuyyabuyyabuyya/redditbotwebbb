@@ -144,21 +144,21 @@ function calculateContextMatchScore(content: string, config: WebsiteConfig): num
   let score = 0;
   
   // Check for negative keywords (should reduce score)
-  const negativeKeywordMatches = config.negative_keywords.some((keyword: string) => 
+  const negativeKeywordMatches = config.negative_keywords?.some((keyword: string) => 
     content.includes(keyword.toLowerCase())
-  );
+  ) || false;
   if (negativeKeywordMatches) score -= 40;
   
   // Check for target keywords
-  const keywordMatches = config.keywords.some((keyword: string) => 
+  const keywordMatches = config.keywords?.some((keyword: string) => 
     content.includes(keyword.toLowerCase())
-  );
+  ) || false;
   score += Math.min(keywordMatches ? 40 : 0, 40);
   
   // Check for business context terms
-  const contextMatches = config.business_context_terms.some((term: string) => 
+  const contextMatches = config.business_context_terms?.some((term: string) => 
     content.includes(term.toLowerCase())
-  );
+  ) || false;
   score += Math.min(contextMatches ? 30 : 0, 30);
   
   // Check general business indicators (20 points)
@@ -168,9 +168,9 @@ function calculateContextMatchScore(content: string, config: WebsiteConfig): num
   score += Math.min(businessIndicatorMatches * 5, 20);
   
   // Check customer segments
-  const segmentMatches = config.customer_segments.some((segment: string) => 
+  const segmentMatches = config.customer_segments?.some((segment: string) => 
     content.includes(segment.toLowerCase())
-  );
+  ) || false;
   score += Math.min(segmentMatches ? 10 : 0, 10);
   
   return Math.min(score, 100);
