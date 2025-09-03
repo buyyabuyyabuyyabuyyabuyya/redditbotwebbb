@@ -105,7 +105,7 @@ export async function POST(req: Request) {
         
         let discussions;
         try {
-          discussions = await searchMultipleSubredditsWithPagination(
+          const result = await searchMultipleSubredditsWithPagination(
             query,
             config.user_id,
             [targetSubreddit], // Focus on one subreddit per cycle
@@ -113,6 +113,8 @@ export async function POST(req: Request) {
             websiteConfig,
             false // Disable pagination for cron job
           );
+          discussions = result; // This is already an array from the function
+          console.log(`[CRON] searchMultipleSubredditsWithPagination returned ${discussions?.length || 0} discussions`);
         } catch (error) {
           console.error(`[CRON] Direct Reddit fetch failed for r/${targetSubreddit}:`, error);
           
