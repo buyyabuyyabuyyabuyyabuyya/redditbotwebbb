@@ -6,7 +6,14 @@ import { redditReplyService } from '../../../../lib/redditReplyService';
 
 // Cron job endpoint for automated posting
 export async function POST(req: Request) {
+  console.log('[CRON] ===== CRON ENDPOINT CALLED =====');
+  console.log('[CRON] Request URL:', req.url);
+  console.log('[CRON] Request method:', req.method);
+  console.log('[CRON] All headers:', Object.fromEntries(req.headers.entries()));
+  
   try {
+    console.log('[CRON] ===== AUTO-POSTER CRON JOB STARTED =====');
+    
     // Verify cron secret from headers (Upstash sends it this way)
     const authHeader = req.headers.get('Authorization');
     const expectedAuth = `Bearer ${process.env.CRON_SECRET}`;
@@ -19,7 +26,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('[CRON] Starting auto-poster job...');
+    console.log('[CRON] Authentication successful, starting auto-poster job...');
 
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
