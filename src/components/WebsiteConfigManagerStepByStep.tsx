@@ -282,7 +282,15 @@ export default function WebsiteConfigManagerStepByStep({
 
   const handleAddItem = (arrayName: keyof WebsiteConfig, value: string, setValue: (val: string) => void) => {
     if (value.trim()) {
-      addKeyword(arrayName, value.trim());
+      // Split by comma and add multiple items
+      const items = value.split(',').map(item => item.trim()).filter(item => item.length > 0);
+      const currentArray = (config[arrayName] as string[]) || [];
+      
+      items.forEach(item => {
+        if (!currentArray.includes(item)) {
+          addKeyword(arrayName, item);
+        }
+      });
       setValue('');
     }
   };
@@ -324,7 +332,7 @@ export default function WebsiteConfigManagerStepByStep({
               value={newSegment}
               onChange={(e) => setNewSegment(e.target.value)}
               onKeyPress={(e) => handleKeyPress(e, 'customer_segments', newSegment, setNewSegment)}
-              placeholder="Add customer segment..."
+              placeholder="Add customer segment... (use commas to separate multiple)"
               className="flex-1 px-3 py-2 bg-gray-600 border border-gray-500 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
             <button
@@ -374,7 +382,7 @@ export default function WebsiteConfigManagerStepByStep({
               value={newTargetKeyword}
               onChange={(e) => setNewTargetKeyword(e.target.value)}
               onKeyPress={(e) => handleKeyPress(e, 'target_keywords', newTargetKeyword, setNewTargetKeyword)}
-              placeholder="Add target keyword..."
+              placeholder="Add target keyword... (use commas to separate multiple)"
               className="flex-1 px-3 py-2 bg-gray-600 border border-gray-500 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <button
@@ -424,7 +432,7 @@ export default function WebsiteConfigManagerStepByStep({
               value={newBusinessTerm}
               onChange={(e) => setNewBusinessTerm(e.target.value)}
               onKeyPress={(e) => handleKeyPress(e, 'business_context_terms', newBusinessTerm, setNewBusinessTerm)}
-              placeholder="Add business term..."
+              placeholder="Add business term... (use commas to separate multiple)"
               className="flex-1 px-3 py-2 bg-gray-600 border border-gray-500 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
             />
             <button
@@ -474,7 +482,7 @@ export default function WebsiteConfigManagerStepByStep({
               value={newNegativeKeyword}
               onChange={(e) => setNewNegativeKeyword(e.target.value)}
               onKeyPress={(e) => handleKeyPress(e, 'negative_keywords', newNegativeKeyword, setNewNegativeKeyword)}
-              placeholder="Add negative keyword..."
+              placeholder="Add negative keyword... (use commas to separate multiple)"
               className="flex-1 px-3 py-2 bg-gray-600 border border-gray-500 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
             />
             <button

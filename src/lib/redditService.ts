@@ -53,14 +53,40 @@ export async function getRedditDiscussions(
   limit: number = 10
 ): Promise<RedditDiscussionsResponse> {
   // Try RSS feed first (less blocked), then JSON endpoints
-  const endpoints = [
-    { url: `https://www.reddit.com/r/${subreddit}/hot.rss?limit=${limit}`, type: 'rss' },
-    { url: `https://old.reddit.com/r/${subreddit}/hot.json?limit=${limit}`, type: 'json' },
-    { url: `https://www.reddit.com/r/${subreddit}/hot.json?limit=${limit}`, type: 'json' },
-    { url: `https://reddit.com/r/${subreddit}/hot.json?limit=${limit}`, type: 'json' }
-  ];
+  console.log(`[REDDIT_SERVICE] Trying RSS: https://old.reddit.com/r/${subreddit}/hot.rss?limit=25`);
+  const rssResponse = await fetch(`https://old.reddit.com/r/${subreddit}/hot.rss?limit=25`, {
+    headers: {
+      'Accept': 'application/rss+xml, application/xml, text/xml',
+      'User-Agent': getRandomUserAgent(),
+      'Accept-Language': 'en-US,en;q=0.5',
+      'Accept-Encoding': 'gzip, deflate, br',
+      'DNT': '1',
+      'Connection': 'keep-alive',
+      'Upgrade-Insecure-Requests': '1',
+      'Cache-Control': 'max-age=0',
+    },
+  });
+  
+  console.log(`[REDDIT_SERVICE] RSS Response: ${rssResponse.status}`);
+  
+  if (rssResponse.ok) {
+    const rssText = await rssResponse.text();
+    console.log(`[REDDIT_SERVICE] RSS content length: ${rssText.length} chars`);
+    console.log(`[REDDIT_SERVICE] RSS sample: ${rssText.substring(0, 500)}...`);
+    const discussions = parseRedditRSS(rssText, query, subreddit);
+    console.log(`[REDDIT_SERVICE] RSS parsed ${discussions.length} discussions`);
+    return {
+      items: discussions,
+      total: discussions.length
+    };
+  } else {
+    const endpoints = [
+      { url: `https://old.reddit.com/r/${subreddit}/hot.json?limit=${limit}`, type: 'json' },
+      { url: `https://www.reddit.com/r/${subreddit}/hot.json?limit=${limit}`, type: 'json' },
+      { url: `https://reddit.com/r/${subreddit}/hot.json?limit=${limit}`, type: 'json' }
+    ];
 
-  let lastError: Error | null = null;
+    let lastError: Error | null = null;
 
   for (const endpoint of endpoints) {
     try {
@@ -136,8 +162,107 @@ export async function getRedditDiscussions(
     await new Promise(resolve => setTimeout(resolve, 500));
   }
 
-  // If all endpoints failed, throw the last error
+  // Try HTML scraping as final fallback
+  try {
+    console.log(`[REDDIT_SERVICE] Trying HTML scraping: https://old.reddit.com/r/${subreddit}/hot`);
+    const discussions = await scrapeRedditHTML(subreddit, query);
+    if (discussions.length > 0) {
+      console.log(`[REDDIT_SERVICE] HTML scraping found ${discussions.length} discussions`);
+      return {
+        items: discussions,
+        total: discussions.length
+      };
+    }
+  } catch (error) {
+    console.log(`[REDDIT_SERVICE] HTML scraping failed:`, error);
+  }
+
+  // If all methods failed, throw the last error
   throw lastError || new Error(`Failed to fetch Reddit discussions from r/${subreddit}`);
+}
+
+// HTML scraping fallback method
+async function scrapeRedditHTML(subreddit: string, query: string): Promise<RedditDiscussion[]> {
+  const discussions: RedditDiscussion[] = [];
+  
+  try {
+    const response = await fetch(`https://old.reddit.com/r/${subreddit}/hot`, {
+      headers: {
+        'User-Agent': getRandomUserAgent(),
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'DNT': '1',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTML fetch failed: ${response.status}`);
+    }
+
+    const html = await response.text();
+    console.log(`[HTML_SCRAPER] Fetched HTML, length: ${html.length} chars`);
+
+    // Extract post data from HTML using regex patterns
+    const postPattern = /<div[^>]*class="[^"]*thing[^"]*"[^>]*data-fullname="([^"]*)"[^>]*>/g;
+    const titlePattern = /<a[^>]*class="[^"]*title[^"]*"[^>]*href="([^"]*)"[^>]*>([^<]*)<\/a>/g;
+    const scorePattern = /<div[^>]*class="[^"]*score[^"]*"[^>]*title="([^"]*)"[^>]*>/g;
+    const authorPattern = /<a[^>]*class="[^"]*author[^"]*"[^>]*>([^<]*)<\/a>/g;
+
+    let postMatch;
+    let postIndex = 0;
+    
+    while ((postMatch = postPattern.exec(html)) !== null && postIndex < 25) {
+      const fullname = postMatch[1];
+      const postId = fullname.replace('t3_', '');
+      
+      // Find title for this post
+      titlePattern.lastIndex = postMatch.index;
+      const titleMatch = titlePattern.exec(html);
+      
+      if (titleMatch) {
+        const url = titleMatch[1].startsWith('/') ? `https://reddit.com${titleMatch[1]}` : titleMatch[1];
+        const title = titleMatch[2].trim();
+        
+        // Basic relevance filtering
+        const titleLower = title.toLowerCase();
+        const queryLower = query.toLowerCase();
+        const businessKeywords = ['business', 'startup', 'entrepreneur', 'marketing', 'saas', 'platform'];
+        
+        const isRelevant = titleLower.includes(queryLower) || 
+                          businessKeywords.some(keyword => titleLower.includes(keyword)) ||
+                          query.length < 4;
+
+        if (isRelevant) {
+          discussions.push({
+            id: postId,
+            title: title,
+            content: title, // HTML scraping doesn't get full content easily
+            description: title,
+            url: url,
+            subreddit: subreddit,
+            author: 'unknown', // Could extract but adds complexity
+            score: 0, // Could extract but adds complexity
+            num_comments: 0,
+            created_utc: Date.now() / 1000,
+            raw_comment: title,
+            is_self: false
+          });
+        }
+      }
+      
+      postIndex++;
+    }
+
+    console.log(`[HTML_SCRAPER] Extracted ${discussions.length} discussions from HTML`);
+    return discussions;
+    
+  } catch (error) {
+    console.log(`[HTML_SCRAPER] Error:`, error);
+    throw error;
+  }
 }
 
 // Parse Reddit RSS feed to extract discussions
@@ -145,22 +270,29 @@ function parseRedditRSS(rssText: string, query: string, subreddit: string): Redd
   const discussions: RedditDiscussion[] = [];
   
   try {
-    // Split by <item> tags and process each item
-    const items = rssText.split('<item>').slice(1); // Remove first empty element
+    console.log(`[RSS_PARSER] Parsing feed for r/${subreddit}, content length: ${rssText.length}`);
+    console.log(`[RSS_PARSER] Feed sample: ${rssText.substring(0, 500)}...`);
     
-    for (const itemText of items.slice(0, 25)) {
-      const endIndex = itemText.indexOf('</item>');
-      const item = endIndex > -1 ? itemText.substring(0, endIndex) : itemText;
+    // Reddit uses Atom format with <entry> tags, not RSS <item> tags
+    const entries = rssText.split('<entry>').slice(1); // Remove first empty element
+    console.log(`[RSS_PARSER] Found ${entries.length} entries in feed`);
+    
+    for (const entryText of entries.slice(0, 25)) {
+      const endIndex = entryText.indexOf('</entry>');
+      const entry = endIndex > -1 ? entryText.substring(0, endIndex) : entryText;
       
-      const titleMatch = item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/);
-      const linkMatch = item.match(/<link>(.*?)<\/link>/);
-      const descMatch = item.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/);
-      const authorMatch = item.match(/<dc:creator><!\[CDATA\[\/u\/(.*?)\]\]><\/dc:creator>/);
+      // Atom format uses different tags than RSS
+      const titleMatch = entry.match(/<title[^>]*>([\s\S]*?)<\/title>/);
+      const linkMatch = entry.match(/<link[^>]*href="([^"]*)"[^>]*>/);
+      const contentMatch = entry.match(/<content[^>]*>([\s\S]*?)<\/content>/);
+      const authorMatch = entry.match(/<author><name>([^<]*)<\/name><\/author>/);
+      
+      console.log(`[RSS_PARSER] Entry title match: ${titleMatch?.[1]?.substring(0, 100)}`);
       
       if (titleMatch && linkMatch) {
-        const title = titleMatch[1];
+        const title = titleMatch[1].replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1').trim();
         const url = linkMatch[1];
-        const description = descMatch?.[1] || '';
+        const description = contentMatch?.[1]?.replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1').replace(/<[^>]*>/g, '').trim() || '';
         const author = authorMatch?.[1] || 'unknown';
         
         // Filter by query relevance (more lenient for RSS)
@@ -209,34 +341,8 @@ function parseRedditRSS(rssText: string, query: string, subreddit: string): Redd
   
   return discussions;
 }
-
-// Generate search queries based on product description and segments
-export function generateRedditSearchQueries(description: string, segments: string[]): string[] {
-  const queries: string[] = [];
-  
-  // Extract key terms from description
-  const descriptionWords = description.toLowerCase()
-    .replace(/[^\w\s]/g, ' ')
-    .split(/\s+/)
-    .filter(word => word.length > 3 && !['this', 'that', 'with', 'from', 'they', 'have', 'will', 'been', 'were', 'said', 'each', 'which', 'their', 'time', 'more', 'very', 'what', 'know', 'just', 'first', 'into', 'over', 'think', 'also', 'your', 'work', 'life', 'only', 'new', 'years', 'way', 'may', 'say', 'come', 'its', 'now', 'find', 'long', 'down', 'day', 'did', 'get', 'has', 'him', 'his', 'how', 'man', 'old', 'see', 'two', 'who', 'boy', 'did', 'its', 'let', 'put', 'say', 'she', 'too', 'use'].includes(word));
-  
-  // Take top keywords
-  const keywords = descriptionWords.slice(0, 5);
-  
-  // Add basic queries
-  queries.push(...keywords);
-  
-  // Add segment-based queries
-  segments.forEach(segment => {
-    queries.push(segment.toLowerCase());
-    // Combine segment with main keywords
-    keywords.slice(0, 2).forEach(keyword => {
-      queries.push(`${segment.toLowerCase()} ${keyword}`);
-    });
-  });
-  
-  return queries.slice(0, 8); // Limit to avoid too many API calls
 }
+
 
 // Search multiple subreddits relevant to business/marketing
 export const BUSINESS_SUBREDDITS = [
@@ -425,4 +531,31 @@ export async function searchMultipleSubreddits(
   return uniqueDiscussions
     .sort((a, b) => b.score - a.score)
     .slice(0, 20);
+}
+
+// Generate search queries for Reddit
+export function generateRedditSearchQueries(websiteConfig: WebsiteConfig): string[] {
+  const queries: string[] = [];
+  
+  // Add customer segments as queries
+  if (websiteConfig.customer_segments) {
+    queries.push(...websiteConfig.customer_segments);
+  }
+  
+  // Add target keywords
+  if (websiteConfig.target_keywords) {
+    queries.push(...websiteConfig.target_keywords);
+  }
+  
+  // Add business context terms
+  if (websiteConfig.business_context_terms) {
+    queries.push(...websiteConfig.business_context_terms);
+  }
+  
+  // Fallback queries if no config
+  if (queries.length === 0) {
+    queries.push('business', 'startup', 'entrepreneur');
+  }
+  
+  return queries.slice(0, 5); // Limit to 5 queries
 }

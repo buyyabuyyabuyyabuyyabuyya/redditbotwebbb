@@ -386,7 +386,19 @@ function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFoun
       const { generateRedditSearchQueries, searchMultipleSubreddits } = await import('../../lib/redditService');
       
       // Generate search queries based on product description
-      const queries = generateRedditSearchQueries(description.description, description.segments || []);
+      const websiteConfig = {
+        id: 'temp-id',
+        url: url,
+        description: description.description,
+        customer_segments: description.segments || [],
+        keywords: [],
+        target_keywords: [],
+        negative_keywords: [],
+        business_context_terms: [],
+        relevance_threshold: 70,
+        auto_poster_enabled: false
+      };
+      const queries = generateRedditSearchQueries(websiteConfig);
       
       // Search Reddit for relevant discussions
       const allDiscussions = [];
