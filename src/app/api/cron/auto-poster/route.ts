@@ -138,6 +138,7 @@ export async function POST(req: Request) {
 
               if (proxyResponse.ok) {
                 const proxyData = await proxyResponse.json();
+                console.log(`[CRON] Proxy response:`, { success: proxyData.success, discussionsCount: proxyData.discussions?.length });
                 if (proxyData.success && proxyData.discussions) {
                   discussions = proxyData.discussions;
                   console.log(`[CRON] Successfully fetched ${discussions.length} discussions via proxy`);
@@ -169,9 +170,10 @@ export async function POST(req: Request) {
           }
         }
         
+        console.log(`[CRON] Final discussions check: ${discussions?.length || 0} discussions for r/${targetSubreddit}`);
+        
         if (!discussions || discussions.length === 0) {
           console.log(`[CRON] No discussions found in r/${targetSubreddit} for config ${config.id}`);
-          
           continue;
         }
         
