@@ -22,8 +22,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
     }
 
-    if (!userId) {
-      return NextResponse.json({ error: 'Missing userId parameter' }, { status: 400 });
+    // If called from cron job (legacy mode), just return basic discussions without full auto-poster logic
+    if (!userId || !websiteConfig) {
+      console.log(`[REDDIT_PROXY] Legacy mode - fetching basic discussions for r/${subreddit}`);
+      
+      const discussions = await getRedditDiscussions(query, subreddit, limit || 25);
+      
+      return NextResponse.json({
+        success: true,
+        discussions: discussions.items,
+        total: discussions.total
+      });
     }
 
     // Ensure websiteConfig has required properties with fallbacks
