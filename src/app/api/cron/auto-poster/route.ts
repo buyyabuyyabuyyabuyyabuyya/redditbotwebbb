@@ -194,15 +194,16 @@ export async function POST(req: Request) {
         
         const postedIds = postedDiscussions?.map(p => p.reddit_post_id) || [];
         
-        // Use relevance filtering for advanced scoring
-        const relevantDiscussions = filterRelevantDiscussions(
-          discussions,
+        // Step 3: Apply relevance filtering with Gemini AI scoring
+        const relevantDiscussions = await filterRelevantDiscussions(
+          discussions.items,
           websiteConfig,
-          postedIds
+          postedIds,
+          true // Use Gemini AI scoring
         );
         
         console.log(`[CRON] ${relevantDiscussions.length} discussions passed relevance filtering`);
-        
+
         if (relevantDiscussions.length === 0) {
           console.log(`[CRON] No relevant discussions after filtering for config ${config.id}`);
           continue;

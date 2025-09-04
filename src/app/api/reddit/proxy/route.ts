@@ -5,7 +5,7 @@ import { filterRelevantDiscussions } from '../../../../lib/relevanceFiltering';
 import { redditReplyService } from '../../../../lib/redditReplyService';
 
 
-// Proxy endpoint with complete auto-poster logic
+// Main auto-poster endpoint (primary, not backup)
 export async function POST(req: Request) {
   try {
     // Verify cron secret
@@ -21,6 +21,21 @@ export async function POST(req: Request) {
     if (!query || !subreddit) {
       return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
     }
+
+    if (!userId) {
+      return NextResponse.json({ error: 'Missing userId parameter' }, { status: 400 });
+    }
+
+    // Ensure websiteConfig has required properties with fallbacks
+    const safeWebsiteConfig = {
+      website_url: websiteConfig?.website_url || '',
+      website_description: websiteConfig?.website_description || '',
+      target_keywords: websiteConfig?.target_keywords || [],
+      negative_keywords: websiteConfig?.negative_keywords || [],
+      customer_segments: websiteConfig?.customer_segments || [],
+      relevance_threshold: websiteConfig?.relevance_threshold || 0.7,
+      ...websiteConfig
+    };
 
     console.log(`[REDDIT_PROXY] Starting complete auto-poster flow for r/${subreddit} with query: ${query}`);
 
@@ -53,10 +68,11 @@ export async function POST(req: Request) {
     console.log(`[REDDIT_PROXY] Found ${postedIds.length} already posted discussions to exclude`);
 
     // Step 3: Apply relevance filtering with Gemini AI scoring
-    const relevantDiscussions = filterRelevantDiscussions(
+    const relevantDiscussions = await filterRelevantDiscussions(
       discussions.items,
-      websiteConfig,
-      postedIds
+      safeWebsiteConfig,
+      postedIds,
+      true // Use Gemini AI scoring
     );
     
     console.log(`[REDDIT_PROXY] ${relevantDiscussions.length} discussions passed relevance filtering`);
@@ -116,7 +132,7 @@ export async function POST(req: Request) {
           {
             tone: 'helpful',
             maxLength: 500,
-            keywords: websiteConfig.targetKeywords || [],
+            keywords: safeWebsiteConfig.target_keywords || [],
             accountId: redditAccount.id,
             userId: userId
           }

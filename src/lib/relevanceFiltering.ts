@@ -225,17 +225,79 @@ function calculateEngagementScore(discussion: RedditDiscussion): number {
   return Math.min(engagementScore, 100);
 }
 
-export function filterRelevantDiscussions(
+export async function filterRelevantDiscussions(
   discussions: RedditDiscussion[],
   websiteConfig: WebsiteConfig,
-  postedDiscussions: string[] = []
-): { discussion: RedditDiscussion; scores: RelevanceScores }[] {
-  return discussions
-    .filter(discussion => !postedDiscussions.includes(discussion.id))
-    .map(discussion => ({
-      discussion,
-      scores: calculateRelevanceScore(discussion, websiteConfig)
-    }))
+  postedDiscussions: string[] = [],
+  useGeminiScoring: boolean = true
+): Promise<{ discussion: RedditDiscussion; scores: RelevanceScores }[]> {
+  const unpostedDiscussions = discussions.filter(discussion => 
+    !postedDiscussions.includes(discussion.id)
+  );
+
+  const scoredDiscussions = [];
+
+  for (const discussion of unpostedDiscussions) {
+    let scores: RelevanceScores;
+    
+    if (useGeminiScoring) {
+      // Use Gemini AI for relevance scoring
+      scores = await calculateGeminiRelevanceScore(discussion, websiteConfig);
+    } else {
+      // Fallback to basic pattern matching
+      scores = calculateRelevanceScore(discussion, websiteConfig);
+    }
+    
+    scoredDiscussions.push({ discussion, scores });
+  }
+
+  return scoredDiscussions
     .filter(item => item.scores.finalScore >= websiteConfig.relevance_threshold)
     .sort((a, b) => b.scores.finalScore - a.scores.finalScore);
+}
+
+async function calculateGeminiRelevanceScore(
+  discussion: RedditDiscussion,
+  websiteConfig: WebsiteConfig
+): Promise<RelevanceScores> {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/gemini/relevance-score`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Internal-API': 'true',
+      },
+      body: JSON.stringify({
+        postTitle: discussion.title,
+        postContent: discussion.content || '',
+        subreddit: discussion.subreddit,
+        websiteConfig: {
+          website_url: websiteConfig.website_url || websiteConfig.url,
+          website_description: websiteConfig.website_description || websiteConfig.description,
+          target_keywords: websiteConfig.target_keywords || websiteConfig.keywords,
+          negative_keywords: websiteConfig.negative_keywords,
+          customer_segments: websiteConfig.customer_segments,
+          relevance_threshold: websiteConfig.relevance_threshold
+        }
+      }),
+    });
+
+    if (!response.ok) {
+      console.warn(`[GEMINI_SCORING] Failed to get Gemini score for ${discussion.id}, falling back to basic scoring`);
+      return calculateRelevanceScore(discussion, websiteConfig);
+    }
+
+    const data = await response.json();
+    
+    if (data.success && data.scores) {
+      console.log(`[GEMINI_SCORING] Discussion ${discussion.id} scored ${data.scores.finalScore} by Gemini AI`);
+      return data.scores;
+    } else {
+      console.warn(`[GEMINI_SCORING] Invalid Gemini response for ${discussion.id}, falling back to basic scoring`);
+      return calculateRelevanceScore(discussion, websiteConfig);
+    }
+  } catch (error) {
+    console.error(`[GEMINI_SCORING] Error scoring discussion ${discussion.id}:`, error);
+    return calculateRelevanceScore(discussion, websiteConfig);
+  }
 }

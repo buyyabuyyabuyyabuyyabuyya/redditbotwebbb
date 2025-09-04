@@ -16,6 +16,15 @@ interface RedditDiscussion {
   num_comments: number;
   created_utc: number;
   url: string;
+  relevance_scores?: {
+    final_score: number;
+    intent_score: number;
+    context_match_score: number;
+    quality_score: number;
+    engagement_score: number;
+    filtering_reason?: string;
+  };
+  is_posted?: boolean;
 }
 
 
@@ -101,18 +110,16 @@ export default function DiscussionPosterClient() {
     usePagination: boolean
   ): Promise<RedditDiscussion[]> => {
     try {
-      const response = await fetch('/api/reddit/search-discussions', {
+      // Use the new Gemini-powered relevant discussions endpoint
+      const response = await fetch('/api/discussions/relevant', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          query,
           userId,
-          subreddits,
-          limit,
-          config,
-          usePagination
+          configId: config.id,
+          preview: true
         })
       });
 
@@ -339,9 +346,14 @@ export default function DiscussionPosterClient() {
                 {/* Search Results */}
                 {discussions.length > 0 && (
                   <div className="space-y-4">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      Found {discussions.length} Relevant Discussions
-                    </h3>
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-lg font-medium text-gray-900">
+                        Found {discussions.length} Relevant Discussions (Gemini AI Filtered)
+                      </h3>
+                      <div className="text-sm text-gray-500">
+                        Sorted by relevance score
+                      </div>
+                    </div>
                     {discussions.map((discussion) => (
                       <DiscussionCard
                         key={discussion.id}
@@ -437,11 +449,31 @@ function DiscussionCard({ discussion, onPostComment, websiteConfig }: Discussion
     return `${Math.floor(diff / 86400)}d ago`;
   };
 
+  const getRelevanceColor = (score: number) => {
+    if (score >= 80) return 'text-green-600 bg-green-50';
+    if (score >= 60) return 'text-yellow-600 bg-yellow-50';
+    return 'text-red-600 bg-red-50';
+  };
+
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4">
       <div className="flex justify-between items-start mb-3">
         <div className="flex-1">
-          <h4 className="font-medium text-gray-900 mb-1">{discussion.title}</h4>
+          <div className="flex items-center gap-3 mb-2">
+            <h4 className="font-medium text-gray-900">{discussion.title}</h4>
+            {discussion.relevance_scores && (
+              <div className="flex items-center gap-2">
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRelevanceColor(discussion.relevance_scores.final_score)}`}>
+                  🤖 {discussion.relevance_scores.final_score}% Relevant
+                </span>
+                {discussion.is_posted && (
+                  <span className="px-2 py-1 rounded-full text-xs font-medium text-gray-600 bg-gray-100">
+                    ✅ Posted
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
           <div className="flex items-center space-x-4 text-sm text-gray-500">
             <span>r/{discussion.subreddit}</span>
             <span>by u/{discussion.author}</span>
@@ -449,6 +481,16 @@ function DiscussionCard({ discussion, onPostComment, websiteConfig }: Discussion
             <span>{discussion.num_comments} comments</span>
             <span>{formatTimeAgo(discussion.created_utc)}</span>
           </div>
+          {discussion.relevance_scores && (
+            <div className="mt-2 text-xs text-gray-600">
+              <div className="flex gap-4">
+                <span>Intent: {discussion.relevance_scores.intent_score}%</span>
+                <span>Context: {discussion.relevance_scores.context_match_score}%</span>
+                <span>Quality: {discussion.relevance_scores.quality_score}%</span>
+                <span>Engagement: {discussion.relevance_scores.engagement_score}%</span>
+              </div>
+            </div>
+          )}
         </div>
         <a
           href={discussion.url}
