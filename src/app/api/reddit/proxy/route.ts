@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { getRedditDiscussions } from '../../../../lib/redditService';
+import { filterRelevantDiscussions } from '../../../../lib/relevanceFiltering';
+import { redditReplyService } from '../../../../lib/redditReplyService';
 
-// Proxy endpoint to fetch Reddit data for cron jobs
+
+// Proxy endpoint with complete auto-poster logic
 export async function POST(req: Request) {
   try {
     // Verify cron secret
@@ -12,20 +16,159 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { query, subreddit, limit } = await req.json();
+    const { query, subreddit, limit, userId, websiteConfig, configId } = await req.json();
 
     if (!query || !subreddit) {
       return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
     }
 
-    console.log(`[REDDIT_PROXY] Fetching r/${subreddit} with query: ${query}`);
+    console.log(`[REDDIT_PROXY] Starting complete auto-poster flow for r/${subreddit} with query: ${query}`);
 
+    // Initialize Supabase
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+    );
+
+    // Step 1: Fetch Reddit discussions
     const discussions = await getRedditDiscussions(query, subreddit, limit || 25);
+    console.log(`[REDDIT_PROXY] Fetched ${discussions.items.length} discussions from r/${subreddit}`);
+
+    if (!discussions.items || discussions.items.length === 0) {
+      return NextResponse.json({
+        success: true,
+        message: 'No discussions found',
+        discussions: [],
+        total: 0
+      });
+    }
+
+    // Step 2: Get already posted discussions to avoid duplicates
+    const { data: postedDiscussions } = await supabaseAdmin
+      .from('posted_reddit_discussions')
+      .select('reddit_post_id')
+      .eq('user_id', userId);
+    
+    const postedIds = postedDiscussions?.map(p => p.reddit_post_id) || [];
+    console.log(`[REDDIT_PROXY] Found ${postedIds.length} already posted discussions to exclude`);
+
+    // Step 3: Apply relevance filtering with Gemini AI scoring
+    const relevantDiscussions = filterRelevantDiscussions(
+      discussions.items,
+      websiteConfig,
+      postedIds
+    );
+    
+    console.log(`[REDDIT_PROXY] ${relevantDiscussions.length} discussions passed relevance filtering`);
+
+    if (relevantDiscussions.length === 0) {
+      return NextResponse.json({
+        success: true,
+        message: 'No relevant discussions after filtering',
+        discussions: [],
+        total: 0,
+        filtered: discussions.items.length
+      });
+    }
+
+    // Step 4: Get available Reddit account
+    const { data: availableAccounts } = await supabaseAdmin
+      .from('reddit_accounts')
+      .select('*')
+      .eq('is_validated', true)
+      .eq('is_discussion_poster', true)
+      .eq('status', 'active')
+      .eq('is_available', true)
+      .order('last_used_at', { ascending: true, nullsFirst: true })
+      .limit(1);
+
+    const redditAccount = availableAccounts?.[0];
+
+    if (!redditAccount) {
+      console.error(`[REDDIT_PROXY] No Reddit accounts available for posting`);
+      return NextResponse.json({
+        success: false,
+        error: 'No Reddit accounts available'
+      }, { status: 503 });
+    }
+
+    console.log(`[REDDIT_PROXY] Using Reddit account: ${redditAccount.username}`);
+
+    // Step 5: Process discussions with Gemini AI and post replies
+    let posted = false;
+    let postResult = null;
+
+    for (const { discussion, scores } of relevantDiscussions.slice(0, 1)) { // Process only top discussion
+      console.log(`[REDDIT_PROXY] Processing discussion ${discussion.id} (score: ${scores.finalScore})`);
+      
+      try {
+        // Use redditReplyService for Gemini-powered reply generation and posting
+        const result = await redditReplyService.generateAndPostReply(
+          {
+            id: discussion.id,
+            title: discussion.title,
+            selftext: discussion.content || '',
+            url: discussion.url,
+            subreddit: discussion.subreddit,
+            score: discussion.score || 0,
+            permalink: discussion.url
+          },
+          {
+            tone: 'helpful',
+            maxLength: 500,
+            keywords: websiteConfig.targetKeywords || [],
+            accountId: redditAccount.id,
+            userId: userId
+          }
+        );
+
+        if (result.success) {
+          console.log(`[REDDIT_PROXY] Successfully posted reply to discussion ${discussion.id}`);
+          
+          // Record the posted discussion
+          await supabaseAdmin
+            .from('posted_reddit_discussions')
+            .insert({
+              user_id: userId,
+              reddit_post_id: discussion.id,
+              reddit_account_id: redditAccount.id,
+              subreddit: discussion.subreddit,
+              post_title: discussion.title,
+              post_url: discussion.url,
+              reply_content: result.generatedReply,
+              relevance_score: scores.finalScore
+            });
+
+          // Update config post count
+          if (configId) {
+            await supabaseAdmin
+              .from('auto_poster_configs')
+              .update({
+                posts_today: 1, // Will be incremented by trigger
+                last_posted_at: new Date().toISOString()
+              })
+              .eq('id', configId);
+          }
+
+          posted = true;
+          postResult = result;
+          break; // Only post one reply per run
+        } else {
+          console.log(`[REDDIT_PROXY] Failed to post reply: ${result.error}`);
+        }
+      } catch (error) {
+        console.error(`[REDDIT_PROXY] Error processing discussion ${discussion.id}:`, error);
+      }
+    }
 
     return NextResponse.json({
       success: true,
       discussions: discussions.items,
-      total: discussions.total
+      total: discussions.total,
+      filtered: discussions.items.length,
+      relevant: relevantDiscussions.length,
+      posted: posted,
+      postResult: postResult
     });
 
   } catch (error) {
