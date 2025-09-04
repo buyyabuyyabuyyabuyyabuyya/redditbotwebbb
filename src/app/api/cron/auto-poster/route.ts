@@ -139,7 +139,10 @@ export async function POST(req: Request) {
                 body: JSON.stringify({
                   query,
                   subreddit: targetSubreddit,
-                  limit: 25
+                  limit: 25,
+                  userId: config.user_id,
+                  websiteConfig: websiteConfig,
+                  configId: config.id
                 })
               });
 
