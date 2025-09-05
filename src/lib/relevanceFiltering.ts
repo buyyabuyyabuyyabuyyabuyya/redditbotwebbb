@@ -261,7 +261,8 @@ async function calculateGeminiRelevanceScore(
   websiteConfig: WebsiteConfig
 ): Promise<RelevanceScores> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/gemini/relevance-score`, {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://redditoutreach.com';
+    const response = await fetch(`${baseUrl}/api/gemini/relevance-score`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
