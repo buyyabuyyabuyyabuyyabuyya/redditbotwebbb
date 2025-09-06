@@ -29,6 +29,8 @@ interface ApiKey {
 
 export class ApiKeyManager {
   private static instance: ApiKeyManager;
+  private lastRequestTime: number = 0;
+  private minRequestInterval: number = 2000; // 2 seconds between requests
   
   static getInstance(): ApiKeyManager {
     if (!ApiKeyManager.instance) {
@@ -38,12 +40,30 @@ export class ApiKeyManager {
   }
 
   /**
+   * Throttle requests to prevent IP-based rate limiting
+   */
+  private async throttleRequest(userId: string): Promise<void> {
+    const now = Date.now();
+    const timeSinceLastRequest = now - this.lastRequestTime;
+    
+    if (timeSinceLastRequest < this.minRequestInterval) {
+      const waitTime = this.minRequestInterval - timeSinceLastRequest;
+      console.log(`[${userId}] Throttling request, waiting ${waitTime}ms`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+    
+    this.lastRequestTime = Date.now();
+  }
+
+  /**
    * Acquire an available API key for exclusive use
    * @param userId - User ID for tracking
    * @param provider - API provider (default: 'gemini')
    * @returns API key string or null if none available
    */
   async acquireApiKey(userId: string, provider: string = 'gemini'): Promise<string | null> {
+    // Throttle requests to prevent IP-based rate limiting
+    await this.throttleRequest(userId);
     try {
       console.log(`[${userId}] Acquiring API key for provider: ${provider}`);
 
@@ -181,6 +201,11 @@ export class ApiKeyManager {
         
         // Keep being_used as true during rate limit period
         // It will be released when rate limit expires
+      } else if (this.isInvalidKeyError(error)) {
+        // Deactivate invalid keys permanently
+        updates.is_active = false;
+        updates.being_used = false;
+        console.log(`[${userId}] API key marked as inactive due to invalid/unauthorized error`);
       } else {
         // For other errors, release the key immediately
         updates.being_used = false;
@@ -273,6 +298,91 @@ export class ApiKeyManager {
       errorMessage.includes('api key expired') ||
       errorMessage.includes('expired')
     );
+  }
+
+  /**
+   * Check if an error indicates an invalid/unauthorized key
+   */
+  private isInvalidKeyError(error: any): boolean {
+    const errorMessage = error.message?.toLowerCase() || '';
+    const errorStatus = error.status || 0;
+    
+    return (
+      errorStatus === 400 ||
+      errorStatus === 401 ||
+      errorStatus === 403 ||
+      errorMessage.includes('invalid') ||
+      errorMessage.includes('unauthorized') ||
+      errorMessage.includes('forbidden') ||
+      errorMessage.includes('api key not valid')
+    );
+  }
+
+  /**
+   * Deactivate an invalid API key
+   */
+  async deactivateInvalidKey(apiKey: string, userId: string): Promise<void> {
+    try {
+      console.log(`[${userId}] Deactivating invalid API key`);
+
+      const { error } = await supabaseAdmin
+        .from('api_keys')
+        .update({
+          is_active: false,
+          being_used: false,
+          updated_at: new Date().toISOString()
+        })
+        .eq('key', apiKey);
+
+      if (error) {
+        console.error(`[${userId}] Error deactivating invalid API key:`, error);
+      } else {
+        console.log(`[${userId}] Invalid API key deactivated successfully`);
+      }
+    } catch (error) {
+      console.error(`[${userId}] Error in deactivateInvalidKey:`, error);
+    }
+  }
+
+  /**
+   * Exponential backoff retry mechanism
+   */
+  async withExponentialBackoff<T>(
+    operation: () => Promise<T>,
+    userId: string,
+    maxRetries: number = 3,
+    baseDelay: number = 1000
+  ): Promise<T> {
+    let lastError: any;
+    
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        if (attempt > 0) {
+          const delay = baseDelay * Math.pow(2, attempt - 1);
+          console.log(`[${userId}] Retry attempt ${attempt}, waiting ${delay}ms`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+        
+        return await operation();
+      } catch (error) {
+        lastError = error;
+        
+        if (attempt === maxRetries) {
+          console.error(`[${userId}] All retry attempts failed`);
+          throw error;
+        }
+        
+        // Don't retry for certain error types
+        if (this.isInvalidKeyError(error)) {
+          console.log(`[${userId}] Not retrying for invalid key error`);
+          throw error;
+        }
+        
+        console.log(`[${userId}] Attempt ${attempt + 1} failed, will retry:`, (error as Error).message);
+      }
+    }
+    
+    throw lastError;
   }
 }
 

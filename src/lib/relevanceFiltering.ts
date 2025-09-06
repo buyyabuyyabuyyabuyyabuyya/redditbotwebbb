@@ -66,48 +66,36 @@ const QUALITY_INDICATORS = {
   ]
 };
 
+function calculateKeywordScore(discussion: RedditDiscussion, websiteConfig: WebsiteConfig): number {
+  const content = `${discussion.title} ${discussion.content || ''}`.toLowerCase();
+  const intentScore = calculateIntentScore(content);
+  const contextScore = calculateContextMatchScore(content, websiteConfig);
+  
+  // Combine intent and context scores with equal weight
+  return Math.round((intentScore + contextScore) / 2);
+}
+
 export function calculateRelevanceScore(
   discussion: RedditDiscussion,
   websiteConfig: WebsiteConfig
 ): RelevanceScores {
-  const content = `${discussion.title} ${discussion.content}`.toLowerCase();
-  
-  // 1. Intent Score (25%)
-  const intentScore = calculateIntentScore(content);
-  
-  // 2. Context Match Score (35%)
-  const contextMatchScore = calculateContextMatchScore(content, websiteConfig);
-  
-  // 3. Quality Score (25%)
-  const qualityScore = calculateQualityScore(discussion, content);
-  
-  // 4. Engagement Score (15%)
+  const keywordScore = calculateKeywordScore(discussion, websiteConfig);
+  const qualityScore = calculateQualityScore(discussion, `${discussion.title} ${discussion.content || ''}`);
   const engagementScore = calculateEngagementScore(discussion);
   
-  // Calculate final weighted score
+  // Weight the scores
   const finalScore = Math.round(
-    (intentScore * 0.25) + 
-    (contextMatchScore * 0.35) + 
-    (qualityScore * 0.25) + 
-    (engagementScore * 0.15)
+    keywordScore * 0.5 + 
+    qualityScore * 0.3 + 
+    engagementScore * 0.2
   );
   
-  // Determine filtering reason if score is low
-  let filteringReason: string | undefined;
-  if (finalScore < websiteConfig.relevance_threshold) {
-    if (intentScore < 30) filteringReason = "Low intent score - not seeking help/recommendations";
-    else if (contextMatchScore < 30) filteringReason = "Poor context match - not relevant to business";
-    else if (qualityScore < 30) filteringReason = "Low quality post - spam or promotional";
-    else filteringReason = "Below relevance threshold";
-  }
-  
   return {
-    intentScore,
-    contextMatchScore,
+    intentScore: keywordScore,
+    contextMatchScore: keywordScore,
     qualityScore,
     engagementScore,
-    finalScore,
-    filteringReason
+    finalScore
   };
 }
 
@@ -266,48 +254,104 @@ async function getGeminiRelevanceScore(
   // Check quota before making request
   const quotaCheck = await quotaManager.canMakeRequest();
   if (!quotaCheck.allowed) {
-    console.log(`[GEMINI_SCORING] Quota exceeded: ${quotaCheck.reason}`);
-    return calculateRelevanceScore(discussion, websiteConfig);
+    console.log(`[GEMINI_SCORING] Quota exceeded: ${quotaCheck.reason}. Using basic scoring with lowered threshold.`);
+    // When Gemini is unavailable, use basic scoring but with a much lower threshold
+    const basicScores = calculateRelevanceScore(discussion, websiteConfig);
+    // Boost the final score by 30 points to make it more permissive when Gemini is unavailable
+    const boostedScore = Math.min(basicScores.finalScore + 30, 100);
+    console.log(`[BASIC_SCORING] Discussion "${discussion.title.substring(0, 50)}..." scored ${boostedScore} (boosted from ${basicScores.finalScore})`);
+    return {
+      ...basicScores,
+      finalScore: boostedScore
+    };
   }
 
+  // Import the API key manager and make direct Gemini API call
+  // This avoids the problematic internal API call that was causing keys to get stuck
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://redditoutreach.com';
-    const response = await fetch(`${baseUrl}/api/gemini/relevance-score`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Internal-API': 'true',
-      },
-      body: JSON.stringify({
-        postTitle: discussion.title,
-        postContent: discussion.content || '',
-        subreddit: discussion.subreddit,
-        websiteConfig: {
-          website_url: websiteConfig.website_url || websiteConfig.url,
-          website_description: websiteConfig.website_description || websiteConfig.description,
-          target_keywords: websiteConfig.target_keywords || websiteConfig.keywords,
-          negative_keywords: websiteConfig.negative_keywords,
-          customer_segments: websiteConfig.customer_segments,
-          relevance_threshold: websiteConfig.relevance_threshold
-        }
-      }),
-    });
-
-    if (!response.ok) {
-      console.warn(`[GEMINI_SCORING] Failed to get Gemini score for ${discussion.id}, falling back to basic scoring`);
-      return calculateRelevanceScore(discussion, websiteConfig);
-    }
-
-    const data = await response.json();
+    const { ApiKeyManager } = await import('../utils/apiKeyManager');
+    const apiKeyManager = new ApiKeyManager();
     
-    if (data.success && data.scores) {
-      console.log(`[GEMINI_SCORING] Discussion ${discussion.id} scored ${data.scores.finalScore} by Gemini AI`);
-      await quotaManager.recordRequest();
-      return data.scores;
-    } else {
-      console.warn(`[GEMINI_SCORING] Invalid Gemini response for ${discussion.id}, falling back to basic scoring`);
-      return calculateRelevanceScore(discussion, websiteConfig);
+    let apiKey: string | null = null;
+    
+    try {
+      // Acquire API key
+      apiKey = await apiKeyManager.acquireApiKey('system', 'gemini');
+      console.log(`[GEMINI_SCORING] Acquired API key for discussion ${discussion.id}`);
+      
+      // Make direct Gemini API call
+      const prompt = `Analyze this Reddit discussion for business relevance:
+
+**Website:** ${websiteConfig.website_description || websiteConfig.description}
+**Target Keywords:** ${(websiteConfig.target_keywords || websiteConfig.keywords || []).join(', ')}
+**Customer Segments:** ${(websiteConfig.customer_segments || []).join(', ')}
+
+**Discussion:**
+Title: ${discussion.title}
+Content: ${discussion.content || 'No content'}
+Subreddit: r/${discussion.subreddit}
+
+Rate the relevance (0-100) and provide scores for:
+- keyword_relevance: How well it matches target keywords
+- quality_score: Discussion quality and engagement potential  
+- engagement_score: Likelihood of meaningful engagement
+- final_score: Overall relevance score
+
+Respond with JSON: {"keyword_relevance": X, "quality_score": Y, "engagement_score": Z, "final_score": W}`;
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.3,
+            maxOutputTokens: 200,
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Gemini API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      
+      if (text) {
+        // Parse JSON response
+        const jsonMatch = text.match(/\{[^}]*\}/);
+        if (jsonMatch) {
+          const scores = JSON.parse(jsonMatch[0]);
+          console.log(`[GEMINI_SCORING] Discussion ${discussion.id} scored ${scores.final_score} by Gemini AI`);
+          await quotaManager.recordRequest();
+          
+          return {
+            intentScore: scores.keyword_relevance || 0,
+            contextMatchScore: scores.keyword_relevance || 0,
+            qualityScore: scores.quality_score || 0,
+            engagementScore: scores.engagement_score || 0,
+            finalScore: scores.final_score || 0
+          };
+        }
+      }
+      
+      throw new Error('Invalid Gemini response format');
+      
+    } finally {
+      // Always release the API key
+      if (apiKey) {
+        await apiKeyManager.releaseApiKey(apiKey, 'system');
+        console.log(`[GEMINI_SCORING] Released API key for discussion ${discussion.id}`);
+      }
     }
+    
   } catch (error) {
     // Check if it's a quota exceeded error
     if (error instanceof Error && error.message.includes('429')) {
