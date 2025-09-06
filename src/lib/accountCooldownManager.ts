@@ -26,6 +26,20 @@ export interface AvailableAccount {
   is_discussion_poster: boolean;
   cooldown_until?: string;
   is_available: boolean;
+  last_used_at?: string;
+  cooldown_minutes?: number;
+  proxy_enabled?: boolean;
+  proxy_host?: string;
+  proxy_port?: number;
+  proxy_type?: string;
+  proxy_username?: string;
+  proxy_password?: string;
+  user_agent_enabled?: boolean;
+  user_agent_type?: string;
+  user_agent_custom?: string;
+  client_id?: string;
+  client_secret?: string;
+  password?: string;
 }
 
 export class AccountCooldownManager {
@@ -146,6 +160,35 @@ export class AccountCooldownManager {
       console.error('Error resetting account cooldown:', error);
       throw error;
     }
+  }
+
+  /**
+   * Get cooldown info for a specific account
+   */
+  async getAccountCooldownInfo(accountId: string): Promise<{
+    accountId: string;
+    isOnCooldown: boolean;
+    cooldownEndsAt?: string;
+    minutesRemaining?: number;
+    lastUsedAt?: string;
+  }> {
+    try {
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || 'https://redditoutreach.com';
+      const response = await fetch(`${baseUrl}/api/reddit/accounts/available?action=cooldown-info&accountId=${accountId}`);
+      if (response.ok) {
+        const data = await response.json();
+        return data.cooldownInfo || {
+          accountId,
+          isOnCooldown: false
+        };
+      }
+    } catch (error) {
+      console.error('Error fetching account cooldown info:', error);
+    }
+    return {
+      accountId,
+      isOnCooldown: false
+    };
   }
 
   /**

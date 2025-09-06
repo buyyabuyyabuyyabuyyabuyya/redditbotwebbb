@@ -97,16 +97,25 @@ export async function POST(req: Request) {
     }
 
     // Use cooldown manager to get available account
+    console.log('🔍 [POST-COMMENT] Starting account selection process...');
     const cooldownManager = new AccountCooldownManager();
     let account;
 
     if (accountId && accountId !== 'auto') {
+      console.log(`🎯 [POST-COMMENT] Specific account requested: ${accountId}`);
+      
       // Use specific account if provided and available
       const isAvailable = await cooldownManager.isAccountAvailable(accountId);
+      console.log(`⏰ [POST-COMMENT] Account ${accountId} availability check: ${isAvailable}`);
+      
       if (!isAvailable) {
+        const cooldownInfo = await cooldownManager.getAccountCooldownInfo(accountId);
+        console.log(`❌ [POST-COMMENT] Account ${accountId} is on cooldown:`, cooldownInfo);
+        
         return NextResponse.json({ 
           error: 'Account is on cooldown',
-          status: 'rate_limited'
+          status: 'rate_limited',
+          cooldownInfo: cooldownInfo
         }, { status: 429 });
       }
 
@@ -119,20 +128,60 @@ export async function POST(req: Request) {
         .single();
 
       if (!specificAccount) {
+        console.log(`❌ [POST-COMMENT] Reddit account ${accountId} not found in database`);
         return NextResponse.json({ error: 'Reddit account not found' }, { status: 404 });
       }
+      
+      console.log(`✅ [POST-COMMENT] Using specific account: ${specificAccount.username} (ID: ${specificAccount.id})`);
+      console.log(`📊 [POST-COMMENT] Account details:`, {
+        username: specificAccount.username,
+        last_used_at: specificAccount.last_used_at,
+        cooldown_minutes: specificAccount.cooldown_minutes,
+        is_available: specificAccount.is_available,
+        proxy_enabled: specificAccount.proxy_enabled
+      });
       account = specificAccount;
     } else {
+      console.log('🔄 [POST-COMMENT] Auto-selecting next available account...');
+      
       // Get next available account automatically
       account = await cooldownManager.getNextAvailableAccount();
+      
       if (!account) {
+        console.log('❌ [POST-COMMENT] No accounts available for auto-selection');
         const waitTime = await cooldownManager.getEstimatedWaitTime();
+        console.log(`⏳ [POST-COMMENT] Estimated wait time: ${waitTime} minutes`);
+        
+        // Get all accounts status for debugging
+        const { data: allAccounts } = await supabaseAdmin
+          .from('reddit_accounts')
+          .select('id, username, last_used_at, cooldown_minutes, is_available, is_discussion_poster')
+          .eq('is_discussion_poster', true)
+          .eq('is_validated', true);
+          
+        console.log('📋 [POST-COMMENT] All discussion poster accounts status:', allAccounts?.map(acc => ({
+          username: acc.username,
+          last_used: acc.last_used_at,
+          cooldown_mins: acc.cooldown_minutes,
+          is_available: acc.is_available
+        })));
+        
         return NextResponse.json({ 
           error: 'No accounts available',
           status: 'rate_limited',
-          estimatedWaitMinutes: waitTime
+          estimatedWaitMinutes: waitTime,
+          accountsStatus: allAccounts
         }, { status: 429 });
       }
+      
+      console.log(`✅ [POST-COMMENT] Auto-selected account: ${account.username} (ID: ${account.id})`);
+      console.log(`📊 [POST-COMMENT] Selected account details:`, {
+        username: account.username,
+        last_used_at: account.last_used_at,
+        cooldown_minutes: account.cooldown_minutes,
+        is_available: account.is_available,
+        proxy_enabled: account.proxy_enabled
+      });
     }
 
     // Apply proxy settings (same as send-message)
@@ -189,9 +238,19 @@ export async function POST(req: Request) {
       console.log(`post-comment: using User Agent - ${account.user_agent_enabled ? 'Custom' : 'Default'}: ${customUserAgent.substring(0, 50)}...`);
 
       // Post comment
+      console.log(`🚀 [POST-COMMENT] Attempting to post comment on ${postId}`);
+      console.log(`💬 [POST-COMMENT] Comment content: ${comment.substring(0, 100)}...`);
+      console.log(`🌐 [POST-COMMENT] Using proxy: ${account.proxy_enabled ? 'YES' : 'NO'}`);
+      
       try {
         const submission = reddit.getSubmission(postId);
+        console.log(`📝 [POST-COMMENT] Submission object created, posting reply...`);
+        
         const commentResponse = await submission.reply(comment).then((response: any) => response);
+        console.log(`✅ [POST-COMMENT] Reddit API response received:`, {
+          commentId: commentResponse?.id,
+          success: true
+        });
         
         const commentUrl = `https://reddit.com/r/${subreddit}/comments/${postId}/_/${commentResponse.id}`;
 
@@ -222,9 +281,13 @@ export async function POST(req: Request) {
 
       } catch (err: any) {
         const msg = err instanceof Error ? err.message : String(err);
+        console.log(`❌ [POST-COMMENT] Reddit API error occurred:`);
+        console.log(`🔍 [POST-COMMENT] Error message: ${msg}`);
+        console.log(`🔍 [POST-COMMENT] Full error object:`, err);
         
         // Handle specific Reddit errors
         if (msg.includes('THREAD_LOCKED')) {
+          console.log(`🔒 [POST-COMMENT] Thread is locked, skipping...`);
           await supabaseAdmin.from('bot_logs').insert({
             user_id: body.userId || userId,
             action: 'thread_locked',
@@ -248,21 +311,35 @@ export async function POST(req: Request) {
 
         // Rate limiting - mark account as used since it attempted to post
         if (msg.includes('RATELIMIT') || msg.includes('you are doing that too much')) {
+          console.log(`⏰ [POST-COMMENT] RATE LIMIT detected for account ${account.username}`);
+          console.log(`🔄 [POST-COMMENT] Marking account ${account.id} as used (cooldown starts)`);
+          
           await cooldownManager.markAccountAsUsed(account.id);
+          
+          // Get updated cooldown info
+          const cooldownInfo = await cooldownManager.getAccountCooldownInfo(account.id);
+          console.log(`📊 [POST-COMMENT] Account cooldown info after rate limit:`, cooldownInfo);
+          
           await supabaseAdmin.from('bot_logs').insert({
             user_id: body.userId || userId,
             action: 'rate_limited',
             status: 'warning',
             subreddit,
-            message: 'Reddit rate limit hit',
+            message: `Reddit rate limit hit for account ${account.username}`,
           });
+          
           return NextResponse.json({ 
             error: 'rate_limited', 
-            accountId: account.id 
+            accountId: account.id,
+            accountUsername: account.username,
+            cooldownInfo: cooldownInfo,
+            rateLimitMessage: msg
           }, { status: 429 });
         }
 
         // Generic error
+        console.log(`💥 [POST-COMMENT] Unhandled Reddit error for account ${account.username}:`, msg);
+        
         await supabaseAdmin.from('bot_logs').insert({
           user_id: body.userId || userId,
           action: 'reddit_api_error',
@@ -270,7 +347,14 @@ export async function POST(req: Request) {
           subreddit,
           error_message: msg.slice(0, 250),
         });
-        return NextResponse.json({ error: 'reddit_comment_failed' }, { status: 502 });
+        
+        return NextResponse.json({ 
+          error: 'reddit_comment_failed',
+          accountId: account.id,
+          accountUsername: account.username,
+          errorMessage: msg,
+          fullError: err
+        }, { status: 502 });
       }
 
     } finally {
