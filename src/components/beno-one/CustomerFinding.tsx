@@ -109,8 +109,19 @@ export default function CustomerFinding({ url, name, description, segments, onCu
         // Use custom Reddit discussions logic
         const { generateRedditSearchQueries, searchMultipleSubreddits } = await import('../../lib/redditService');
         
-        // Generate search queries based on product description and segments
-        const queries = generateRedditSearchQueries(description, segments);
+        // Generate search queries based on website config
+        const websiteConfig = {
+          id: createData.product_id,
+          url: url,
+          description: description,
+          customer_segments: segments,
+          keywords: [name, ...description.split(' ').slice(0, 5)],
+          target_keywords: [name, ...description.split(' ').slice(0, 5)],
+          negative_keywords: [],
+          business_context_terms: [],
+          relevance_threshold: 70
+        };
+        const queries = generateRedditSearchQueries(websiteConfig);
         
         // Search Reddit for relevant discussions
         const allDiscussions = [];

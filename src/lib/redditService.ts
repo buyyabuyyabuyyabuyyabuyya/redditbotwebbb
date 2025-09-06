@@ -479,9 +479,9 @@ export async function searchMultipleSubredditsWithPagination(
     );
     
     // Apply relevance scoring and filtering
-    const relevantDiscussions = filterRelevantDiscussions(unpostedDiscussions, websiteConfig);
+    const relevantDiscussions = await filterRelevantDiscussions(unpostedDiscussions, websiteConfig);
     
-    return relevantDiscussions.map(item => item.discussion).slice(0, 20);
+    return (await relevantDiscussions).map(item => item.discussion).slice(0, 20);
   }
 
   return uniqueDiscussions.slice(0, 50);
@@ -524,7 +524,7 @@ export async function searchMultipleSubreddits(
     // Apply relevance scoring and filtering
     const relevantDiscussions = filterRelevantDiscussions(unpostedDiscussions, websiteConfig);
     
-    return relevantDiscussions.map(item => item.discussion).slice(0, 20);
+    return (await relevantDiscussions).map(item => item.discussion).slice(0, 20);
   }
   
   // Fallback to original sorting if no website config

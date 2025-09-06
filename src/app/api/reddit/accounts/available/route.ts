@@ -4,10 +4,24 @@ import { createClient } from '@supabase/supabase-js';
 
 export async function GET(req: Request) {
   try {
-    const { userId } = auth();
-
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Check for internal API header (for cron jobs and system calls)
+    const internalApiHeader = req.headers.get('X-Internal-API');
+    const isInternalCall = internalApiHeader === 'true';
+    
+    let userId: string | null = null;
+    
+    if (isInternalCall) {
+      // For internal calls, we don't need user authentication
+      // We'll fetch all admin accounts with is_discussion_poster=true
+      console.log('[REDDIT_ACCOUNTS] Internal API call detected, bypassing user auth');
+    } else {
+      // For regular user calls, require authentication
+      const authResult = auth();
+      userId = authResult.userId;
+      
+      if (!userId) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
     }
 
     const supabaseAdmin = createClient(

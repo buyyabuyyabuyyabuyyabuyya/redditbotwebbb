@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import { BUSINESS_SUBREDDITS, searchMultipleSubredditsWithPagination } from '../../../../lib/redditService';
 import { filterRelevantDiscussions } from '../../../../lib/relevanceFiltering';
 import { redditReplyService } from '../../../../lib/redditReplyService';
+import { PostQueueService } from '../../../../lib/postQueueService';
+import { CircuitBreakerService } from '../../../../lib/circuitBreakerService';
 
 // Cron job endpoint for automated posting
 export async function POST(req: Request) {
@@ -32,6 +34,37 @@ export async function POST(req: Request) {
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY || ''
     );
+
+    // Initialize services
+    const circuitBreaker = new CircuitBreakerService();
+    const postQueue = new PostQueueService();
+
+    // Check circuit breaker status
+    const circuitStatus = await circuitBreaker.canExecute('posting');
+    if (!circuitStatus.allowed) {
+      console.log(`[CRON] Circuit breaker preventing execution: ${circuitStatus.reason}`);
+      return NextResponse.json({
+        success: false,
+        message: 'Circuit breaker active',
+        reason: circuitStatus.reason,
+        backoffUntil: circuitStatus.backoffUntil
+      });
+    }
+
+    // Check account availability before proceeding
+    const accountCheck = await circuitBreaker.checkAccountAvailability();
+    if (!accountCheck.available) {
+      console.log(`[CRON] No accounts available: ${accountCheck.reason}`);
+      await circuitBreaker.recordFailure('posting', accountCheck.reason || 'No accounts available', 'low');
+      return NextResponse.json({
+        success: false,
+        message: 'No Reddit accounts available',
+        reason: accountCheck.reason,
+        availableAccounts: accountCheck.count
+      });
+    }
+
+    console.log(`[CRON] ${accountCheck.count} Reddit accounts available for posting`);
 
     // Reset daily counters if needed
     await supabaseAdmin.rpc('reset_daily_post_counts');
