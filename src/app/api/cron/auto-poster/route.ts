@@ -123,14 +123,28 @@ export async function POST(req: Request) {
           .eq('is_validated', true)
           .eq('is_discussion_poster', true)
           .eq('status', 'active')
-          .eq('is_available', true)
-          .order('last_used_at', { ascending: true, nullsFirst: true })
-          .limit(1);
+          .order('last_used_at', { ascending: true, nullsFirst: true });
 
-        const redditAccount = availableAccounts?.[0];
+        // Filter accounts that are actually available (not in cooldown)
+        const now = new Date();
+        const availableAccountsFiltered = availableAccounts?.filter(account => {
+          if (account.is_available) return true;
+          
+          if (account.last_used_at) {
+            const lastUsed = new Date(account.last_used_at);
+            const cooldownMinutes = account.cooldown_minutes || 30;
+            const cooldownExpiry = new Date(lastUsed.getTime() + cooldownMinutes * 60 * 1000);
+            return now >= cooldownExpiry;
+          }
+          
+          return false;
+        }) || [];
+
+        const redditAccount = availableAccountsFiltered[0];
 
         if (!redditAccount) {
-          console.error(`[CRON] No Reddit accounts available for posting`);
+          console.error(`[CRON] No Reddit accounts available for posting (${availableAccounts?.length || 0} total accounts, ${availableAccountsFiltered.length} available after cooldown check)`);
+          await circuitBreaker.recordFailure('posting', 'No Reddit accounts available', 'low');
           totalErrors++;
           continue;
         }
@@ -232,7 +246,7 @@ export async function POST(req: Request) {
         
         // Step 3: Apply relevance filtering with Gemini AI scoring
         const relevantDiscussions = await filterRelevantDiscussions(
-          discussions.items,
+          discussions,
           websiteConfig,
           postedIds,
           true // Use Gemini AI scoring

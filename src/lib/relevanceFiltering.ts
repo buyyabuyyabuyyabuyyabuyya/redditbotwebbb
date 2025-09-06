@@ -1,4 +1,5 @@
 import { RedditDiscussion } from './redditService';
+import { GeminiQuotaManager } from './geminiQuotaManager';
 
 export interface RelevanceScores {
   intentScore: number;
@@ -242,7 +243,7 @@ export async function filterRelevantDiscussions(
     
     if (useGeminiScoring) {
       // Use Gemini AI for relevance scoring
-      scores = await calculateGeminiRelevanceScore(discussion, websiteConfig);
+      scores = await getGeminiRelevanceScore(discussion, websiteConfig);
     } else {
       // Fallback to basic pattern matching
       scores = calculateRelevanceScore(discussion, websiteConfig);
@@ -256,10 +257,19 @@ export async function filterRelevantDiscussions(
     .sort((a, b) => b.scores.finalScore - a.scores.finalScore);
 }
 
-async function calculateGeminiRelevanceScore(
+async function getGeminiRelevanceScore(
   discussion: RedditDiscussion,
   websiteConfig: WebsiteConfig
 ): Promise<RelevanceScores> {
+  const quotaManager = new GeminiQuotaManager();
+  
+  // Check quota before making request
+  const quotaCheck = await quotaManager.canMakeRequest();
+  if (!quotaCheck.allowed) {
+    console.log(`[GEMINI_SCORING] Quota exceeded: ${quotaCheck.reason}`);
+    return calculateRelevanceScore(discussion, websiteConfig);
+  }
+
   try {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://redditoutreach.com';
     const response = await fetch(`${baseUrl}/api/gemini/relevance-score`, {
@@ -292,13 +302,20 @@ async function calculateGeminiRelevanceScore(
     
     if (data.success && data.scores) {
       console.log(`[GEMINI_SCORING] Discussion ${discussion.id} scored ${data.scores.finalScore} by Gemini AI`);
+      await quotaManager.recordRequest();
       return data.scores;
     } else {
       console.warn(`[GEMINI_SCORING] Invalid Gemini response for ${discussion.id}, falling back to basic scoring`);
       return calculateRelevanceScore(discussion, websiteConfig);
     }
   } catch (error) {
-    console.error(`[GEMINI_SCORING] Error scoring discussion ${discussion.id}:`, error);
+    // Check if it's a quota exceeded error
+    if (error instanceof Error && error.message.includes('429')) {
+      console.error(`[GEMINI_SCORING] Quota exceeded for ${discussion.id}:`, error);
+      await quotaManager.recordQuotaExceeded();
+    } else {
+      console.error(`[GEMINI_SCORING] Error scoring discussion ${discussion.id}:`, error);
+    }
     return calculateRelevanceScore(discussion, websiteConfig);
   }
 }
