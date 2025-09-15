@@ -272,7 +272,12 @@ Consider:
 3. Would our target audience find this relevant?
 4. Is there potential for meaningful business engagement?`;
 
-    const response = await fetch('/api/gemini/analyze', {
+    // Get the base URL for internal API calls
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : 'http://localhost:3000';
+    
+    const response = await fetch(`${baseUrl}/api/gemini/analyze`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
