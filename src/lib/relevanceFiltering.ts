@@ -281,7 +281,8 @@ Consider:
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Internal-API': 'true'
+        'X-Internal-API': 'true',
+        'X-User-ID': 'system'
       },
       body: JSON.stringify({
         content,
