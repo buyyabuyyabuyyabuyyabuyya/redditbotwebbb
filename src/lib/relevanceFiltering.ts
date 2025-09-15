@@ -248,91 +248,64 @@ async function getGeminiRelevanceScore(
   discussion: RedditDiscussion,
   websiteConfig: WebsiteConfig
 ): Promise<RelevanceScores> {
-
-  // Import the API key manager and make direct Gemini API call
-  // This avoids the problematic internal API call that was causing keys to get stuck
   try {
-    const { ApiKeyManager } = await import('../utils/apiKeyManager');
-    const apiKeyManager = new ApiKeyManager();
+    // Use the dedicated /api/gemini/analyze endpoint instead of direct API calls
+    const content = `${discussion.title}\n\n${discussion.content || ''}`;
+    const keywords = websiteConfig.target_keywords || websiteConfig.keywords || [];
     
-    let apiKey: string | null = null;
-    
-    try {
-      // Acquire API key
-      apiKey = await apiKeyManager.acquireApiKey('system', 'gemini');
-      console.log(`[GEMINI_SCORING] Acquired API key for discussion ${discussion.id}`);
-      
-      // Make direct Gemini API call
-      const prompt = `Analyze this Reddit discussion for business relevance:
+    const customPrompt = `Analyze this Reddit discussion for business relevance to a website with the following details:
 
-**Website:** ${websiteConfig.website_description || websiteConfig.description}
-**Target Keywords:** ${(websiteConfig.target_keywords || websiteConfig.keywords || []).join(', ')}
+**Website Description:** ${websiteConfig.website_description || websiteConfig.description}
+**Target Keywords:** ${keywords.join(', ')}
 **Customer Segments:** ${(websiteConfig.customer_segments || []).join(', ')}
-
-**Discussion:**
-Title: ${discussion.title}
-Content: ${discussion.content || 'No content'}
-Subreddit: r/${discussion.subreddit}
+**Subreddit:** r/${discussion.subreddit}
 
 Rate the relevance (0-100) and provide scores for:
-- keyword_relevance: How well it matches target keywords
-- quality_score: Discussion quality and engagement potential  
-- engagement_score: Likelihood of meaningful engagement
-- final_score: Overall relevance score
+- keyword_relevance: How well it matches target keywords (0-100)
+- quality_score: Discussion quality and engagement potential (0-100)
+- engagement_score: Likelihood of meaningful engagement (0-100)  
+- final_score: Overall relevance score (0-100)
 
-Respond with JSON: {"keyword_relevance": X, "quality_score": Y, "engagement_score": Z, "final_score": W}`;
+Consider:
+1. Does the discussion match the target keywords or customer segments?
+2. Is this a high-quality discussion worth engaging with?
+3. Would our target audience find this relevant?
+4. Is there potential for meaningful business engagement?`;
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: prompt
-            }]
-          }],
-          generationConfig: {
-            temperature: 0.3,
-            maxOutputTokens: 200,
-          }
-        }),
-      });
+    const response = await fetch('/api/gemini/analyze', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Internal-API': 'true'
+      },
+      body: JSON.stringify({
+        content,
+        subreddit: discussion.subreddit,
+        keywords,
+        customPrompt
+      })
+    });
 
-      if (!response.ok) {
-        throw new Error(`Gemini API error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      
-      if (text) {
-        // Parse JSON response
-        const jsonMatch = text.match(/\{[^}]*\}/);
-        if (jsonMatch) {
-          const scores = JSON.parse(jsonMatch[0]);
-          console.log(`[GEMINI_SCORING] Discussion ${discussion.id} scored ${scores.final_score} by Gemini AI`);
-          
-          return {
-            intentScore: scores.keyword_relevance || 0,
-            contextMatchScore: scores.keyword_relevance || 0,
-            qualityScore: scores.quality_score || 0,
-            engagementScore: scores.engagement_score || 0,
-            finalScore: scores.final_score || 0
-          };
-        }
-      }
-      
-      throw new Error('Invalid Gemini response format');
-      
-    } finally {
-      // Always release the API key
-      if (apiKey) {
-        await apiKeyManager.releaseApiKey(apiKey, 'system');
-        console.log(`[GEMINI_SCORING] Released API key for discussion ${discussion.id}`);
-      }
+    if (!response.ok) {
+      throw new Error(`Gemini analyze API error: ${response.status}`);
     }
+
+    const data = await response.json();
+    
+    if (data.success && data.analysis) {
+      const analysis = data.analysis;
+      console.log(`[GEMINI_SCORING] Discussion ${discussion.id} scored ${analysis.final_score || 0} by Gemini AI`);
+      
+      return {
+        intentScore: analysis.keyword_relevance || 0,
+        contextMatchScore: analysis.keyword_relevance || 0,
+        qualityScore: analysis.quality_score || 0,
+        engagementScore: analysis.engagement_score || 0,
+        finalScore: analysis.final_score || 0
+      };
+    }
+    
+    throw new Error('Invalid Gemini analyze response');
     
   } catch (error) {
     console.error(`[GEMINI_SCORING] Error scoring discussion ${discussion.id}:`, error);
