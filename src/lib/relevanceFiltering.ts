@@ -1,5 +1,4 @@
 import { RedditDiscussion } from './redditService';
-import { GeminiQuotaManager } from './geminiQuotaManager';
 
 export interface RelevanceScores {
   intentScore: number;
@@ -249,22 +248,6 @@ async function getGeminiRelevanceScore(
   discussion: RedditDiscussion,
   websiteConfig: WebsiteConfig
 ): Promise<RelevanceScores> {
-  const quotaManager = new GeminiQuotaManager();
-  
-  // Check quota before making request
-  const quotaCheck = await quotaManager.canMakeRequest();
-  if (!quotaCheck.allowed) {
-    console.log(`[GEMINI_SCORING] Quota exceeded: ${quotaCheck.reason}. Using basic scoring with lowered threshold.`);
-    // When Gemini is unavailable, use basic scoring but with a much lower threshold
-    const basicScores = calculateRelevanceScore(discussion, websiteConfig);
-    // Boost the final score by 30 points to make it more permissive when Gemini is unavailable
-    const boostedScore = Math.min(basicScores.finalScore + 30, 100);
-    console.log(`[BASIC_SCORING] Discussion "${discussion.title.substring(0, 50)}..." scored ${boostedScore} (boosted from ${basicScores.finalScore})`);
-    return {
-      ...basicScores,
-      finalScore: boostedScore
-    };
-  }
 
   // Import the API key manager and make direct Gemini API call
   // This avoids the problematic internal API call that was causing keys to get stuck
@@ -330,7 +313,6 @@ Respond with JSON: {"keyword_relevance": X, "quality_score": Y, "engagement_scor
         if (jsonMatch) {
           const scores = JSON.parse(jsonMatch[0]);
           console.log(`[GEMINI_SCORING] Discussion ${discussion.id} scored ${scores.final_score} by Gemini AI`);
-          await quotaManager.recordRequest();
           
           return {
             intentScore: scores.keyword_relevance || 0,
@@ -353,13 +335,7 @@ Respond with JSON: {"keyword_relevance": X, "quality_score": Y, "engagement_scor
     }
     
   } catch (error) {
-    // Check if it's a quota exceeded error
-    if (error instanceof Error && error.message.includes('429')) {
-      console.error(`[GEMINI_SCORING] Quota exceeded for ${discussion.id}:`, error);
-      await quotaManager.recordQuotaExceeded();
-    } else {
-      console.error(`[GEMINI_SCORING] Error scoring discussion ${discussion.id}:`, error);
-    }
+    console.error(`[GEMINI_SCORING] Error scoring discussion ${discussion.id}:`, error);
     return calculateRelevanceScore(discussion, websiteConfig);
   }
 }

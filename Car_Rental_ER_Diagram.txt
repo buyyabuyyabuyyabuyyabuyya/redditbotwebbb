@@ -1,0 +1,183 @@
+CAR RENTAL AGENCY NETWORK - ENTITY RELATIONSHIP DIAGRAM
+================================================================
+
+LEGEND:
+-------
+[Entity]          = Strong Entity (Rectangle)
+[[Weak Entity]]   = Weak Entity (Double Rectangle)
+<Relationship>    = Relationship (Diamond)
+<<Identifying>>   = Identifying Relationship (Double Diamond)
+(attribute)       = Attribute (Oval)
+_primary_key_     = Primary Key (Underlined)
+-partial_key-     = Partial Key (Dashed Underline)
+{composite}       = Composite Attribute
+
+
+ENTITIES AND ATTRIBUTES:
+========================
+
+1. [BRANCH] - Strong Entity
+   Attributes:
+   - _branch_number_ (Primary Key - part of composite)
+   - _location_ (Primary Key - part of composite) 
+   - (capacity)
+   
+   Composite Primary Key: {_branch_number_ + _location_}
+
+2. [VEHICLE] - Strong Entity
+   Attributes:
+   - _vehicle_id_ (Primary Key)
+   - (model_name)
+   - (category)
+
+3. [CUSTOMER] - Strong Entity
+   Attributes:
+   - _customer_id_ (Primary Key)
+   - (first_name)
+   - (last_name)
+   - (street)
+   - (city)
+   - (state)
+   - (zip)
+
+4. [EMPLOYEE] - Strong Entity
+   Attributes:
+   - _employee_id_ (Primary Key)
+   - (name)
+   - (position)
+
+5. [[RENTAL_TRANSACTION]] - Weak Entity (depends on BRANCH)
+   Attributes:
+   - -transaction_id- (Partial Key)
+
+6. [[INVOICE]] - Weak Entity (depends on RENTAL_TRANSACTION)
+   Attributes:
+   - -invoice_number- (Partial Key)
+   - (total_amount)
+
+
+RELATIONSHIPS:
+==============
+
+1. <OFFERS>
+   Between: [BRANCH] ←→ [VEHICLE]
+   Cardinality: M:N (Many-to-Many)
+   Description: A branch can offer multiple vehicles, and each vehicle can be offered at multiple branches
+
+2. <<HAS>>
+   Between: [BRANCH] ←→ [[RENTAL_TRANSACTION]]
+   Cardinality: 1:N (One-to-Many)
+   Type: Identifying Relationship
+   Description: Each rental transaction belongs to exactly one branch, but a branch can have many transactions
+
+3. <MAKES>
+   Between: [CUSTOMER] ←→ [[RENTAL_TRANSACTION]]
+   Cardinality: 1:N (One-to-Many)
+   Description: Each customer can make multiple rental transactions, but each transaction is made by one customer
+
+4. <MANAGES>
+   Between: [EMPLOYEE] ←→ [[RENTAL_TRANSACTION]]
+   Cardinality: 1:N (One-to-Many)
+   Description: Each employee can manage multiple transactions, but each transaction is managed by one employee
+
+5. <INVOLVES>
+   Between: [[RENTAL_TRANSACTION]] ←→ [VEHICLE]
+   Cardinality: M:N (Many-to-Many)
+   Description: A rental transaction can involve multiple vehicles, and a vehicle can be involved in multiple transactions
+
+6. <<GENERATES>>
+   Between: [[RENTAL_TRANSACTION]] ←→ [[INVOICE]]
+   Cardinality: 1:1 (One-to-One)
+   Type: Identifying Relationship
+   Description: Each rental transaction generates exactly one invoice
+
+
+VISUAL REPRESENTATION:
+======================
+
+                    (branch_number)    (location)
+                          |               |
+                          |               |
+                    ┌─────────────────────────────┐
+                    │        BRANCH               │ ═══════════════════════════════════════
+                    │   {_branch_number_,         │                                        ║
+                    │    _location_}              │                                        ║
+                    └─────────────────────────────┘                                        ║
+                              │                                                            ║
+                         (capacity)                                                        ║
+                              │                                                            ║
+                              │                                                            ║
+                         ┌─────────┐                                                      ║
+                         │ OFFERS  │ ←── M:N ──→ [VEHICLE]                                ║
+                         └─────────┘                │                                     ║
+                              │                     │                                     ║ 1:N
+                              │                (_vehicle_id_)                             ║
+                              │                (model_name)                              ║
+                         ┌─────────┐           (category)                                 ║
+                         │   HAS   │ ←── 1:N                                             ║
+                         │ (Double)│                                                     ║
+                         └─────────┘                                                     ║
+                              │                                                          ║
+                              ▼                                                          ║
+                    ╔═══════════════════════╗                                           ║
+                    ║  RENTAL_TRANSACTION   ║ ◄═════════════════════════════════════════╝
+                    ║    -transaction_id-   ║
+                    ╚═══════════════════════╝
+                              │
+                              │ 1:N
+                         ┌─────────┐
+                         │ MANAGES │ ←── 1:N ──→ [EMPLOYEE]
+                         └─────────┘                │
+                              │                     │
+                              │                (_employee_id_)
+                              │                (name)
+                         ┌─────────┐           (position)
+                         │  MAKES  │ ←── 1:N ──→ [CUSTOMER]
+                         └─────────┘                │
+                              │                     │
+                              │                (_customer_id_)
+                              │                (first_name)
+                         ┌─────────┐           (last_name)
+                         │INVOLVES │ ←── M:N    (street)
+                         └─────────┘           (city)
+                              │               (state)
+                              │               (zip)
+                              │
+                         ┌─────────┐
+                         │GENERATES│ ←── 1:1
+                         │(Double) │
+                         └─────────┘
+                              │
+                              ▼
+                    ╔═══════════════════════╗
+                    ║      INVOICE          ║
+                    ║   -invoice_number-    ║
+                    ║   (total_amount)      ║
+                    ╚═══════════════════════╝
+
+
+CONSTRAINTS SATISFIED:
+======================
+
+✓ Branch uniquely identified by composite key (branch_number + location)
+✓ Vehicle must belong to at least one category
+✓ Branch can offer multiple vehicles, vehicles can be at multiple branches
+✓ Rental transaction must involve at least one vehicle
+✓ Rental transaction associated with exactly one branch and one customer
+✓ Employee can manage multiple transactions, each transaction handled by one employee
+✓ One invoice generated per rental transaction
+✓ Some branches may not offer vehicles initially (partial participation)
+✓ Some vehicles may not appear in transactions (partial participation)
+✓ Weak entities properly depend on their owner entities
+
+ASSUMPTIONS MADE:
+=================
+
+1. Branch is identified by the combination of branch_number AND location (composite key)
+2. Rental_Transaction is a weak entity that depends on Branch for identification
+3. Invoice is a weak entity that depends on Rental_Transaction for identification
+4. The system allows multiple vehicles per rental transaction (family rentals)
+5. Vehicle categories are stored as simple attributes (not separate entity)
+6. Employee position is stored as a simple text attribute
+7. Customer address is stored as separate attributes rather than composite
+8. Total participation is assumed for Customer→Transaction and Employee→Transaction relationships

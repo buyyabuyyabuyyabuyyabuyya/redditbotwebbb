@@ -1,0 +1,173 @@
+CAR RENTAL AGENCY NETWORK - ER DIAGRAM (VISUAL ASCII)
+======================================================
+
+                    ┌─────────────┐     M   ◊─────────◊   N   ┌─────────────┐
+                    │   BRANCH    │─────────│  OFFERS  │───────│   VEHICLE   │
+                    └─────────────┘         ◊─────────◊       └─────────────┘
+                           │                                           │
+                    ┌─────────────┐                            ┌─────────────┐
+                    │branch_number│                            │ vehicle_id  │
+                    │   location  │                            │ model_name  │
+                    │  capacity   │                            │  category   │
+                    └─────────────┘                            └─────────────┘
+                           │
+                           │ 1
+                           │
+                    ◊═════════════◊
+                    ║     HAS     ║
+                    ◊═════════════◊
+                           │
+                           │ N
+                           │
+                    ╔═════════════════╗
+                    ║ RENTAL_         ║
+                    ║ TRANSACTION     ║
+                    ╚═════════════════╝
+                           │
+                    ┌─────────────┐
+                    │transaction_ │
+                    │     id      │
+                    └─────────────┘
+                           │
+          ┌────────────────┼────────────────┐
+          │                │                │
+          │ 1              │ M              │ M
+          │                │                │
+   ◊─────────◊      ◊─────────◊      ◊─────────◊
+   │  MAKES  │      │ MANAGES │      │INVOLVES │
+   ◊─────────◊      ◊─────────◊      ◊─────────◊
+          │                │                │
+          │ N              │ N              │ N
+          │                │                │
+   ┌─────────────┐  ┌─────────────┐         │
+   │  CUSTOMER   │  │  EMPLOYEE   │         │
+   └─────────────┘  └─────────────┘         │
+          │                │                │
+   ┌─────────────┐  ┌─────────────┐         │
+   │customer_id  │  │employee_id  │         │
+   │first_name   │  │    name     │         │
+   │last_name    │  │  position   │         │
+   │   street    │  └─────────────┘         │
+   │    city     │                          │
+   │   state     │                          │
+   │    zip      │                          │
+   └─────────────┘                          │
+                                            │
+                                     ┌─────────────┐
+                                     │   VEHICLE   │
+                                     │ (from above)│
+                                     └─────────────┘
+                           │
+                           │ 1
+                           │
+                    ◊═════════════◊
+                    ║ GENERATES   ║
+                    ◊═════════════◊
+                           │
+                           │ 1
+                           │
+                    ╔═════════════════╗
+                    ║    INVOICE      ║
+                    ╚═════════════════╝
+                           │
+                    ┌─────────────┐
+                    │invoice_     │
+                    │  number     │
+                    │total_amount │
+                    └─────────────┘
+
+
+LEGEND:
+=======
+┌─────────┐  = Strong Entity (Rectangle)
+╔═════════╗  = Weak Entity (Double Rectangle)
+◊───────◊    = Relationship (Diamond)
+◊═══════◊    = Identifying Relationship (Double Diamond)
+┌─────────┐  = Attributes (connected to entities)
+underlined   = Primary Key
+dashed line  = Partial Key
+
+
+DETAILED ENTITY-ATTRIBUTE CONNECTIONS:
+======================================
+
+BRANCH Entity:
+┌─────────────┐
+│   BRANCH    │
+└─────────────┘
+       │
+   ┌───┼───┐
+   │   │   │
+(branch_number) (location) (capacity)
+   └───┴───┘
+ Composite Primary Key
+
+
+VEHICLE Entity:
+┌─────────────┐
+│   VEHICLE   │
+└─────────────┘
+       │
+   ┌───┼───┐
+   │   │   │
+(vehicle_id) (model_name) (category)
+     │
+Primary Key
+
+
+CUSTOMER Entity:
+┌─────────────┐
+│  CUSTOMER   │
+└─────────────┘
+       │
+   ┌───┼───┬───┬───┬───┬───┐
+   │   │   │   │   │   │   │
+(customer_id) (first_name) (last_name) (street) (city) (state) (zip)
+     │
+Primary Key
+
+
+EMPLOYEE Entity:
+┌─────────────┐
+│  EMPLOYEE   │
+└─────────────┘
+       │
+   ┌───┼───┐
+   │   │   │
+(employee_id) (name) (position)
+     │
+Primary Key
+
+
+RENTAL_TRANSACTION Entity (Weak):
+╔═════════════════╗
+║ RENTAL_         ║
+║ TRANSACTION     ║
+╚═════════════════╝
+       │
+(transaction_id)
+     │
+Partial Key
+
+
+INVOICE Entity (Weak):
+╔═════════════════╗
+║    INVOICE      ║
+╚═════════════════╝
+       │
+   ┌───┼───┐
+   │   │   │
+(invoice_number) (total_amount)
+     │
+Partial Key
+
+
+RELATIONSHIP CARDINALITIES:
+===========================
+
+BRANCH ──(1)── OFFERS ──(M)── VEHICLE
+BRANCH ──(1)── HAS ──(N)── RENTAL_TRANSACTION
+CUSTOMER ──(1)── MAKES ──(N)── RENTAL_TRANSACTION
+EMPLOYEE ──(1)── MANAGES ──(N)── RENTAL_TRANSACTION
+RENTAL_TRANSACTION ──(M)── INVOLVES ──(N)── VEHICLE
+RENTAL_TRANSACTION ──(1)── GENERATES ──(1)── INVOICE
