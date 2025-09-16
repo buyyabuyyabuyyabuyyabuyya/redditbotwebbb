@@ -254,100 +254,132 @@ async function getGeminiRelevanceScore(
     const { apiKeyManager } = await import('../utils/apiKeyManager');
     
     let apiKey: string | null = null;
+    let retryCount = 0;
+    const maxRetries = 3;
     
-    try {
-      // Acquire API key
-      apiKey = await apiKeyManager.acquireApiKey('system', 'gemini');
-      
-      if (!apiKey) {
-        throw new Error('No API keys available');
-      }
-      
-      console.log(`[GEMINI_SCORING] Acquired API key for discussion ${discussion.id}`);
-      
-      const content = `${discussion.title}\n\n${discussion.content || ''}`;
-      const keywords = websiteConfig.target_keywords || websiteConfig.keywords || [];
-      
-      // Make direct Gemini API call
-      const prompt = `Analyze this Reddit discussion for business relevance to a website with the following details:
-
-**Website Description:** ${websiteConfig.website_description || websiteConfig.description}
-**Target Keywords:** ${keywords.join(', ')}
-**Customer Segments:** ${(websiteConfig.customer_segments || []).join(', ')}
-**Subreddit:** r/${discussion.subreddit}
-
-**Discussion:**
-Title: ${discussion.title}
-Content: ${discussion.content || 'No content'}
-
-Rate the relevance (0-100) and provide scores for:
-- keyword_relevance: How well it matches target keywords (0-100)
-- quality_score: Discussion quality and engagement potential (0-100)
-- engagement_score: Likelihood of meaningful engagement (0-100)  
-- final_score: Overall relevance score (0-100)
-
-Consider:
-1. Does the discussion match the target keywords or customer segments?
-2. Is this a high-quality discussion worth engaging with?
-3. Would our target audience find this relevant?
-4. Is there potential for meaningful business engagement?
-
-Respond with JSON: {"keyword_relevance": X, "quality_score": Y, "engagement_score": Z, "final_score": W}`;
-
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: prompt
-            }]
-          }],
-          generationConfig: {
-            temperature: 0.3,
-            maxOutputTokens: 200,
-          }
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Gemini API error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      
-      if (text) {
-        // Parse JSON response
-        const jsonMatch = text.match(/\{[^}]*\}/);
-        if (jsonMatch) {
-          const scores = JSON.parse(jsonMatch[0]);
-          console.log(`[GEMINI_SCORING] Discussion ${discussion.id} scored ${scores.final_score} by Gemini AI`);
-          
-          return {
-            intentScore: scores.keyword_relevance || 0,
-            contextMatchScore: scores.keyword_relevance || 0,
-            qualityScore: scores.quality_score || 0,
-            engagementScore: scores.engagement_score || 0,
-            finalScore: scores.final_score || 0
-          };
+    while (retryCount < maxRetries) {
+      try {
+        // Acquire API key
+        apiKey = await apiKeyManager.acquireApiKey('system', 'gemini');
+        
+        if (!apiKey) {
+          throw new Error('No API keys available');
         }
-      }
-      
-      throw new Error('Invalid Gemini response format');
-      
-    } finally {
-      // Always release the API key
-      if (apiKey) {
-        await apiKeyManager.releaseApiKey(apiKey, 'system');
-        console.log(`[GEMINI_SCORING] Released API key for discussion ${discussion.id}`);
+        
+        console.log(`[GEMINI_SCORING] Acquired API key for discussion ${discussion.id} (attempt ${retryCount + 1})`);
+        
+        const content = `${discussion.title}\n\n${discussion.content || ''}`;
+        const keywords = websiteConfig.target_keywords || websiteConfig.keywords || [];
+        
+        // Make direct Gemini API call
+        const prompt = `Analyze this Reddit discussion for business relevance to a website with the following details:
+
+Website: ${websiteConfig.website_url || 'Not specified'}
+Target Keywords: ${keywords.join(', ') || 'Not specified'}
+Customer Segments: ${websiteConfig.customer_segments?.join(', ') || 'Not specified'}
+
+Discussion Title: ${discussion.title}
+Discussion Content: ${content}
+Subreddit: r/${discussion.subreddit}
+Score: ${discussion.score || 0} upvotes
+
+Rate the relevance on these criteria (0-100 scale):
+1. Keyword Relevance: How well does the discussion match the target keywords?
+2. Quality Score: Is this a high-quality, substantive discussion?
+3. Engagement Score: Does this have good engagement potential?
+4. Final Score: Overall business relevance for this website
+
+Respond with ONLY a JSON object in this exact format:
+{"keyword_relevance": 0-100, "quality_score": 0-100, "engagement_score": 0-100, "final_score": 0-100}`;
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{
+                text: prompt
+              }]
+            }],
+            generationConfig: {
+              temperature: 0.1,
+              maxOutputTokens: 200
+            }
+          })
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          const error = new Error(`Gemini API error: ${response.status} - ${errorText}`);
+          (error as any).status = response.status;
+          throw error;
+        }
+
+        const data = await response.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        
+        if (text) {
+          // Parse JSON response
+          const jsonMatch = text.match(/\{[^}]*\}/);
+          if (jsonMatch) {
+            const scores = JSON.parse(jsonMatch[0]);
+            console.log(`[GEMINI_SCORING] Discussion ${discussion.id} scored ${scores.final_score} by Gemini AI`);
+            
+            return {
+              intentScore: scores.keyword_relevance || 0,
+              contextMatchScore: scores.keyword_relevance || 0,
+              qualityScore: scores.quality_score || 0,
+              engagementScore: scores.engagement_score || 0,
+              finalScore: scores.final_score || 0
+            };
+          }
+        }
+        
+        throw new Error('Invalid Gemini response format');
+        
+      } catch (error: any) {
+        // Check if this is a transient error (503, 502, etc.)
+        const isTransient = error.status === 503 || error.status === 502 || error.status === 504 ||
+                           error.message?.toLowerCase().includes('service unavailable') ||
+                           error.message?.toLowerCase().includes('bad gateway') ||
+                           error.message?.toLowerCase().includes('gateway timeout');
+        
+        if (isTransient && retryCount < maxRetries - 1) {
+          console.log(`[GEMINI_SCORING] Transient error (${error.status}) for discussion ${discussion.id}, retrying in ${Math.pow(2, retryCount)} seconds...`);
+          
+          // Release the current API key before retrying
+          if (apiKey) {
+            await apiKeyManager.releaseApiKey(apiKey, 'system');
+            apiKey = null;
+          }
+          
+          // Exponential backoff: 1s, 2s, 4s
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+          retryCount++;
+          continue;
+        }
+        
+        // If not transient or max retries reached, throw the error
+        throw error;
+        
+      } finally {
+        // Always release the API key for this attempt
+        if (apiKey) {
+          await apiKeyManager.releaseApiKey(apiKey, 'system');
+          console.log(`[GEMINI_SCORING] Released API key for discussion ${discussion.id}`);
+          apiKey = null;
+        }
       }
     }
     
+    // If we get here, all retries failed
+    throw new Error(`All ${maxRetries} retry attempts failed for discussion ${discussion.id}`);
+    
   } catch (error) {
     console.error(`[GEMINI_SCORING] Error scoring discussion ${discussion.id}:`, error);
+    console.log(`[GEMINI_SCORING] Falling back to basic scoring for discussion ${discussion.id}`);
     return calculateRelevanceScore(discussion, websiteConfig);
   }
 }

@@ -301,6 +301,24 @@ export class ApiKeyManager {
   }
 
   /**
+   * Check if an error is a transient server error (503, 502, etc.)
+   */
+  private isTransientError(error: any): boolean {
+    const errorMessage = error.message?.toLowerCase() || '';
+    const errorStatus = error.status || 0;
+    
+    return (
+      errorStatus === 503 ||
+      errorStatus === 502 ||
+      errorStatus === 504 ||
+      errorMessage.includes('service unavailable') ||
+      errorMessage.includes('bad gateway') ||
+      errorMessage.includes('gateway timeout') ||
+      errorMessage.includes('temporarily unavailable')
+    );
+  }
+
+  /**
    * Check if an error indicates an invalid/unauthorized key
    */
   private isInvalidKeyError(error: any): boolean {
