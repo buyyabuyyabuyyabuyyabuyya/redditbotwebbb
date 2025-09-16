@@ -69,13 +69,30 @@ export async function POST(req: Request) {
     // Reset daily counters if needed
     await supabaseAdmin.rpc('reset_daily_post_counts');
 
+    // First, let's see ALL configs to debug the issue
+    const { data: debugConfigs, error: debugError } = await supabaseAdmin
+      .from('auto_poster_configs')
+      .select('*');
+
+    console.log(`[CRON] DEBUG: Total configs in database: ${debugConfigs?.length || 0}`);
+    if (debugConfigs && debugConfigs.length > 0) {
+      debugConfigs.forEach(config => {
+        console.log(`[CRON] DEBUG Config ${config.id}: enabled=${config.enabled}, status=${config.status}, next_post_at=${config.next_post_at}, posts_today=${config.posts_today}/${config.max_posts_per_day}`);
+      });
+    }
+
     // Get configs that are ready to post
+    const currentTime = new Date().toISOString();
+    console.log(`[CRON] Current time for comparison: ${currentTime}`);
+    
     const { data: allConfigs, error: configError } = await supabaseAdmin
       .from('auto_poster_configs')
       .select('*')
       .eq('enabled', true)
       .eq('status', 'active')
-      .or('next_post_at.is.null,next_post_at.lt.' + new Date().toISOString());
+      .or('next_post_at.is.null,next_post_at.lt.' + currentTime);
+
+    console.log(`[CRON] Configs matching enabled=true AND status=active: ${allConfigs?.length || 0}`);
 
     if (configError) {
       console.error('[CRON] Error fetching configs:', configError);
@@ -87,7 +104,7 @@ export async function POST(req: Request) {
       config.posts_today < config.max_posts_per_day
     ) || [];
 
-    console.log(`[CRON] Found ${readyConfigs?.length || 0} configs ready to post`);
+    console.log(`[CRON] Found ${readyConfigs?.length || 0} configs ready to post after daily limit filter`);
 
     let totalPosts = 0;
     let totalErrors = 0;
