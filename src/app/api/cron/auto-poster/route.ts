@@ -130,13 +130,16 @@ export async function POST(req: Request) {
         } else {
           console.log('[CRON] Successfully reset config post times, re-querying for ready configs');
           
-          // Re-query for configs now that we've reset the times
+          // Re-query for configs now that we've reset the times (use fresh timestamp)
+          const freshTime = new Date().toISOString();
+          console.log(`[CRON] Fresh time for re-query: ${freshTime}`);
+          
           const { data: updatedConfigs } = await supabaseAdmin
             .from('auto_poster_configs')
             .select('*')
             .eq('enabled', true)
             .eq('status', 'active')
-            .or('next_post_at.is.null,next_post_at.lt.' + currentTime);
+            .or('next_post_at.is.null,next_post_at.lt.' + freshTime);
           
           // Update readyConfigs with the newly available ones
           const updatedReadyConfigs = updatedConfigs?.filter(config => 
