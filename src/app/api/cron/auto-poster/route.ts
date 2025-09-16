@@ -106,6 +106,49 @@ export async function POST(req: Request) {
 
     console.log(`[CRON] Found ${readyConfigs?.length || 0} configs ready to post after daily limit filter`);
 
+    // If no configs are ready but we have active configs with future next_post_at, 
+    // check if any should be reset to post now (this handles the case where configs get stuck in the future)
+    if (readyConfigs.length === 0) {
+      const { data: activeConfigs } = await supabaseAdmin
+        .from('auto_poster_configs')
+        .select('*')
+        .eq('enabled', true)
+        .eq('status', 'active');
+      
+      if (activeConfigs && activeConfigs.length > 0) {
+        console.log(`[CRON] Found ${activeConfigs.length} active configs with future post times, resetting to post now`);
+        
+        // Reset next_post_at to current time for all active configs
+        const { error: resetError } = await supabaseAdmin
+          .from('auto_poster_configs')
+          .update({ next_post_at: currentTime })
+          .eq('enabled', true)
+          .eq('status', 'active');
+        
+        if (resetError) {
+          console.error('[CRON] Error resetting config post times:', resetError);
+        } else {
+          console.log('[CRON] Successfully reset config post times, re-querying for ready configs');
+          
+          // Re-query for configs now that we've reset the times
+          const { data: updatedConfigs } = await supabaseAdmin
+            .from('auto_poster_configs')
+            .select('*')
+            .eq('enabled', true)
+            .eq('status', 'active')
+            .or('next_post_at.is.null,next_post_at.lt.' + currentTime);
+          
+          // Update readyConfigs with the newly available ones
+          const updatedReadyConfigs = updatedConfigs?.filter(config => 
+            config.posts_today < config.max_posts_per_day
+          ) || [];
+          
+          console.log(`[CRON] After reset: ${updatedReadyConfigs.length} configs now ready to post`);
+          readyConfigs.push(...updatedReadyConfigs);
+        }
+      }
+    }
+
     let totalPosts = 0;
     let totalErrors = 0;
 
