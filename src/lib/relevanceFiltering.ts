@@ -292,7 +292,7 @@ Rate the relevance on these criteria (0-100 scale):
 Respond with ONLY a JSON object in this exact format:
 {"keyword_relevance": 0-100, "quality_score": 0-100, "engagement_score": 0-100, "final_score": 0-100}`;
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
