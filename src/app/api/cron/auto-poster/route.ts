@@ -108,6 +108,10 @@ export async function POST(req: Request) {
 
     // If no configs are ready but we have active configs with future next_post_at, 
     // check if any should be reset to post now (this handles the case where configs get stuck in the future)
+    // ----------------------------------------------------------------------------------
+    // If no configs are ready we still want to rotate the subreddit index so we do not
+    // keep querying the same subreddit on every cron run (e.g. r/productivity twice).
+    // ----------------------------------------------------------------------------------
     if (readyConfigs.length === 0) {
       const { data: activeConfigs } = await supabaseAdmin
         .from('auto_poster_configs')
@@ -148,6 +152,21 @@ export async function POST(req: Request) {
           
           console.log(`[CRON] After reset: ${updatedReadyConfigs.length} configs now ready to post`);
           readyConfigs.push(...updatedReadyConfigs);
+
+          // If we STILL have 0 configs ready, rotate subreddit index for all active configs
+          if (readyConfigs.length === 0) {
+            console.log('[CRON] Still no ready configs after reset – rotating subreddit index for active configs');
+            for (const activeConfig of activeConfigs || []) {
+              const nextIndex = ((activeConfig.current_subreddit_index || 0) + 1) % BUSINESS_SUBREDDITS.length;
+              await supabaseAdmin
+                .from('auto_poster_configs')
+                .update({
+                  current_subreddit_index: nextIndex,
+                  last_subreddit_used: BUSINESS_SUBREDDITS[nextIndex]
+                })
+                .eq('id', activeConfig.id);
+            }
+          }
         }
       }
     }
