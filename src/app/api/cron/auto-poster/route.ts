@@ -337,7 +337,19 @@ export async function POST(req: Request) {
         console.log(`[CRON] ${relevantDiscussions.length} discussions passed relevance filtering`);
 
         if (relevantDiscussions.length === 0) {
-          console.log(`[CRON] No relevant discussions after filtering for config ${config.id}`);
+          console.log(`[CRON] No relevant discussions after filtering for config ${config.id} - rotating to next subreddit`);
+          
+          // Rotate to next subreddit since current one has no relevant posts
+          const nextIndex = (currentIndex + 1) % BUSINESS_SUBREDDITS.length;
+          await supabaseAdmin
+            .from('auto_poster_configs')
+            .update({
+              next_post_at: new Date(Date.now() + config.interval_minutes * 60 * 1000).toISOString(),
+              current_subreddit_index: nextIndex,
+              last_subreddit_used: BUSINESS_SUBREDDITS[nextIndex]
+            })
+            .eq('id', config.id);
+          
           continue;
         }
 
