@@ -1,0 +1,1021 @@
+[REDDIT_PROXY] Starting complete auto-poster flow for r/productivity with query: platform api app data analysis reporting
+[REDDIT_SERVICE] Trying RSS: https://old.reddit.com/r/productivity/hot.rss?limit=25
+[REDDIT_SERVICE] RSS Response: 200
+[REDDIT_SERVICE] RSS content length: 51691 chars
+[REDDIT_SERVICE] RSS sample: <?xml version="1.0" encoding="UTF-8"?><feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/"><category term="productivity" label="r/productivity"/><updated>2025-09-21T19:05:02+00:00</updated><icon>https://www.redditstatic.com/icon.png/</icon><id>/r/productivity/hot.rss?limit=25</id><link rel="self" href="https://old.reddit.com/r/productivity/hot.rss?limit=25" type="application/atom+xml" /><link rel="alternate" href="https://old.reddit.com/r/productivity/hot?limit=2...
+[RSS_PARSER] Parsing feed for r/productivity, content length: 51691
+[RSS_PARSER] Feed sample: <?xml version="1.0" encoding="UTF-8"?><feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/"><category term="productivity" label="r/productivity"/><updated>2025-09-21T19:05:02+00:00</updated><icon>https://www.redditstatic.com/icon.png/</icon><id>/r/productivity/hot.rss?limit=25</id><link rel="self" href="https://old.reddit.com/r/productivity/hot.rss?limit=25" type="application/atom+xml" /><link rel="alternate" href="https://old.reddit.com/r/productivity/hot?limit=2...
+[RSS_PARSER] Found 26 entries in feed
+[RSS_PARSER] Entry title match: New rule: AI generated posts and comments are not allowed
+[RSS_PARSER] Checking post: "New rule: AI generated posts and comments are not allowed" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: How i slowly got my life together
+[RSS_PARSER] Checking post: "How i slowly got my life together" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: I accidentally found a way to stop spiraling after work
+[RSS_PARSER] Checking post: "I accidentally found a way to stop spiraling after work" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: What's your productivity trigger?
+[RSS_PARSER] Checking post: "What's your productivity trigger?" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: Personal curriculum: how are we organizing and taking notes?
+[RSS_PARSER] Checking post: "Personal curriculum: how are we organizing and taking notes?" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: Best tip I got and put in action that changed my productivity
+[RSS_PARSER] Checking post: "Best tip I got and put in action that changed my productivity" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: How to get away from your phone?
+[RSS_PARSER] Checking post: "How to get away from your phone?" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: getrecall vs Obsidian vs Apple Notes, which fits best for managing longform work content?
+[RSS_PARSER] Checking post: "getrecall vs Obsidian vs Apple Notes, which fits best for managing longform work content?" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: How to ensure work-life balance?
+[RSS_PARSER] Checking post: "How to ensure work-life balance?" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: I spend 11 hours out of the house cuz of college and need help time managing
+[RSS_PARSER] Checking post: "I spend 11 hours out of the house cuz of college and need help time managing" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: If you could replace a past activity with a more productive one, what would you replace and with wha
+[RSS_PARSER] Checking post: "If you could replace a past activity with a more productive one, what would you replace and with what activity?" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: Is there an app that lets me control my screen time for free?
+[RSS_PARSER] Checking post: "Is there an app that lets me control my screen time for free?" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: Help creating an easy to follow routine
+[RSS_PARSER] Checking post: "Help creating an easy to follow routine" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: i have zero motivation/discipline to do anything
+[RSS_PARSER] Checking post: "i have zero motivation/discipline to do anything" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: How do Game Developers plan their games out?
+[RSS_PARSER] Checking post: "How do Game Developers plan their games out?" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: think i’m having caffeine withdrawal
+[RSS_PARSER] Checking post: "think i’m having caffeine withdrawal" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: Any computer programs that can track my specific activity (clicks, typing, and the like) in Unity (g
+[RSS_PARSER] Checking post: "Any computer programs that can track my specific activity (clicks, typing, and the like) in Unity (game development program)?" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: What is the best way you found to get started when you feel like you can’t, but know that once you s
+[RSS_PARSER] Checking post: "What is the best way you found to get started when you feel like you can’t, but know that once you start, it will roll from there?" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: “Do not worry about your future. Do your present well, and the future will blossom.” - Sadhguru
+[RSS_PARSER] Checking post: "“Do not worry about your future. Do your present well, and the future will blossom.” - Sadhguru" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: omg im doing the fucking things with only google tools workspace
+[RSS_PARSER] Checking post: "omg im doing the fucking things with only google tools workspace" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: Less carbs, less sugar… might skyrocket your productivity.
+[RSS_PARSER] Checking post: "Less carbs, less sugar… might skyrocket your productivity." against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: Am i the only one who adjusts the Pomodoro timing?
+[RSS_PARSER] Checking post: "Am i the only one who adjusts the Pomodoro timing?" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: Realized I am stuck in the productivity trap
+[RSS_PARSER] Checking post: "Realized I am stuck in the productivity trap" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: Productivity down after 3 days of bad diet and late nights
+[RSS_PARSER] Checking post: "Productivity down after 3 days of bad diet and late nights" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: Looking for a Task App with Google Tasks Sync
+[RSS_PARSER] Checking post: "Looking for a Task App with Google Tasks Sync" against query: "platform api app data analysis reporting"
+[REDDIT_SERVICE] RSS parsed 25 discussions
+[REDDIT_PROXY] Fetched 25 discussions from r/productivity
+[REDDIT_PROXY] Found 0 already posted discussions to exclude
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...XyQQ (ID: b16bcf61-f697-41f2-bf12-8c9ae26b0f6a)
+[GEMINI_SCORING] Acquired API key for discussion 1l74rhl (attempt 1)
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1l74rhl
+[GEMINI_SCORING] Error scoring discussion 1l74rhl: Error: Gemini API error: 429 - {
+  "error": {
+    "code": 429,
+    "message": "Quota exceeded for quota metric 'Generate Content API requests per minute' and limit 'GenerateContent request limit per minute for a region' of service 'generativelanguage.googleapis.com' for consumer 'project_number:113083152542'.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "reason": "RATE_LIMIT_EXCEEDED",
+        "domain": "googleapis.com",
+        "metadata": {
+          "quota_metric": "generativelanguage.googleapis.com/generate_content_requests",
+          "quota_limit": "GenerateContentRequestsPerMinutePerProjectPerRegion",
+          "consumer": "projects/113083152542",
+          "service": "generativelanguage.googleapis.com",
+          "quota_limit_value": "0",
+          "quota_unit": "1/min/{project}/{region}",
+          "quota_location": "us-central1"
+        }
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Request a higher quota limit.",
+            "url": "https://cloud.google.com/docs/quotas/help/request_increase"
+          }
+        ]
+      }
+    ]
+  }
+}
+
+    at l (/var/task/.next/server/chunks/596.js:21:424)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async a (/var/task/.next/server/chunks/596.js:1:15333)
+    at async p (/var/task/.next/server/app/api/reddit/proxy/route.js:1:2590)
+    at async /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411
+    at async e_.execute (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880)
+    at async e_.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943)
+    at async en (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:25592)
+    at async ea.responseCache.get.routeKind (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:1028)
+    at async r9.renderToResponseWithComponentsImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:508)
+    at async r9.renderPageComponent (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5102)
+    at async r9.renderToResponseImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5680)
+    at async r9.pipeImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17727)
+    at async r9.handleCatchallRenderRequest (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:38485)
+    at async r9.runImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17452)
+    at async r9.handleRequestImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:16541)
+    at async Object.handler (/var/task/___next_launcher.cjs:58:5)
+    at async Server.r (/opt/rust/nodejs.js:2:15569)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:16:7632) {
+  status: 429
+}
+[GEMINI_SCORING] Falling back to basic scoring for discussion 1l74rhl
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...XyQQ (ID: b16bcf61-f697-41f2-bf12-8c9ae26b0f6a)
+[GEMINI_SCORING] Acquired API key for discussion 1nmp7sx (attempt 1)
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmp7sx
+[GEMINI_SCORING] Error scoring discussion 1nmp7sx: Error: Gemini API error: 429 - {
+  "error": {
+    "code": 429,
+    "message": "Quota exceeded for quota metric 'Generate Content API requests per minute' and limit 'GenerateContent request limit per minute for a region' of service 'generativelanguage.googleapis.com' for consumer 'project_number:113083152542'.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "reason": "RATE_LIMIT_EXCEEDED",
+        "domain": "googleapis.com",
+        "metadata": {
+          "service": "generativelanguage.googleapis.com",
+          "quota_limit": "GenerateContentRequestsPerMinutePerProjectPerRegion",
+          "quota_location": "us-central1",
+          "quota_limit_value": "0",
+          "consumer": "projects/113083152542",
+          "quota_metric": "generativelanguage.googleapis.com/generate_content_requests",
+          "quota_unit": "1/min/{project}/{region}"
+        }
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Request a higher quota limit.",
+            "url": "https://cloud.google.com/docs/quotas/help/request_increase"
+          }
+        ]
+      }
+    ]
+  }
+}
+
+    at l (/var/task/.next/server/chunks/596.js:21:424)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async a (/var/task/.next/server/chunks/596.js:1:15333)
+    at async p (/var/task/.next/server/app/api/reddit/proxy/route.js:1:2590)
+    at async /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411
+    at async e_.execute (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880)
+    at async e_.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943)
+    at async en (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:25592)
+    at async ea.responseCache.get.routeKind (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:1028)
+    at async r9.renderToResponseWithComponentsImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:508)
+    at async r9.renderPageComponent (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5102)
+    at async r9.renderToResponseImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5680)
+    at async r9.pipeImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17727)
+    at async r9.handleCatchallRenderRequest (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:38485)
+    at async r9.runImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17452)
+    at async r9.handleRequestImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:16541)
+    at async Object.handler (/var/task/___next_launcher.cjs:58:5)
+    at async Server.r (/opt/rust/nodejs.js:2:15569)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:16:7632) {
+  status: 429
+}
+[GEMINI_SCORING] Falling back to basic scoring for discussion 1nmp7sx
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...vErI (ID: c1316b23-b9af-4ee1-8c75-b3351f85c50e)
+[GEMINI_SCORING] Acquired API key for discussion 1nm4g95 (attempt 1)
+[GEMINI_SCORING] Discussion 1nm4g95 scored 25 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nm4g95
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...PlqA (ID: ac487f02-db9e-4155-828d-5c9c332a5f5e)
+[GEMINI_SCORING] Acquired API key for discussion 1nmvayn (attempt 1)
+[GEMINI_SCORING] Discussion 1nmvayn scored 15 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmvayn
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...3QsU (ID: 7bbf3925-6f73-4129-9f06-17d2710d88c5)
+[GEMINI_SCORING] Acquired API key for discussion 1nmxkcr (attempt 1)
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmxkcr
+[GEMINI_SCORING] Error scoring discussion 1nmxkcr: Error: Gemini API error: 429 - {
+  "error": {
+    "code": 429,
+    "message": "Quota exceeded for quota metric 'Generate Content API requests per minute' and limit 'GenerateContent request limit per minute for a region' of service 'generativelanguage.googleapis.com' for consumer 'project_number:384555580072'.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "reason": "RATE_LIMIT_EXCEEDED",
+        "domain": "googleapis.com",
+        "metadata": {
+          "consumer": "projects/384555580072",
+          "quota_limit": "GenerateContentRequestsPerMinutePerProjectPerRegion",
+          "quota_unit": "1/min/{project}/{region}",
+          "quota_location": "us-central1",
+          "quota_limit_value": "0",
+          "quota_metric": "generativelanguage.googleapis.com/generate_content_requests",
+          "service": "generativelanguage.googleapis.com"
+        }
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Request a higher quota limit.",
+            "url": "https://cloud.google.com/docs/quotas/help/request_increase"
+          }
+        ]
+      }
+    ]
+  }
+}
+
+    at l (/var/task/.next/server/chunks/596.js:21:424)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async a (/var/task/.next/server/chunks/596.js:1:15333)
+    at async p (/var/task/.next/server/app/api/reddit/proxy/route.js:1:2590)
+    at async /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411
+    at async e_.execute (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880)
+    at async e_.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943)
+    at async en (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:25592)
+    at async ea.responseCache.get.routeKind (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:1028)
+    at async r9.renderToResponseWithComponentsImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:508)
+    at async r9.renderPageComponent (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5102)
+    at async r9.renderToResponseImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5680)
+    at async r9.pipeImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17727)
+    at async r9.handleCatchallRenderRequest (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:38485)
+    at async r9.runImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17452)
+    at async r9.handleRequestImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:16541)
+    at async Object.handler (/var/task/___next_launcher.cjs:58:5)
+    at async Server.r (/opt/rust/nodejs.js:2:15569)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:16:7632) {
+  status: 429
+}
+[GEMINI_SCORING] Falling back to basic scoring for discussion 1nmxkcr
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...aTAY (ID: 921024f5-7e8a-4955-beb6-2d5e0e43fc42)
+[GEMINI_SCORING] Acquired API key for discussion 1nmma8k (attempt 1)
+[GEMINI_SCORING] Discussion 1nmma8k scored 15 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmma8k
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...3Uek (ID: 97a29981-1a85-488e-b38c-8234ee1b359b)
+[GEMINI_SCORING] Acquired API key for discussion 1nmns54 (attempt 1)
+[GEMINI_SCORING] Discussion 1nmns54 scored 5 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmns54
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...k7Uk (ID: 5ae502ea-5a15-48b1-bfee-ab3bff8449f2)
+[GEMINI_SCORING] Acquired API key for discussion 1nmm8ye (attempt 1)
+[GEMINI_SCORING] Discussion 1nmm8ye scored 15 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmm8ye
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...iV7c (ID: 0192b31a-8ab3-453e-8b1f-eb296dce044e)
+[GEMINI_SCORING] Acquired API key for discussion 1nmn0g5 (attempt 1)
+[GEMINI_SCORING] Discussion 1nmn0g5 scored 15 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmn0g5
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...WhQs (ID: f2b2f35a-a8ac-49e3-9d62-bb19f215db42)
+[GEMINI_SCORING] Acquired API key for discussion 1nmw2oo (attempt 1)
+[GEMINI_SCORING] Discussion 1nmw2oo scored 15 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmw2oo
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...vnxA (ID: c5dfaca0-e679-44bb-b27d-2f416347f12a)
+[GEMINI_SCORING] Acquired API key for discussion 1nmrxk4 (attempt 1)
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmrxk4
+[GEMINI_SCORING] Error scoring discussion 1nmrxk4: Error: Gemini API error: 400 - {
+  "error": {
+    "code": 400,
+    "message": "API Key not found. Please pass a valid API key.",
+    "status": "INVALID_ARGUMENT",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "reason": "API_KEY_INVALID",
+        "domain": "googleapis.com",
+        "metadata": {
+          "service": "generativelanguage.googleapis.com"
+        }
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.LocalizedMessage",
+        "locale": "en-US",
+        "message": "API Key not found. Please pass a valid API key."
+      }
+    ]
+  }
+}
+
+    at l (/var/task/.next/server/chunks/596.js:21:424)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async a (/var/task/.next/server/chunks/596.js:1:15333)
+    at async p (/var/task/.next/server/app/api/reddit/proxy/route.js:1:2590)
+    at async /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411
+    at async e_.execute (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880)
+    at async e_.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943)
+    at async en (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:25592)
+    at async ea.responseCache.get.routeKind (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:1028)
+    at async r9.renderToResponseWithComponentsImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:508)
+    at async r9.renderPageComponent (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5102)
+    at async r9.renderToResponseImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5680)
+    at async r9.pipeImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17727)
+    at async r9.handleCatchallRenderRequest (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:38485)
+    at async r9.runImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17452)
+    at async r9.handleRequestImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:16541)
+    at async Object.handler (/var/task/___next_launcher.cjs:58:5)
+    at async Server.r (/opt/rust/nodejs.js:2:15569)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:16:7632) {
+  status: 400
+}
+[GEMINI_SCORING] Falling back to basic scoring for discussion 1nmrxk4
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...MlNg (ID: f21981a2-6fe3-4ee9-aaf1-3fcc08dee68c)
+[GEMINI_SCORING] Acquired API key for discussion 1nmwyll (attempt 1)
+[GEMINI_SCORING] Discussion 1nmwyll scored 10 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmwyll
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...hPEc (ID: dcbc95f7-b911-46c9-94c5-3478131c28dd)
+[GEMINI_SCORING] Acquired API key for discussion 1nmw6cw (attempt 1)
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmw6cw
+[GEMINI_SCORING] Error scoring discussion 1nmw6cw: Error: Gemini API error: 429 - {
+  "error": {
+    "code": 429,
+    "message": "Quota exceeded for quota metric 'Generate Content API requests per minute' and limit 'GenerateContent request limit per minute for a region' of service 'generativelanguage.googleapis.com' for consumer 'project_number:100555797969'.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "reason": "RATE_LIMIT_EXCEEDED",
+        "domain": "googleapis.com",
+        "metadata": {
+          "quota_metric": "generativelanguage.googleapis.com/generate_content_requests",
+          "quota_location": "us-central1",
+          "quota_limit": "GenerateContentRequestsPerMinutePerProjectPerRegion",
+          "quota_unit": "1/min/{project}/{region}",
+          "service": "generativelanguage.googleapis.com",
+          "consumer": "projects/100555797969",
+          "quota_limit_value": "0"
+        }
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Request a higher quota limit.",
+            "url": "https://cloud.google.com/docs/quotas/help/request_increase"
+          }
+        ]
+      }
+    ]
+  }
+}
+
+    at l (/var/task/.next/server/chunks/596.js:21:424)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async a (/var/task/.next/server/chunks/596.js:1:15333)
+    at async p (/var/task/.next/server/app/api/reddit/proxy/route.js:1:2590)
+    at async /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411
+    at async e_.execute (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880)
+    at async e_.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943)
+    at async en (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:25592)
+    at async ea.responseCache.get.routeKind (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:1028)
+    at async r9.renderToResponseWithComponentsImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:508)
+    at async r9.renderPageComponent (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5102)
+    at async r9.renderToResponseImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5680)
+    at async r9.pipeImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17727)
+    at async r9.handleCatchallRenderRequest (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:38485)
+    at async r9.runImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17452)
+    at async r9.handleRequestImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:16541)
+    at async Object.handler (/var/task/___next_launcher.cjs:58:5)
+    at async Server.r (/opt/rust/nodejs.js:2:15569)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:16:7632) {
+  status: 429
+}
+[GEMINI_SCORING] Falling back to basic scoring for discussion 1nmw6cw
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...fjGY (ID: 2330b956-2ba9-40ed-97c4-5fa38967943d)
+[GEMINI_SCORING] Acquired API key for discussion 1nmpyr3 (attempt 1)
+[GEMINI_SCORING] Discussion 1nmpyr3 scored 15 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmpyr3
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...3Uek (ID: 97a29981-1a85-488e-b38c-8234ee1b359b)
+[GEMINI_SCORING] Acquired API key for discussion 1nn0fhr (attempt 1)
+[GEMINI_SCORING] Discussion 1nn0fhr scored 15 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nn0fhr
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...Fe38 (ID: 141817fd-8538-4847-923a-9bef2c8a55d3)
+[GEMINI_SCORING] Acquired API key for discussion 1nmxfos (attempt 1)
+[GEMINI_SCORING] Discussion 1nmxfos scored 5 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmxfos
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...H-jE (ID: a6d9a0cd-72ec-44be-91e9-0618c029ffaf)
+[GEMINI_SCORING] Acquired API key for discussion 1nmur3e (attempt 1)
+[GEMINI_SCORING] Discussion 1nmur3e scored 15 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmur3e
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...T7bw (ID: 8fe0945f-3000-4821-ab0c-7c07a7b033bb)
+[GEMINI_SCORING] Acquired API key for discussion 1nm62sf (attempt 1)
+[GEMINI_SCORING] Discussion 1nm62sf scored 15 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nm62sf
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...GNEE (ID: eef8625a-956c-40af-8e70-71ee4a67129e)
+[GEMINI_SCORING] Acquired API key for discussion 1nm1txj (attempt 1)
+[GEMINI_SCORING] Discussion 1nm1txj scored 15 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nm1txj
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...WhQs (ID: 4d5e8d1e-8db2-4916-80f2-f002dd12ab56)
+[GEMINI_SCORING] Acquired API key for discussion 1nmfqb5 (attempt 1)
+[GEMINI_SCORING] Discussion 1nmfqb5 scored 25 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmfqb5
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...ISKQ (ID: 8d7d547b-e9b1-4a9e-a779-25e222ceb76a)
+[GEMINI_SCORING] Acquired API key for discussion 1nm6cho (attempt 1)
+[GEMINI_SCORING] Discussion 1nm6cho scored 5 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nm6cho
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...8g-c (ID: e7a9de2f-129a-49a5-add0-5fce6073c122)
+[GEMINI_SCORING] Acquired API key for discussion 1nm0lnd (attempt 1)
+[GEMINI_SCORING] Discussion 1nm0lnd scored 5 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nm0lnd
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...pZrI (ID: f1a62222-69b7-4889-a3f3-ba67ca6ff6e5)
+[GEMINI_SCORING] Acquired API key for discussion 1nlrfov (attempt 1)
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nlrfov
+[GEMINI_SCORING] Error scoring discussion 1nlrfov: Error: Gemini API error: 400 - {
+  "error": {
+    "code": 400,
+    "message": "API Key not found. Please pass a valid API key.",
+    "status": "INVALID_ARGUMENT",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "reason": "API_KEY_INVALID",
+        "domain": "googleapis.com",
+        "metadata": {
+          "service": "generativelanguage.googleapis.com"
+        }
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.LocalizedMessage",
+        "locale": "en-US",
+        "message": "API Key not found. Please pass a valid API key."
+      }
+    ]
+  }
+}
+
+    at l (/var/task/.next/server/chunks/596.js:21:424)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async a (/var/task/.next/server/chunks/596.js:1:15333)
+    at async p (/var/task/.next/server/app/api/reddit/proxy/route.js:1:2590)
+    at async /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411
+    at async e_.execute (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880)
+    at async e_.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943)
+    at async en (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:25592)
+    at async ea.responseCache.get.routeKind (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:1028)
+    at async r9.renderToResponseWithComponentsImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:508)
+    at async r9.renderPageComponent (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5102)
+    at async r9.renderToResponseImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5680)
+    at async r9.pipeImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17727)
+    at async r9.handleCatchallRenderRequest (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:38485)
+    at async r9.runImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17452)
+    at async r9.handleRequestImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:16541)
+    at async Object.handler (/var/task/___next_launcher.cjs:58:5)
+    at async Server.r (/opt/rust/nodejs.js:2:15569)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:16:7632) {
+  status: 400
+}
+[GEMINI_SCORING] Falling back to basic scoring for discussion 1nlrfov
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...W0tk (ID: cb7aa9ba-bd38-4fd8-9c47-700788c51306)
+[GEMINI_SCORING] Acquired API key for discussion 1nmd6qz (attempt 1)
+[GEMINI_SCORING] Discussion 1nmd6qz scored 15 by Gemini AI
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[REDDIT_PROXY] Starting complete auto-poster flow for r/productivity with query: platform api app data analysis reporting
+[REDDIT_SERVICE] Trying RSS: https://old.reddit.com/r/productivity/hot.rss?limit=25
+[REDDIT_SERVICE] RSS Response: 200
+[REDDIT_SERVICE] RSS content length: 51691 chars
+[REDDIT_SERVICE] RSS sample: <?xml version="1.0" encoding="UTF-8"?><feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/"><category term="productivity" label="r/productivity"/><updated>2025-09-21T19:10:02+00:00</updated><icon>https://www.redditstatic.com/icon.png/</icon><id>/r/productivity/hot.rss?limit=25</id><link rel="self" href="https://old.reddit.com/r/productivity/hot.rss?limit=25" type="application/atom+xml" /><link rel="alternate" href="https://old.reddit.com/r/productivity/hot?limit=2...
+[RSS_PARSER] Parsing feed for r/productivity, content length: 51691
+[RSS_PARSER] Feed sample: <?xml version="1.0" encoding="UTF-8"?><feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/"><category term="productivity" label="r/productivity"/><updated>2025-09-21T19:10:02+00:00</updated><icon>https://www.redditstatic.com/icon.png/</icon><id>/r/productivity/hot.rss?limit=25</id><link rel="self" href="https://old.reddit.com/r/productivity/hot.rss?limit=25" type="application/atom+xml" /><link rel="alternate" href="https://old.reddit.com/r/productivity/hot?limit=2...
+[RSS_PARSER] Found 26 entries in feed
+[RSS_PARSER] Entry title match: New rule: AI generated posts and comments are not allowed
+[RSS_PARSER] Checking post: "New rule: AI generated posts and comments are not allowed" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: How i slowly got my life together
+[RSS_PARSER] Checking post: "How i slowly got my life together" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: I accidentally found a way to stop spiraling after work
+[RSS_PARSER] Checking post: "I accidentally found a way to stop spiraling after work" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: What's your productivity trigger?
+[RSS_PARSER] Checking post: "What's your productivity trigger?" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: Best tip I got and put in action that changed my productivity
+[RSS_PARSER] Checking post: "Best tip I got and put in action that changed my productivity" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: Personal curriculum: how are we organizing and taking notes?
+[RSS_PARSER] Checking post: "Personal curriculum: how are we organizing and taking notes?" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: How to get away from your phone?
+[RSS_PARSER] Checking post: "How to get away from your phone?" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: getrecall vs Obsidian vs Apple Notes, which fits best for managing longform work content?
+[RSS_PARSER] Checking post: "getrecall vs Obsidian vs Apple Notes, which fits best for managing longform work content?" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: How to ensure work-life balance?
+[RSS_PARSER] Checking post: "How to ensure work-life balance?" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: I spend 11 hours out of the house cuz of college and need help time managing
+[RSS_PARSER] Checking post: "I spend 11 hours out of the house cuz of college and need help time managing" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: If you could replace a past activity with a more productive one, what would you replace and with wha
+[RSS_PARSER] Checking post: "If you could replace a past activity with a more productive one, what would you replace and with what activity?" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: i have zero motivation/discipline to do anything
+[RSS_PARSER] Checking post: "i have zero motivation/discipline to do anything" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: Is there an app that lets me control my screen time for free?
+[RSS_PARSER] Checking post: "Is there an app that lets me control my screen time for free?" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: Help creating an easy to follow routine
+[RSS_PARSER] Checking post: "Help creating an easy to follow routine" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: How do Game Developers plan their games out?
+[RSS_PARSER] Checking post: "How do Game Developers plan their games out?" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: think i’m having caffeine withdrawal
+[RSS_PARSER] Checking post: "think i’m having caffeine withdrawal" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: Any computer programs that can track my specific activity (clicks, typing, and the like) in Unity (g
+[RSS_PARSER] Checking post: "Any computer programs that can track my specific activity (clicks, typing, and the like) in Unity (game development program)?" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: What is the best way you found to get started when you feel like you can’t, but know that once you s
+[RSS_PARSER] Checking post: "What is the best way you found to get started when you feel like you can’t, but know that once you start, it will roll from there?" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: “Do not worry about your future. Do your present well, and the future will blossom.” - Sadhguru
+[RSS_PARSER] Checking post: "“Do not worry about your future. Do your present well, and the future will blossom.” - Sadhguru" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: omg im doing the fucking things with only google tools workspace
+[RSS_PARSER] Checking post: "omg im doing the fucking things with only google tools workspace" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: Less carbs, less sugar… might skyrocket your productivity.
+[RSS_PARSER] Checking post: "Less carbs, less sugar… might skyrocket your productivity." against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: Am i the only one who adjusts the Pomodoro timing?
+[RSS_PARSER] Checking post: "Am i the only one who adjusts the Pomodoro timing?" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: Realized I am stuck in the productivity trap
+[RSS_PARSER] Checking post: "Realized I am stuck in the productivity trap" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: Productivity down after 3 days of bad diet and late nights
+[RSS_PARSER] Checking post: "Productivity down after 3 days of bad diet and late nights" against query: "platform api app data analysis reporting"
+[RSS_PARSER] Entry title match: Looking for a Task App with Google Tasks Sync
+[RSS_PARSER] Checking post: "Looking for a Task App with Google Tasks Sync" against query: "platform api app data analysis reporting"
+[REDDIT_SERVICE] RSS parsed 25 discussions
+[REDDIT_PROXY] Fetched 25 discussions from r/productivity
+[REDDIT_PROXY] Found 0 already posted discussions to exclude
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...GNEE (ID: eef8625a-956c-40af-8e70-71ee4a67129e)
+[GEMINI_SCORING] Acquired API key for discussion 1l74rhl (attempt 1)
+[GEMINI_SCORING] Discussion 1l74rhl scored 15 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1l74rhl
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...mjjo (ID: 690c85c8-daa4-42a0-9a68-69c362734d7a)
+[GEMINI_SCORING] Acquired API key for discussion 1nmp7sx (attempt 1)
+[GEMINI_SCORING] Discussion 1nmp7sx scored 15 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmp7sx
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...GcHw (ID: 00a031f7-a053-49cd-9ec7-daed792c157f)
+[GEMINI_SCORING] Acquired API key for discussion 1nm4g95 (attempt 1)
+[GEMINI_SCORING] Discussion 1nm4g95 scored 15 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nm4g95
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...17hk (ID: 3696d520-7462-4ada-92b3-31794ef8b3fb)
+[GEMINI_SCORING] Acquired API key for discussion 1nmvayn (attempt 1)
+[GEMINI_SCORING] Discussion 1nmvayn scored 15 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmvayn
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...T7bw (ID: 8fe0945f-3000-4821-ab0c-7c07a7b033bb)
+[GEMINI_SCORING] Acquired API key for discussion 1nmma8k (attempt 1)
+[GEMINI_SCORING] Discussion 1nmma8k scored 15 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmma8k
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...EfMs (ID: 835e2280-92fa-4097-8718-5ae1c601e458)
+[GEMINI_SCORING] Acquired API key for discussion 1nmxkcr (attempt 1)
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmxkcr
+[GEMINI_SCORING] Error scoring discussion 1nmxkcr: Error: Gemini API error: 429 - {
+  "error": {
+    "code": 429,
+    "message": "Quota exceeded for quota metric 'Generate Content API requests per minute' and limit 'GenerateContent request limit per minute for a region' of service 'generativelanguage.googleapis.com' for consumer 'project_number:893085827250'.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "reason": "RATE_LIMIT_EXCEEDED",
+        "domain": "googleapis.com",
+        "metadata": {
+          "quota_limit_value": "0",
+          "service": "generativelanguage.googleapis.com",
+          "consumer": "projects/893085827250",
+          "quota_unit": "1/min/{project}/{region}",
+          "quota_metric": "generativelanguage.googleapis.com/generate_content_requests",
+          "quota_location": "us-central1",
+          "quota_limit": "GenerateContentRequestsPerMinutePerProjectPerRegion"
+        }
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Request a higher quota limit.",
+            "url": "https://cloud.google.com/docs/quotas/help/request_increase"
+          }
+        ]
+      }
+    ]
+  }
+}
+
+    at l (/var/task/.next/server/chunks/596.js:21:424)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async a (/var/task/.next/server/chunks/596.js:1:15333)
+    at async p (/var/task/.next/server/app/api/reddit/proxy/route.js:1:2590)
+    at async /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411
+    at async e_.execute (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880)
+    at async e_.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943)
+    at async en (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:25592)
+    at async ea.responseCache.get.routeKind (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:1028)
+    at async r9.renderToResponseWithComponentsImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:508)
+    at async r9.renderPageComponent (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5102)
+    at async r9.renderToResponseImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5680)
+    at async r9.pipeImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17727)
+    at async r9.handleCatchallRenderRequest (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:38485)
+    at async r9.runImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17452)
+    at async r9.handleRequestImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:16541)
+    at async Object.handler (/var/task/___next_launcher.cjs:58:5)
+    at async Server.r (/opt/rust/nodejs.js:2:15569)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:16:7632) {
+  status: 429
+}
+[GEMINI_SCORING] Falling back to basic scoring for discussion 1nmxkcr
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...TdGY (ID: 486a282a-734c-4e6d-bc6c-23ce59bcddd5)
+[GEMINI_SCORING] Acquired API key for discussion 1nmns54 (attempt 1)
+[GEMINI_SCORING] Discussion 1nmns54 scored 5 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmns54
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...FtKQ (ID: 720be906-1fc5-4a7e-a1a9-88bcda9b0b70)
+[GEMINI_SCORING] Acquired API key for discussion 1nmm8ye (attempt 1)
+[GEMINI_SCORING] Discussion 1nmm8ye scored 15 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmm8ye
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...3N2g (ID: bc67156d-d236-4c55-959a-c24e659fa1e0)
+[GEMINI_SCORING] Acquired API key for discussion 1nmn0g5 (attempt 1)
+[GEMINI_SCORING] Discussion 1nmn0g5 scored 15 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmn0g5
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...iArs (ID: 9ab6d8d1-4534-4784-92d8-8a681eb24846)
+[GEMINI_SCORING] Acquired API key for discussion 1nmw2oo (attempt 1)
+[GEMINI_SCORING] Discussion 1nmw2oo scored 15 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmw2oo
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...qMho (ID: 43ecb53d-fdbb-4f05-babd-d3564c1b396a)
+[GEMINI_SCORING] Acquired API key for discussion 1nmrxk4 (attempt 1)
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmrxk4
+[GEMINI_SCORING] Error scoring discussion 1nmrxk4: Error: Gemini API error: 400 - {
+  "error": {
+    "code": 400,
+    "message": "API Key not found. Please pass a valid API key.",
+    "status": "INVALID_ARGUMENT",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "reason": "API_KEY_INVALID",
+        "domain": "googleapis.com",
+        "metadata": {
+          "service": "generativelanguage.googleapis.com"
+        }
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.LocalizedMessage",
+        "locale": "en-US",
+        "message": "API Key not found. Please pass a valid API key."
+      }
+    ]
+  }
+}
+
+    at l (/var/task/.next/server/chunks/596.js:21:424)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async a (/var/task/.next/server/chunks/596.js:1:15333)
+    at async p (/var/task/.next/server/app/api/reddit/proxy/route.js:1:2590)
+    at async /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411
+    at async e_.execute (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880)
+    at async e_.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943)
+    at async en (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:25592)
+    at async ea.responseCache.get.routeKind (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:1028)
+    at async r9.renderToResponseWithComponentsImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:508)
+    at async r9.renderPageComponent (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5102)
+    at async r9.renderToResponseImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5680)
+    at async r9.pipeImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17727)
+    at async r9.handleCatchallRenderRequest (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:38485)
+    at async r9.runImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17452)
+    at async r9.handleRequestImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:16541)
+    at async Object.handler (/var/task/___next_launcher.cjs:58:5)
+    at async Server.r (/opt/rust/nodejs.js:2:15569)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:16:7632) {
+  status: 400
+}
+[GEMINI_SCORING] Falling back to basic scoring for discussion 1nmrxk4
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...zDf0 (ID: d4c52779-7459-4e26-bd81-7c0c92d4eabd)
+[GEMINI_SCORING] Acquired API key for discussion 1nmpyr3 (attempt 1)
+[GEMINI_SCORING] Discussion 1nmpyr3 scored 15 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmpyr3
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...m8mc (ID: 3b5ea8f1-5334-452a-959f-0cd1ea057388)
+[GEMINI_SCORING] Acquired API key for discussion 1nmwyll (attempt 1)
+[GEMINI_SCORING] Discussion 1nmwyll scored 5 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmwyll
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...vnxA (ID: c5dfaca0-e679-44bb-b27d-2f416347f12a)
+[GEMINI_SCORING] Acquired API key for discussion 1nmw6cw (attempt 1)
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmw6cw
+[GEMINI_SCORING] Error scoring discussion 1nmw6cw: Error: Gemini API error: 400 - {
+  "error": {
+    "code": 400,
+    "message": "API Key not found. Please pass a valid API key.",
+    "status": "INVALID_ARGUMENT",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "reason": "API_KEY_INVALID",
+        "domain": "googleapis.com",
+        "metadata": {
+          "service": "generativelanguage.googleapis.com"
+        }
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.LocalizedMessage",
+        "locale": "en-US",
+        "message": "API Key not found. Please pass a valid API key."
+      }
+    ]
+  }
+}
+
+    at l (/var/task/.next/server/chunks/596.js:21:424)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async a (/var/task/.next/server/chunks/596.js:1:15333)
+    at async p (/var/task/.next/server/app/api/reddit/proxy/route.js:1:2590)
+    at async /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411
+    at async e_.execute (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880)
+    at async e_.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943)
+    at async en (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:25592)
+    at async ea.responseCache.get.routeKind (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:1028)
+    at async r9.renderToResponseWithComponentsImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:508)
+    at async r9.renderPageComponent (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5102)
+    at async r9.renderToResponseImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5680)
+    at async r9.pipeImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17727)
+    at async r9.handleCatchallRenderRequest (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:38485)
+    at async r9.runImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17452)
+    at async r9.handleRequestImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:16541)
+    at async Object.handler (/var/task/___next_launcher.cjs:58:5)
+    at async Server.r (/opt/rust/nodejs.js:2:15569)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:16:7632) {
+  status: 400
+}
+[GEMINI_SCORING] Falling back to basic scoring for discussion 1nmw6cw
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...UcTo (ID: 50558d48-3a02-4c56-9e7e-96f60af41ebb)
+[GEMINI_SCORING] Acquired API key for discussion 1nn0fhr (attempt 1)
+[GEMINI_SCORING] Discussion 1nn0fhr scored 15 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nn0fhr
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...fjGY (ID: 2330b956-2ba9-40ed-97c4-5fa38967943d)
+[GEMINI_SCORING] Acquired API key for discussion 1nmxfos (attempt 1)
+[GEMINI_SCORING] Discussion 1nmxfos scored 0 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmxfos
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...VtiQ (ID: d5fab6f0-098c-4c53-a438-68e19fbe85c3)
+[GEMINI_SCORING] Acquired API key for discussion 1nmur3e (attempt 1)
+[GEMINI_SCORING] Discussion 1nmur3e scored 15 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmur3e
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...Bymc (ID: 78a9ed30-2536-4035-b738-3ed38bb6c58b)
+[GEMINI_SCORING] Acquired API key for discussion 1nm62sf (attempt 1)
+[GEMINI_SCORING] Discussion 1nm62sf scored 15 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nm62sf
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...ydzU (ID: 0d5e3891-f6c5-425e-b7fc-3efa01953267)
+[GEMINI_SCORING] Acquired API key for discussion 1nm1txj (attempt 1)
+[GEMINI_SCORING] Discussion 1nm1txj scored 15 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nm1txj
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...H-jE (ID: b9ca8e3f-346d-49a5-a446-72f170eabdd5)
+[GEMINI_SCORING] Acquired API key for discussion 1nmfqb5 (attempt 1)
+[GEMINI_SCORING] Discussion 1nmfqb5 scored 15 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmfqb5
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...pZrI (ID: f1a62222-69b7-4889-a3f3-ba67ca6ff6e5)
+[GEMINI_SCORING] Acquired API key for discussion 1nm6cho (attempt 1)
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nm6cho
+[GEMINI_SCORING] Error scoring discussion 1nm6cho: Error: Gemini API error: 400 - {
+  "error": {
+    "code": 400,
+    "message": "API Key not found. Please pass a valid API key.",
+    "status": "INVALID_ARGUMENT",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "reason": "API_KEY_INVALID",
+        "domain": "googleapis.com",
+        "metadata": {
+          "service": "generativelanguage.googleapis.com"
+        }
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.LocalizedMessage",
+        "locale": "en-US",
+        "message": "API Key not found. Please pass a valid API key."
+      }
+    ]
+  }
+}
+
+    at l (/var/task/.next/server/chunks/596.js:21:424)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async a (/var/task/.next/server/chunks/596.js:1:15333)
+    at async p (/var/task/.next/server/app/api/reddit/proxy/route.js:1:2590)
+    at async /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411
+    at async e_.execute (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880)
+    at async e_.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943)
+    at async en (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:25592)
+    at async ea.responseCache.get.routeKind (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:1028)
+    at async r9.renderToResponseWithComponentsImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:508)
+    at async r9.renderPageComponent (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5102)
+    at async r9.renderToResponseImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:5680)
+    at async r9.pipeImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17727)
+    at async r9.handleCatchallRenderRequest (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:38485)
+    at async r9.runImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:17452)
+    at async r9.handleRequestImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:16541)
+    at async Object.handler (/var/task/___next_launcher.cjs:58:5)
+    at async Server.r (/opt/rust/nodejs.js:2:15569)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:16:7632) {
+  status: 400
+}
+[GEMINI_SCORING] Falling back to basic scoring for discussion 1nm6cho
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...17hk (ID: 3696d520-7462-4ada-92b3-31794ef8b3fb)
+[GEMINI_SCORING] Acquired API key for discussion 1nm0lnd (attempt 1)
+[GEMINI_SCORING] Discussion 1nm0lnd scored 5 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nm0lnd
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...2Esc (ID: 338bdef3-4a38-489b-a400-744917e7b33b)
+[GEMINI_SCORING] Acquired API key for discussion 1nlrfov (attempt 1)
+[GEMINI_SCORING] Discussion 1nlrfov scored 20 by Gemini AI
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nlrfov
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...vnxA (ID: c5dfaca0-e679-44bb-b27d-2f416347f12a)
+[GEMINI_SCORING] Acquired API key for discussion 1nmd6qz (attempt 1)
+[system] Waiting 5 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1nmd6qz
+
+
+
+
+
+
+
+
+
+
+
+this is the row of the website config from DB
+
+{"idx":1,"id":"25aea7d9-0902-44ce-85e4-cb9186bd77a4","user_id":"user_319dUTS3meUqDTa7ZO30cQe4og0","product_id":"78846108-6455-4bbc-8b5e-a08ba6a4b33e","account_id":"a20a03d7-f487-4032-9d39-b865e0f7e934","enabled":true,"interval_minutes":30,"max_posts_per_day":10,"only_high_score_replies":true,"min_relevance_score":80,"min_validation_score":75,"status":"active","last_posted_at":null,"next_post_at":"2025-09-21 19:05:00.694+00","posts_today":0,"last_reset_date":"2025-09-21","created_at":"2025-09-03 03:29:45.865485+00","updated_at":"2025-09-21 19:05:00.911906+00","website_config_id":null,"posting_interval_minutes":30,"require_tab_open":true,"upstash_schedule_id":"scd_6XJRkCUuD7WKhPqPNrEAKE2vHoRF","current_subreddit_index":6,"last_subreddit_used":"SaaS"}

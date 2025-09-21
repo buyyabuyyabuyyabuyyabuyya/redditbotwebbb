@@ -87,6 +87,29 @@ export async function POST(req: Request) {
     console.log(`[REDDIT_PROXY] ${relevantDiscussions.length} discussions passed relevance filtering`);
 
     if (relevantDiscussions.length === 0) {
+      // Rotate to next subreddit since current one has no relevant posts
+      if (configId) {
+        const { data: currentConfig } = await supabaseAdmin
+          .from('auto_poster_configs')
+          .select('current_subreddit_index')
+          .eq('id', configId)
+          .single();
+        
+        const BUSINESS_SUBREDDITS = ['entrepreneur', 'startups', 'SaaS', 'business', 'smallbusiness', 'productivity', 'marketing'];
+        const currentIndex = currentConfig?.current_subreddit_index || 0;
+        const nextIndex = (currentIndex + 1) % BUSINESS_SUBREDDITS.length;
+        
+        await supabaseAdmin
+          .from('auto_poster_configs')
+          .update({
+            current_subreddit_index: nextIndex,
+            last_subreddit_used: BUSINESS_SUBREDDITS[nextIndex]
+          })
+          .eq('id', configId);
+        
+        console.log(`[REDDIT_PROXY] No relevant discussions - rotated to next subreddit: ${BUSINESS_SUBREDDITS[nextIndex]}`);
+      }
+      
       return NextResponse.json({
         success: true,
         message: 'No relevant discussions after filtering',
@@ -164,13 +187,26 @@ export async function POST(req: Request) {
               relevance_score: scores.finalScore
             });
 
-          // Update config post count
+          // Update config post count and rotate subreddit
           if (configId) {
+            // Get current config to determine next subreddit index
+            const { data: currentConfig } = await supabaseAdmin
+              .from('auto_poster_configs')
+              .select('current_subreddit_index')
+              .eq('id', configId)
+              .single();
+            
+            const BUSINESS_SUBREDDITS = ['entrepreneur', 'startups', 'SaaS', 'business', 'smallbusiness', 'productivity', 'marketing'];
+            const currentIndex = currentConfig?.current_subreddit_index || 0;
+            const nextIndex = (currentIndex + 1) % BUSINESS_SUBREDDITS.length;
+            
             await supabaseAdmin
               .from('auto_poster_configs')
               .update({
                 posts_today: 1, // Will be incremented by trigger
-                last_posted_at: new Date().toISOString()
+                last_posted_at: new Date().toISOString(),
+                current_subreddit_index: nextIndex,
+                last_subreddit_used: BUSINESS_SUBREDDITS[nextIndex]
               })
               .eq('id', configId);
           }
