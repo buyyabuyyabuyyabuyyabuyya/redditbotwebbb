@@ -25,8 +25,9 @@ const createSupabaseServerClient = () => {
 };
 
 import Dashboard from '@/components/Dashboard';
-import BenoWorkflow from '@/components/beno-one/BenoWorkflow';
-import DiscussionCampaigns from '@/components/DiscussionCampaigns';
+// COMMENTED OUT: BenoWorkflow and DiscussionCampaigns - Temporarily hidden from dashboard UI
+// import BenoWorkflow from '@/components/beno-one/BenoWorkflow';
+// import DiscussionCampaigns from '@/components/DiscussionCampaigns';
 
 export default async function DashboardPage() {
   const { userId } = await auth();
@@ -63,21 +64,26 @@ export default async function DashboardPage() {
         <Dashboard />
       </div>
       
-      {/* Beno AI Workflow Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* COMMENTED OUT: AI-Powered Reddit Outreach Section (BenoWorkflow)
+          This includes the AI workflow and Discussion Campaigns
+          To re-enable: Uncomment the imports above and the sections below */}
+      {/* <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-white mb-2">AI-Powered Reddit Outreach</h2>
           <p className="text-gray-400">Automate your Reddit engagement with Beno's AI-generated replies</p>
         </div>
         <BenoWorkflow />
-      </div>
+      </div> */}
 
-      {/* Discussion Campaigns Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* COMMENTED OUT: Discussion Campaigns Section
+          To re-enable: Uncomment the imports above and this section */}
+      {/* <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <DiscussionCampaigns />
-      </div>
+      </div> */}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+      {/* COMMENTED OUT: Recent Messages Section
+          To re-enable: Uncomment this section */}
+      {/* <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
         <h3 className="text-xl font-semibold text-white mb-4">Recent Messages</h3>
         {sentMessages?.length === 0 ? (
           <p className="text-sm text-gray-500">No messages sent yet.</p>
@@ -102,7 +108,7 @@ export default async function DashboardPage() {
             ))}
           </ul>
         )}
-      </div>
+      </div> */}
     </div>
   );
 }

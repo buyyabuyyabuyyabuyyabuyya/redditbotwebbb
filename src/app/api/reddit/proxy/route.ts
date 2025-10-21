@@ -80,8 +80,7 @@ export async function POST(req: Request) {
     const relevantDiscussions = await filterRelevantDiscussions(
       discussions.items,
       safeWebsiteConfig,
-      postedIds,
-      true // Use Gemini AI scoring
+      postedIds
     );
     
     console.log(`[REDDIT_PROXY] ${relevantDiscussions.length} discussions passed relevance filtering`);
@@ -162,7 +161,7 @@ export async function POST(req: Request) {
             permalink: discussion.url
           },
           {
-            tone: 'helpful',
+            tone: 'pseudo-advice marketing',
             maxLength: 500,
             keywords: safeWebsiteConfig.target_keywords || [],
             accountId: redditAccount.id,

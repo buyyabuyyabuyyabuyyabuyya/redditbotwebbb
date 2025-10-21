@@ -494,9 +494,9 @@ function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFoun
           permalink: discussion.url || ''
         };
 
-        // Generate reply with fixed helpful tone
+        // Generate reply with pseudo-advice marketing tone
         const result = await redditReplyService.generateReply(post, {
-          tone: 'helpful',
+          tone: 'pseudo-advice marketing',
           maxLength: 300,
           keywords: selectedSegments // Use selected segments as keywords
         });
@@ -795,7 +795,7 @@ function AutoReplyStep({ discussions, onBack, onContinue }: {
 }) {
   const [loading, setLoading] = useState(false);
   const [selectedAccountId, setSelectedAccountId] = useState<string>('');
-  const [tone, setTone] = useState<'helpful' | 'casual' | 'professional' | 'enthusiastic' | 'informative'>('helpful');
+  const [tone, setTone] = useState<'pseudo-advice marketing' | 'casual' | 'professional' | 'enthusiastic' | 'informative'>('pseudo-advice marketing');
   const [maxLength, setMaxLength] = useState(500);
   const [keywords, setKeywords] = useState<string>('');
   const [results, setResults] = useState<any[]>([]);

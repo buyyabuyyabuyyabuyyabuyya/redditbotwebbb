@@ -65,8 +65,7 @@ export async function POST(req: Request) {
           const relevantDiscussions = await filterRelevantDiscussions(
             discussions.items,
             websiteConfig,
-            postedIds,
-            true // Use Gemini AI scoring
+            postedIds
           );
 
           // Add subreddit info and limit results

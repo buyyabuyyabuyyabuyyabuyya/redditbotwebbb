@@ -23,7 +23,9 @@ export default function Navigation() {
 
   const navItems = [
     { name: 'Dashboard', href: '/dashboard' },
-    { name: 'Discussion Poster', href: '/discussion-poster' },
+    // COMMENTED OUT: Discussion Poster - Temporarily hidden from navigation
+    // Route still exists at /discussion-poster but not shown in nav menu
+    // { name: 'Discussion Poster', href: '/discussion-poster' },
     { name: 'Private Messages', href: '/messages' },
     { name: 'Pricing', href: '/pricing' },
     { name: 'File Logs', href: '/file-logs' },

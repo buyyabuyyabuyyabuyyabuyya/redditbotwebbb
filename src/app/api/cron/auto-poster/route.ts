@@ -330,8 +330,7 @@ export async function POST(req: Request) {
         const relevantDiscussions = await filterRelevantDiscussions(
           discussions,
           websiteConfig,
-          postedIds,
-          true // Use Gemini AI scoring
+          postedIds
         );
         
         console.log(`[CRON] ${relevantDiscussions.length} discussions passed relevance filtering`);
@@ -371,7 +370,7 @@ export async function POST(req: Request) {
                 permalink: discussion.url.replace('https://reddit.com', '')
               },
               {
-                tone: 'helpful',
+                tone: 'pseudo-advice marketing',
                 maxLength: 400,
                 keywords: websiteConfig.target_keywords || [],
                 accountId: redditAccount.id,

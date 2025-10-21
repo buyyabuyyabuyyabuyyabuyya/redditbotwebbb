@@ -26,198 +26,14 @@ export interface WebsiteConfig {
   updated_at?: string;
 }
 
-// Intent-based filtering patterns
-const INTENT_PATTERNS = {
-  problemStatements: [
-    "i can't", "struggling with", "issue with", "problem with", "having trouble",
-    "can't figure out", "difficulty with", "stuck with", "need help"
-  ],
-  seekingRecommendations: [
-    "best", "recommend", "suggestions", "alternatives", "looking for",
-    "what should i", "which one", "any ideas", "advice on"
-  ],
-  questions: [
-    "how", "what", "where", "why", "when", "which", "who",
-    "anyone know", "does anyone", "has anyone"
-  ],
-  experienceSharing: [
-    "anyone tried", "has anyone used", "experience with", "thoughts on",
-    "reviews of", "opinions on"
-  ]
-};
+// Legacy pattern matching removed - now using comprehensive Gemini AI scoring
 
-// Business context indicators
-const BUSINESS_CONTEXT_INDICATORS = [
-  "business", "company", "startup", "entrepreneur", "marketing", "sales",
-  "customers", "clients", "revenue", "growth", "productivity", "efficiency",
-  "tools", "software", "platform", "service", "solution"
-];
-
-// Quality indicators
-const QUALITY_INDICATORS = {
-  positive: [
-    "detailed", "specific", "examples", "experience", "tried", "used",
-    "working on", "building", "developing"
-  ],
-  negative: [
-    "spam", "promotion", "advertisement", "selling", "buy now", "click here",
-    "limited time", "special offer"
-  ]
-};
-
-function calculateKeywordScore(discussion: RedditDiscussion, websiteConfig: WebsiteConfig): number {
-  const content = `${discussion.title} ${discussion.content || ''}`.toLowerCase();
-  const intentScore = calculateIntentScore(content);
-  const contextScore = calculateContextMatchScore(content, websiteConfig);
-  
-  // Combine intent and context scores with equal weight
-  return Math.round((intentScore + contextScore) / 2);
-}
-
-export function calculateRelevanceScore(
-  discussion: RedditDiscussion,
-  websiteConfig: WebsiteConfig
-): RelevanceScores {
-  const keywordScore = calculateKeywordScore(discussion, websiteConfig);
-  const qualityScore = calculateQualityScore(discussion, `${discussion.title} ${discussion.content || ''}`);
-  const engagementScore = calculateEngagementScore(discussion);
-  
-  // Weight the scores
-  const finalScore = Math.round(
-    keywordScore * 0.5 + 
-    qualityScore * 0.3 + 
-    engagementScore * 0.2
-  );
-  
-  return {
-    intentScore: keywordScore,
-    contextMatchScore: keywordScore,
-    qualityScore,
-    engagementScore,
-    finalScore
-  };
-}
-
-function calculateIntentScore(content: string): number {
-  let score = 0;
-  
-  // Check for problem statements (40 points)
-  const problemCount = INTENT_PATTERNS.problemStatements.filter(pattern => 
-    content.includes(pattern)
-  ).length;
-  score += Math.min(problemCount * 20, 40);
-  
-  // Check for seeking recommendations (30 points)
-  const recommendationCount = INTENT_PATTERNS.seekingRecommendations.filter(pattern => 
-    content.includes(pattern)
-  ).length;
-  score += Math.min(recommendationCount * 15, 30);
-  
-  // Check for questions (20 points)
-  const questionCount = INTENT_PATTERNS.questions.filter(pattern => 
-    content.includes(pattern)
-  ).length;
-  score += Math.min(questionCount * 10, 20);
-  
-  // Check for experience sharing (10 points)
-  const experienceCount = INTENT_PATTERNS.experienceSharing.filter(pattern => 
-    content.includes(pattern)
-  ).length;
-  score += Math.min(experienceCount * 5, 10);
-  
-  return Math.min(score, 100);
-}
-
-function calculateContextMatchScore(content: string, config: WebsiteConfig): number {
-  let score = 0;
-  
-  // Check for negative keywords (should reduce score)
-  const negativeKeywordMatches = config.negative_keywords?.some((keyword: string) => 
-    content.includes(keyword.toLowerCase())
-  ) || false;
-  if (negativeKeywordMatches) score -= 40;
-  
-  // Check for target keywords
-  const keywordMatches = config.keywords?.some((keyword: string) => 
-    content.includes(keyword.toLowerCase())
-  ) || false;
-  score += Math.min(keywordMatches ? 40 : 0, 40);
-  
-  // Check for business context terms
-  const contextMatches = config.business_context_terms?.some((term: string) => 
-    content.includes(term.toLowerCase())
-  ) || false;
-  score += Math.min(contextMatches ? 30 : 0, 30);
-  
-  // Check general business indicators (20 points)
-  const businessIndicatorMatches = BUSINESS_CONTEXT_INDICATORS.filter(indicator => 
-    content.includes(indicator)
-  ).length;
-  score += Math.min(businessIndicatorMatches * 5, 20);
-  
-  // Check customer segments
-  const segmentMatches = config.customer_segments?.some((segment: string) => 
-    content.includes(segment.toLowerCase())
-  ) || false;
-  score += Math.min(segmentMatches ? 10 : 0, 10);
-  
-  return Math.min(score, 100);
-}
-
-function calculateQualityScore(discussion: RedditDiscussion, content: string): number {
-  let score = 50; // Base score
-  
-  // Self posts are higher quality for discussions
-  if (discussion.is_self) score += 20;
-  
-  // Check for positive quality indicators
-  const positiveMatches = QUALITY_INDICATORS.positive.filter(indicator => 
-    content.includes(indicator)
-  ).length;
-  score += Math.min(positiveMatches * 5, 20);
-  
-  // Check for negative quality indicators
-  const negativeMatches = QUALITY_INDICATORS.negative.filter(indicator => 
-    content.includes(indicator)
-  ).length;
-  score -= negativeMatches * 10;
-  
-  // Content length scoring
-  if (discussion.content && discussion.content.length > 200) score += 10;
-  if (discussion.content && discussion.content.length > 500) score += 5;
-  
-  // Penalize very short posts
-  if (discussion.content && discussion.content.length < 50) score -= 15;
-  
-  return Math.max(0, Math.min(score, 100));
-}
-
-function calculateEngagementScore(discussion: RedditDiscussion): number {
-  const score = discussion.score || 0;
-  const comments = discussion.num_comments || 0;
-  
-  // Calculate engagement ratio
-  const engagementRatio = comments > 0 ? comments / Math.max(score, 1) : 0;
-  
-  let engagementScore = 0;
-  
-  // Score based on absolute numbers
-  if (score >= 10) engagementScore += 20;
-  if (score >= 50) engagementScore += 20;
-  if (comments >= 5) engagementScore += 20;
-  if (comments >= 20) engagementScore += 20;
-  
-  // Bonus for good engagement ratio (indicates discussion)
-  if (engagementRatio > 0.1) engagementScore += 20;
-  
-  return Math.min(engagementScore, 100);
-}
+// All legacy pattern matching functions removed - now using comprehensive Gemini AI scoring only
 
 export async function filterRelevantDiscussions(
   discussions: RedditDiscussion[],
   websiteConfig: WebsiteConfig,
-  postedDiscussions: string[] = [],
-  useGeminiScoring: boolean = true
+  postedDiscussions: string[] = []
 ): Promise<{ discussion: RedditDiscussion; scores: RelevanceScores }[]> {
   const unpostedDiscussions = discussions.filter(discussion => 
     !postedDiscussions.includes(discussion.id)
@@ -225,23 +41,49 @@ export async function filterRelevantDiscussions(
 
   const scoredDiscussions = [];
 
+  console.log(`[GEMINI_FILTERING] Starting comprehensive Gemini scoring for ${unpostedDiscussions.length} discussions`);
+
   for (const discussion of unpostedDiscussions) {
     let scores: RelevanceScores;
     
-    if (useGeminiScoring) {
-      // Use Gemini AI for relevance scoring
-      scores = await getGeminiRelevanceScore(discussion, websiteConfig);
-    } else {
-      // Fallback to basic pattern matching
-      scores = calculateRelevanceScore(discussion, websiteConfig);
+    // Use Gemini AI for comprehensive relevance scoring - retry with different API keys if needed
+    let attempts = 0;
+    const maxAttempts = 5; // Try up to 5 different API keys
+    
+    while (attempts < maxAttempts) {
+      try {
+        scores = await getGeminiRelevanceScore(discussion, websiteConfig);
+        break; // Success, exit retry loop
+      } catch (error: any) {
+        attempts++;
+        console.log(`[GEMINI_FILTERING] Attempt ${attempts} failed for discussion ${discussion.id}, trying different API key...`);
+        
+        if (attempts >= maxAttempts) {
+          console.error(`[GEMINI_FILTERING] All ${maxAttempts} attempts failed for discussion ${discussion.id}, skipping...`);
+          continue; // Skip this discussion entirely
+        }
+        
+        // Wait a bit before trying next API key
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+    
+    // If we couldn't score this discussion, skip it
+    if (!scores!) {
+      console.log(`[GEMINI_FILTERING] Skipping discussion ${discussion.id} - no score obtained`);
+      continue;
     }
     
     scoredDiscussions.push({ discussion, scores });
   }
 
-  return scoredDiscussions
+  const relevantDiscussions = scoredDiscussions
     .filter(item => item.scores.finalScore >= websiteConfig.relevance_threshold)
     .sort((a, b) => b.scores.finalScore - a.scores.finalScore);
+
+  console.log(`[GEMINI_FILTERING] Found ${relevantDiscussions.length} relevant discussions out of ${scoredDiscussions.length} scored (threshold: ${websiteConfig.relevance_threshold}%)`);
+  
+  return relevantDiscussions;
 }
 
 async function getGeminiRelevanceScore(
@@ -271,26 +113,50 @@ async function getGeminiRelevanceScore(
         const content = `${discussion.title}\n\n${discussion.content || ''}`;
         const keywords = websiteConfig.target_keywords || websiteConfig.keywords || [];
         
-        // Make direct Gemini API call
-        const prompt = `Analyze this Reddit discussion for business relevance to a website with the following details:
+        // Comprehensive Gemini scoring with full context
+        const prompt = `You are an expert business analyst evaluating Reddit discussions for marketing relevance. Analyze this Reddit post against the website's business context and provide detailed scoring.
 
-Website: ${websiteConfig.website_url || 'Not specified'}
+=== WEBSITE BUSINESS CONTEXT ===
+Website URL: ${websiteConfig.website_url || websiteConfig.url || 'Not specified'}
+Business Description: ${websiteConfig.website_description || websiteConfig.description || 'Not specified'}
 Target Keywords: ${keywords.join(', ') || 'Not specified'}
 Customer Segments: ${websiteConfig.customer_segments?.join(', ') || 'Not specified'}
+Business Context Terms: ${websiteConfig.business_context_terms?.join(', ') || 'Not specified'}
+Current Relevance Threshold: ${websiteConfig.relevance_threshold || 70}%
 
-Discussion Title: ${discussion.title}
-Discussion Content: ${content}
+=== REDDIT DISCUSSION ANALYSIS ===
 Subreddit: r/${discussion.subreddit}
-Score: ${discussion.score || 0} upvotes
+Post Title: ${discussion.title}
+Post Content: ${content}
+Post Type: ${discussion.is_self ? 'Text Post (Self)' : 'Link Post'}
+Engagement: ${discussion.score || 0} upvotes, ${discussion.num_comments || 0} comments
+Post URL: ${discussion.url || 'Not available'}
 
-Rate the relevance on these criteria (0-100 scale):
-1. Keyword Relevance: How well does the discussion match the target keywords?
-2. Quality Score: Is this a high-quality, substantive discussion?
-3. Engagement Score: Does this have good engagement potential?
-4. Final Score: Overall business relevance for this website
+=== SCORING INSTRUCTIONS ===
+Evaluate this discussion on these criteria (0-100 scale each):
+
+1. INTENT SCORE: Does the user show buying intent, need help, or seek recommendations?
+   - Look for: problems, questions, "looking for", "need help", "recommendations"
+   - Higher scores for clear pain points or solution-seeking behavior
+
+2. CONTEXT MATCH SCORE: How well does this align with the website's business?
+   - Consider target keywords, customer segments, and business context
+   - Evaluate if the discussion topic relates to the website's value proposition
+
+3. QUALITY SCORE: Is this a genuine, high-quality discussion worth engaging with?
+   - Consider post length, detail level, engagement metrics
+   - Avoid spam, low-effort posts, or overly promotional content
+
+4. ENGAGEMENT SCORE: What's the potential for meaningful business engagement?
+   - Consider subreddit activity, post engagement, discussion potential
+   - Higher scores for active discussions with engaged audiences
+
+5. FINAL SCORE: Overall business relevance and opportunity score
+   - Weighted combination considering all factors above
+   - Should reflect the likelihood of generating valuable business engagement
 
 Respond with ONLY a JSON object in this exact format:
-{"keyword_relevance": 0-100, "quality_score": 0-100, "engagement_score": 0-100, "final_score": 0-100}`;
+{"intentScore": 0-100, "contextMatchScore": 0-100, "qualityScore": 0-100, "engagementScore": 0-100, "finalScore": 0-100, "reasoning": "Brief explanation of the scoring rationale"}`;
 
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`, {
           method: 'POST',
@@ -321,18 +187,19 @@ Respond with ONLY a JSON object in this exact format:
         const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
         
         if (text) {
-          // Parse JSON response
-          const jsonMatch = text.match(/\{[^}]*\}/);
+          // Parse comprehensive JSON response
+          const jsonMatch = text.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
             const scores = JSON.parse(jsonMatch[0]);
-            console.log(`[GEMINI_SCORING] Discussion ${discussion.id} scored ${scores.final_score} by Gemini AI`);
+            console.log(`[GEMINI_SCORING] Discussion ${discussion.id} scored ${scores.finalScore}/100 by Gemini AI - ${scores.reasoning}`);
             
             return {
-              intentScore: scores.keyword_relevance || 0,
-              contextMatchScore: scores.keyword_relevance || 0,
-              qualityScore: scores.quality_score || 0,
-              engagementScore: scores.engagement_score || 0,
-              finalScore: scores.final_score || 0
+              intentScore: scores.intentScore || 0,
+              contextMatchScore: scores.contextMatchScore || 0,
+              qualityScore: scores.qualityScore || 0,
+              engagementScore: scores.engagementScore || 0,
+              finalScore: scores.finalScore || 0,
+              filteringReason: scores.reasoning || undefined
             };
           }
         }
@@ -379,7 +246,7 @@ Respond with ONLY a JSON object in this exact format:
     
   } catch (error) {
     console.error(`[GEMINI_SCORING] Error scoring discussion ${discussion.id}:`, error);
-    console.log(`[GEMINI_SCORING] Falling back to basic scoring for discussion ${discussion.id}`);
-    return calculateRelevanceScore(discussion, websiteConfig);
+    // No fallback - try another API key by throwing error to retry with different key
+    throw error;
   }
 }

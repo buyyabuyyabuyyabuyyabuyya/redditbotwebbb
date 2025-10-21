@@ -17,7 +17,7 @@ interface GeminiReplyResponse {
 }
 
 interface RedditReplyOptions {
-  tone?: 'helpful' | 'casual' | 'professional' | 'enthusiastic' | 'informative';
+  tone?: 'pseudo-advice marketing' | 'casual' | 'professional' | 'enthusiastic' | 'informative';
   maxLength?: number;
   keywords?: string[];
   accountId: string;
@@ -62,7 +62,7 @@ export class RedditReplyService {
           postTitle: post.title,
           postContent: post.selftext || 'No content provided',
           subreddit: post.subreddit,
-          tone: options.tone || 'helpful',
+          tone: options.tone || 'pseudo-advice marketing',
           maxLength: options.maxLength || 500,
           keywords: options.keywords || [],
         }),

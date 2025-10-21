@@ -426,9 +426,10 @@ export default function Dashboard() {
             <Tab className="w-full rounded-lg py-2.5 text-sm font-medium leading-5 text-gray-300 ring-gray-700 ring-opacity-60 ring-offset-2 ring-offset-blue-500 focus:outline-none focus:ring-2 ui-selected:bg-blue-600 ui-selected:shadow-lg ui-selected:text-white ui-not-selected:text-gray-400 ui-not-selected:hover:bg-gray-700 ui-not-selected:hover:text-white transition-all">
               Subreddits
             </Tab>
-            <Tab className="w-full rounded-lg py-2.5 text-sm font-medium leading-5 text-gray-300 ring-gray-700 ring-opacity-60 ring-offset-2 ring-offset-blue-500 focus:outline-none focus:ring-2 ui-selected:bg-blue-600 ui-selected:shadow-lg ui-selected:text-white ui-not-selected:text-gray-400 ui-not-selected:hover:bg-gray-700 ui-not-selected:hover:text-white transition-all">
+            {/* COMMENTED OUT: Discussion Engagement Tab - Temporarily hidden from UI */}
+            {/* <Tab className="w-full rounded-lg py-2.5 text-sm font-medium leading-5 text-gray-300 ring-gray-700 ring-opacity-60 ring-offset-2 ring-offset-blue-500 focus:outline-none focus:ring-2 ui-selected:bg-blue-600 ui-selected:shadow-lg ui-selected:text-white ui-not-selected:text-gray-400 ui-not-selected:hover:bg-gray-700 ui-not-selected:hover:text-white transition-all">
               Discussion Engagement
-            </Tab>
+            </Tab> */}
           </Tab.List>
 
           <Tab.Panels className="mt-6">
@@ -843,7 +844,10 @@ export default function Dashboard() {
               />
             </Tab.Panel>
 
-            <Tab.Panel>
+            {/* COMMENTED OUT: Discussion Engagement Tab Panel - Temporarily hidden from UI 
+                This tab shows the AI-powered Reddit discussion monitoring and BenoOneWorkflow
+                To re-enable: Change false to true in the condition below */}
+            {false && <Tab.Panel>
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold text-white">Discussion Engagement</h2>
@@ -882,7 +886,7 @@ export default function Dashboard() {
                 {/* Step-by-step Beno Workflow */}
                 <BenoOneWorkflow />
               </div>
-            </Tab.Panel>
+            </Tab.Panel>}
           </Tab.Panels>
         </Tab.Group>
       </div>

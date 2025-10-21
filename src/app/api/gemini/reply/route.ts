@@ -44,7 +44,7 @@ export async function POST(req: Request) {
       postTitle, 
       postContent, 
       subreddit, 
-      tone = 'helpful', 
+      tone = 'pseudo-advice marketing', 
       maxLength = 500,
       keywords = []
     } = await req.json();
