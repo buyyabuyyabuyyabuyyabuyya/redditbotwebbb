@@ -482,7 +482,7 @@ export default async function Home() {
                     <span className="text-sm text-red-400 font-medium">🔥 Save 38%</span>
                   </div>
                   <div className="text-5xl font-bold tracking-tight text-white">$7.99</div>
-                  <p className="mt-2 text-sm text-red-400 font-medium">Limited Time: Discount expires August 30</p>
+                  <p className="mt-2 text-sm text-red-400 font-medium">Limited Time: Discount expires November 15th</p>
                 </div>
                 <div className="mt-6 w-full"><AuthButtons pricing /></div>
               </div>
@@ -504,7 +504,7 @@ export default async function Home() {
                     <span className="text-sm text-red-400 font-medium">🔥 Save 26%</span>
                   </div>
                   <div className="text-5xl font-bold tracking-tight text-white">$13.99</div>
-                  <p className="mt-2 text-sm text-red-400 font-medium">Limited Time: Discount expires August 30</p>
+                  <p className="mt-2 text-sm text-red-400 font-medium">Limited Time: Discount expires November 15th</p>
                 </div>
                 <div className="mt-6 w-full"><AuthButtons pricing /></div>
               </div>
@@ -643,7 +643,7 @@ export default async function Home() {
                     </span>
                   </p>
                   <p className="mt-2 text-sm text-red-400 font-medium">
-                    🔥 Limited Time: Discount expires August 30
+                    🔥 Limited Time: Discount expires November 15th
                   </p>
                   <div className="mt-10 w-full">
                     <AuthButtons pricing={true} />
