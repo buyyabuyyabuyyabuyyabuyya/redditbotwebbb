@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { BUSINESS_SUBREDDITS, searchMultipleSubredditsWithPagination } from '../../../../lib/redditService';
+import { BUSINESS_SUBREDDITS, getRedditDiscussions } from '../../../../lib/redditService';
 import { filterRelevantDiscussions } from '../../../../lib/relevanceFiltering';
 import { redditReplyService } from '../../../../lib/redditReplyService';
 import { PostQueueService } from '../../../../lib/postQueueService';
 import { CircuitBreakerService } from '../../../../lib/circuitBreakerService';
+import { RedditPaginationManagerServer } from '../../../../lib/redditPaginationServer';
 
 // Cron job endpoint for automated posting
 export async function POST(req: Request) {
@@ -233,80 +234,52 @@ export async function POST(req: Request) {
 
         console.log(`[CRON] Using Reddit account: ${redditAccount.username} (ID: ${redditAccount.id})`);
 
-        // Use redditService for multi-subreddit fetching
+        // Initialize pagination manager for this config
+        const paginationManager = new RedditPaginationManagerServer(config.user_id, config.id);
+        
+        // Use RSS feed for reliable fetching (no 403 errors)
         const query = websiteConfig.target_keywords?.join(' ') || websiteConfig.customer_segments?.join(' ') || 'business';
         
         console.log(`[CRON] Fetching hot posts from r/${targetSubreddit} with query: ${query}`);
-        console.log(`[CRON] Target URL will be: https://old.reddit.com/r/${targetSubreddit}/hot.json?limit=25`);
         
         let discussions;
         try {
-          const result = await searchMultipleSubredditsWithPagination(
-            query,
-            config.user_id,
-            [targetSubreddit], // Focus on one subreddit per cycle
-            25,
-            websiteConfig,
-            false // Disable pagination for cron job
-          );
-          discussions = result; // This is already an array from the function
-          console.log(`[CRON] searchMultipleSubredditsWithPagination returned ${discussions?.length || 0} discussions`);
-        } catch (error) {
-          console.error(`[CRON] Direct Reddit fetch failed for r/${targetSubreddit}:`, error);
+          // Get pagination state for this subreddit
+          const paginationState = await paginationManager.getPaginationState(targetSubreddit);
+          console.log(`[CRON] Pagination state for r/${targetSubreddit}:`, paginationState ? `after=${paginationState.after}` : 'first fetch');
           
-          // Try proxy endpoint as fallback for 403 errors
-          if (error instanceof Error && error.message.includes('403')) {
-            console.log(`[CRON] Trying proxy endpoint for r/${targetSubreddit}`);
-            
-            try {
-              const proxyResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://redditoutreach.com'}/api/reddit/proxy`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${process.env.CRON_SECRET}`
-                },
-                body: JSON.stringify({
-                  query,
-                  subreddit: targetSubreddit,
-                  limit: 25,
-                  userId: config.user_id,
-                  websiteConfig: websiteConfig,
-                  configId: config.id
-                })
-              });
-
-              if (proxyResponse.ok) {
-                const proxyData = await proxyResponse.json();
-                console.log(`[CRON] Proxy response:`, { success: proxyData.success, discussionsCount: proxyData.discussions?.length });
-                if (proxyData.success && proxyData.discussions) {
-                  discussions = proxyData.discussions;
-                  console.log(`[CRON] Successfully fetched ${discussions.length} discussions via proxy`);
-                } else {
-                  throw new Error('Proxy returned no discussions');
-                }
-              } else {
-                throw new Error(`Proxy failed: ${proxyResponse.status}`);
-              }
-            } catch (proxyError) {
-              console.error(`[CRON] Proxy also failed for r/${targetSubreddit}:`, proxyError);
-              
-              // Rotate to next subreddit
-              const nextIndex = (currentIndex + 1) % BUSINESS_SUBREDDITS.length;
-              await supabaseAdmin
-                .from('auto_poster_configs')
-                .update({
-                  current_subreddit_index: nextIndex,
-                  last_subreddit_used: BUSINESS_SUBREDDITS[nextIndex]
-                })
-                .eq('id', config.id);
-              
-              totalErrors++;
-              continue;
-            }
-          } else {
-            totalErrors++;
-            continue;
+          // Fetch discussions using RSS (more reliable than JSON API)
+          const result = await getRedditDiscussions(query, targetSubreddit, 25);
+          discussions = result.items;
+          
+          console.log(`[CRON] Fetched ${discussions?.length || 0} discussions from r/${targetSubreddit}`);
+          
+          // Update pagination state (for future use when we implement after_token)
+          if (discussions && discussions.length > 0) {
+            // For now, we're using RSS which doesn't provide after tokens
+            // This will be updated when we switch to JSON API with pagination
+            await paginationManager.updatePaginationState(
+              targetSubreddit,
+              null, // RSS doesn't provide after token yet
+              null,
+              discussions.length
+            );
           }
+        } catch (error) {
+          console.error(`[CRON] Reddit fetch failed for r/${targetSubreddit}:`, error);
+          
+          // Rotate to next subreddit on error
+          const nextIndex = (currentIndex + 1) % BUSINESS_SUBREDDITS.length;
+          await supabaseAdmin
+            .from('auto_poster_configs')
+            .update({
+              current_subreddit_index: nextIndex,
+              last_subreddit_used: BUSINESS_SUBREDDITS[nextIndex]
+            })
+            .eq('id', config.id);
+          
+          totalErrors++;
+          continue;
         }
         
         console.log(`[CRON] Final discussions check: ${discussions?.length || 0} discussions for r/${targetSubreddit}`);
@@ -405,7 +378,6 @@ export async function POST(req: Request) {
                 intent_score: scores.intentScore,
                 context_match_score: scores.contextMatchScore,
                 quality_score: scores.qualityScore,
-                engagement_score: scores.engagementScore,
                 ai_confidence: result.confidence,
                 comment_text: result.generatedReply,
                 reddit_account_id: redditAccount.id,

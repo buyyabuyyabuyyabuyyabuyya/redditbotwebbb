@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getRedditDiscussions } from '../../../../lib/redditService';
 import { filterRelevantDiscussions } from '../../../../lib/relevanceFiltering';
 import { redditReplyService } from '../../../../lib/redditReplyService';
+import { RedditPaginationManagerServer } from '../../../../lib/redditPaginationServer';
 
 
 // Main auto-poster endpoint (primary, not backup)
@@ -54,9 +55,27 @@ export async function POST(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY || ''
     );
 
+    // Initialize pagination manager for this user/config
+    const paginationManager = new RedditPaginationManagerServer(userId, configId);
+    
+    // Get pagination state for this subreddit
+    const paginationState = await paginationManager.getPaginationState(subreddit);
+    console.log(`[REDDIT_PROXY] Pagination state for r/${subreddit}:`, paginationState ? `after=${paginationState.after}, total_fetched=${paginationState.total_fetched}` : 'first fetch');
+
     // Step 1: Fetch Reddit discussions
     const discussions = await getRedditDiscussions(query, subreddit, limit || 25);
     console.log(`[REDDIT_PROXY] Fetched ${discussions.items.length} discussions from r/${subreddit}`);
+    
+    // Update pagination state after successful fetch
+    if (discussions.items && discussions.items.length > 0) {
+      await paginationManager.updatePaginationState(
+        subreddit,
+        null, // RSS doesn't provide after token yet - will be added when we switch to JSON API
+        null,
+        discussions.items.length
+      );
+      console.log(`[REDDIT_PROXY] Updated pagination state: fetched ${discussions.items.length} posts`);
+    }
 
     if (!discussions.items || discussions.items.length === 0) {
       return NextResponse.json({

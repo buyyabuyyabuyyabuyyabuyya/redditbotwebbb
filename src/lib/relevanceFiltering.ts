@@ -4,7 +4,6 @@ export interface RelevanceScores {
   intentScore: number;
   contextMatchScore: number;
   qualityScore: number;
-  engagementScore: number;
   finalScore: number;
   filteringReason?: string;
 }
@@ -129,7 +128,6 @@ Subreddit: r/${discussion.subreddit}
 Post Title: ${discussion.title}
 Post Content: ${content}
 Post Type: ${discussion.is_self ? 'Text Post (Self)' : 'Link Post'}
-Engagement: ${discussion.score || 0} upvotes, ${discussion.num_comments || 0} comments
 Post URL: ${discussion.url || 'Not available'}
 
 === SCORING INSTRUCTIONS ===
@@ -144,19 +142,16 @@ Evaluate this discussion on these criteria (0-100 scale each):
    - Evaluate if the discussion topic relates to the website's value proposition
 
 3. QUALITY SCORE: Is this a genuine, high-quality discussion worth engaging with?
-   - Consider post length, detail level, engagement metrics
+   - Consider post length, detail level, and content quality
    - Avoid spam, low-effort posts, or overly promotional content
 
-4. ENGAGEMENT SCORE: What's the potential for meaningful business engagement?
-   - Consider subreddit activity, post engagement, discussion potential
-   - Higher scores for active discussions with engaged audiences
-
-5. FINAL SCORE: Overall business relevance and opportunity score
-   - Weighted combination considering all factors above
+4. FINAL SCORE: Overall business relevance and opportunity score
+   - Weighted combination of intent, context match, and quality
    - Should reflect the likelihood of generating valuable business engagement
+   - DO NOT factor in upvotes or comment counts
 
-Respond with ONLY a JSON object in this exact format:
-{"intentScore": 0-100, "contextMatchScore": 0-100, "qualityScore": 0-100, "engagementScore": 0-100, "finalScore": 0-100, "reasoning": "Brief explanation of the scoring rationale"}`;
+Respond with ONLY a JSON object in this exact format (no markdown, no extra text):
+{"intentScore": 0-100, "contextMatchScore": 0-100, "qualityScore": 0-100, "finalScore": 0-100, "reasoning": "Brief explanation"}`;
 
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`, {
           method: 'POST',
@@ -187,23 +182,46 @@ Respond with ONLY a JSON object in this exact format:
         const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
         
         if (text) {
-          // Parse comprehensive JSON response
+          // Try multiple JSON extraction methods
+          let scores = null;
+          
+          // Method 1: Try to find JSON object with regex
           const jsonMatch = text.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
-            const scores = JSON.parse(jsonMatch[0]);
+            try {
+              scores = JSON.parse(jsonMatch[0]);
+            } catch (e) {
+              console.log(`[GEMINI_SCORING] JSON parse failed for discussion ${discussion.id}, trying cleanup...`);
+            }
+          }
+          
+          // Method 2: Try to clean markdown code blocks
+          if (!scores) {
+            const cleanedText = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+            const cleanMatch = cleanedText.match(/\{[\s\S]*\}/);
+            if (cleanMatch) {
+              try {
+                scores = JSON.parse(cleanMatch[0]);
+              } catch (e) {
+                console.log(`[GEMINI_SCORING] Cleaned JSON parse also failed for discussion ${discussion.id}`);
+              }
+            }
+          }
+          
+          if (scores && scores.finalScore !== undefined) {
             console.log(`[GEMINI_SCORING] Discussion ${discussion.id} scored ${scores.finalScore}/100 by Gemini AI - ${scores.reasoning}`);
             
             return {
               intentScore: scores.intentScore || 0,
               contextMatchScore: scores.contextMatchScore || 0,
               qualityScore: scores.qualityScore || 0,
-              engagementScore: scores.engagementScore || 0,
               finalScore: scores.finalScore || 0,
               filteringReason: scores.reasoning || undefined
             };
           }
         }
         
+        console.error(`[GEMINI_SCORING] Invalid response for ${discussion.id}:`, text?.substring(0, 200));
         throw new Error('Invalid Gemini response format');
         
       } catch (error: any) {
