@@ -79,47 +79,34 @@ export async function getRedditDiscussions(
       console.log(`[REDDIT_SERVICE] ${endpoint.type.toUpperCase()} Response: ${response.status}`);
       
       if (response.ok) {
-        if (endpoint.type === 'rss') {
-          // Parse RSS feed
-          const rssText = await response.text();
-          console.log(`[REDDIT_SERVICE] RSS content length: ${rssText.length} chars`);
-          console.log(`[REDDIT_SERVICE] RSS sample: ${rssText.substring(0, 500)}...`);
-          const discussions = parseRedditRSS(rssText, query, subreddit);
-          console.log(`[REDDIT_SERVICE] RSS parsed ${discussions.length} discussions`);
-          return {
-            items: discussions,
-            total: discussions.length
-          };
-        } else {
-          // Parse JSON
-          const data = await response.json();
-          const discussions = data.data?.children
-            ?.filter((post: any) => {
-              const title = post.data.title.toLowerCase();
-              const content = (post.data.selftext || '').toLowerCase();
-              const queryLower = query.toLowerCase();
-              return title.includes(queryLower) || content.includes(queryLower);
-            })
-            ?.map((post: any) => ({
-              id: post.data.id,
-              title: post.data.title,
-              content: post.data.selftext || '',
-              description: post.data.selftext || post.data.title,
-              url: `https://reddit.com${post.data.permalink}`,
-              subreddit: post.data.subreddit,
-              author: post.data.author,
-              score: post.data.score,
-              num_comments: post.data.num_comments,
-              created_utc: post.data.created_utc,
-              raw_comment: post.data.selftext || post.data.title,
-              is_self: post.data.is_self
-            })) || [];
-          
-          return {
-            items: discussions,
-            total: discussions.length
-          };
-        }
+        // Parse JSON
+        const data = await response.json();
+        const discussions = data.data?.children
+          ?.filter((post: any) => {
+            const title = post.data.title.toLowerCase();
+            const content = (post.data.selftext || '').toLowerCase();
+            const queryLower = query.toLowerCase();
+            return title.includes(queryLower) || content.includes(queryLower);
+          })
+          ?.map((post: any) => ({
+            id: post.data.id,
+            title: post.data.title,
+            content: post.data.selftext || '',
+            description: post.data.selftext || post.data.title,
+            url: `https://reddit.com${post.data.permalink}`,
+            subreddit: post.data.subreddit,
+            author: post.data.author,
+            score: post.data.score,
+            num_comments: post.data.num_comments,
+            created_utc: post.data.created_utc,
+            raw_comment: post.data.selftext || post.data.title,
+            is_self: post.data.is_self
+          })) || [];
+        
+        return {
+          items: discussions,
+          total: discussions.length
+        };
       } else {
         lastError = new Error(`Failed to fetch from ${endpoint.url}: ${response.status}`);
         console.log(`Failed to fetch from r/${subreddit} (${endpoint.type}): ${response.status}`);
