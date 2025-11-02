@@ -53,8 +53,8 @@ export async function getRedditDiscussions(
   limit: number = 10
 ): Promise<RedditDiscussionsResponse> {
   // Try RSS feed first (less blocked), then JSON endpoints
-  console.log(`[REDDIT_SERVICE] Trying RSS: https://old.reddit.com/r/${subreddit}/hot.rss?limit=25`);
-  const rssResponse = await fetch(`https://old.reddit.com/r/${subreddit}/hot.rss?limit=25`, {
+  console.log(`[REDDIT_SERVICE] Trying RSS: https://old.reddit.com/r/${subreddit}/hot.rss?limit=${limit}`);
+  const rssResponse = await fetch(`https://old.reddit.com/r/${subreddit}/hot.rss?limit=${limit}`, {
     headers: {
       'Accept': 'application/rss+xml, application/xml, text/xml',
       'User-Agent': getRandomUserAgent(),

@@ -138,12 +138,13 @@ export class ApiKeyManager {
    */
   async releaseApiKey(apiKey: string, userId: string): Promise<void> {
     try {
-      // Hold the key for a short grace period (5 s) *synchronously* so that rapid
+      // Hold the key for a grace period (15 s) *synchronously* so that rapid
       // successive requests do not grab the exact same key immediately. This is
       // preferred over setTimeout in a serverless context where the execution
       // environment may be frozen as soon as the handler returns.
-      console.log(`[${userId}] Waiting 5 seconds before releasing API key`);
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      // Increased to 15 seconds to avoid Gemini API 429 rate limit errors
+      console.log(`[${userId}] Waiting 15 seconds before releasing API key`);
+      await new Promise((resolve) => setTimeout(resolve, 15000));
 
       const { error } = await supabaseAdmin
         .from('api_keys')
