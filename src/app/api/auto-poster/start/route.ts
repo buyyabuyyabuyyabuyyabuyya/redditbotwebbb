@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify({
           productId: config.id,
           accountId: account.id,
-          intervalMinutes: 5 // Check every 5 minutes
+          intervalMinutes: 30 // Check every 30 minutes
         })
       });
 
