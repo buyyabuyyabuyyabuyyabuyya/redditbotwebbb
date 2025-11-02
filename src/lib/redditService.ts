@@ -52,41 +52,12 @@ export async function getRedditDiscussions(
   subreddit: string = 'all',
   limit: number = 10
 ): Promise<RedditDiscussionsResponse> {
-  // Try RSS feed first (less blocked), then JSON endpoints
-  console.log(`[REDDIT_SERVICE] Trying RSS: https://old.reddit.com/r/${subreddit}/hot.rss?limit=${limit}`);
-  const rssResponse = await fetch(`https://old.reddit.com/r/${subreddit}/hot.rss?limit=${limit}`, {
-    headers: {
-      'Accept': 'application/rss+xml, application/xml, text/xml',
-      'User-Agent': getRandomUserAgent(),
-      'Accept-Language': 'en-US,en;q=0.5',
-      'Accept-Encoding': 'gzip, deflate, br',
-      'DNT': '1',
-      'Connection': 'keep-alive',
-      'Upgrade-Insecure-Requests': '1',
-      'Cache-Control': 'max-age=0',
-    },
-  });
-  
-  console.log(`[REDDIT_SERVICE] RSS Response: ${rssResponse.status}`);
-  
-  if (rssResponse.ok) {
-    const rssText = await rssResponse.text();
-    console.log(`[REDDIT_SERVICE] RSS content length: ${rssText.length} chars`);
-    console.log(`[REDDIT_SERVICE] RSS sample: ${rssText.substring(0, 500)}...`);
-    const discussions = parseRedditRSS(rssText, query, subreddit);
-    console.log(`[REDDIT_SERVICE] RSS parsed ${discussions.length} discussions`);
-    return {
-      items: discussions,
-      total: discussions.length
-    };
-  } else {
-    const endpoints = [
-      { url: `https://old.reddit.com/r/${subreddit}/hot.json?limit=${limit}`, type: 'json' },
-      { url: `https://www.reddit.com/r/${subreddit}/hot.json?limit=${limit}`, type: 'json' },
-      { url: `https://reddit.com/r/${subreddit}/hot.json?limit=${limit}`, type: 'json' }
-    ];
+  // Try JSON API first to get pagination tokens (after/before), then RSS as fallback
+  const endpoints = [
+    { url: `https://old.reddit.com/r/${subreddit}/hot.json?limit=${limit}`, type: 'json' },
+  ];
 
-    let lastError: Error | null = null;
+  let lastError: Error | null = null;
 
   for (const endpoint of endpoints) {
     try {
@@ -340,7 +311,6 @@ function parseRedditRSS(rssText: string, query: string, subreddit: string): Redd
   }
   
   return discussions;
-}
 }
 
 
