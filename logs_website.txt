@@ -1,59 +1,139 @@
-Nov 01 20:02:35.49
+Nov 01 20:34:35.55
 GET
 200
 redditoutreach.com
 /api/auto-poster/status
-Nov 01 20:02:33.79
-GET
-200
-redditoutreach.com
-/api/auto-poster/status
-Nov 01 20:02:26.49
-GET
-200
-redditoutreach.com
-/api/auto-poster/status
-Nov 01 20:01:26.49
+Nov 01 20:34:32.55
 GET
 ---
 redditoutreach.com
 /api/auto-poster/status
-Nov 01 20:00:26.48
+Nov 01 20:34:29.56
+GET
+---
+redditoutreach.com
+/api/auto-poster/status
+Nov 01 20:34:26.01
+GET
+---
+redditoutreach.com
+/api/auto-poster/status
+[temp_user_id] API key released successfully
+Nov 01 20:33:50.49
+POST
+200
+redditoutreach.com
+/api/reddit/accounts/cooldown
+[reddit] / status=200
+Nov 01 20:33:49.22
 GET
 200
 redditoutreach.com
-/api/auto-poster/status
-(node:4) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification. (Use `node --trace-warnings ...` to show where the warning was created)
-Nov 01 20:00:03.12
-(node:4) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
-(Use `node --trace-warnings ...` to show where the warning was created)
+/api/reddit/accounts/available
+5
+[reddit] / status=200
+🔍 [REDDIT_ACCOUNTS] API called with action: check, accountId: a20a03d7-f487-4032-9d39-b865e0f7e934, internal: true
+[REDDIT_ACCOUNTS] Internal API call detected, bypassing user auth
+✅ [REDDIT_ACCOUNTS] Checking availability for account: a20a03d7-f487-4032-9d39-b865e0f7e934
+✅ [REDDIT_ACCOUNTS] Account H2REBE2R availability: true ()
 
+✅ [REDDIT_ACCOUNTS] Account H2REBE2R availability: true ()
+Nov 01 20:33:48.70
 POST
 200
 redditoutreach.com
-/api/reddit/process-inbox
-Nov 01 20:00:03.11
+/api/reddit/post-comment
+🔍 [POST-COMMENT] Starting account selection process...
+🎯 [POST-COMMENT] Specific account requested: a20a03d7-f487-4032-9d39-b865e0f7e934
+⏰ [POST-COMMENT] Account a20a03d7-f487-4032-9d39-b865e0f7e934 availability check: true
+✅ [POST-COMMENT] Using specific account: H2REBE2R (ID: a20a03d7-f487-4032-9d39-b865e0f7e934)
+📊 [POST-COMMENT] Account details: {
+  username: 'H2REBE2R',
+  last_used_at: null,
+  cooldown_minutes: 30,
+  is_available: true,
+  proxy_enabled: false
+}
+post-comment: using User Agent - Default: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:1...
+🚀 [POST-COMMENT] Attempting to post comment on 1okpfoh
+💬 [POST-COMMENT] Comment content: Ouch, that's rough! PowerAdSpy's Reddit tool sounds like a total dud. Maybe the platform's ad scrapi...
+🌐 [POST-COMMENT] Using proxy: NO
+📝 [POST-COMMENT] Submission object created, posting reply...
+✅ [POST-COMMENT] Reddit API response received: { commentId: 'nmnbfep', success: true }
+
+11
+✅ [POST-COMMENT] Reddit API response received: { commentId: 'nmnbfep', success: true }
+Nov 01 20:33:39.11
 POST
 200
 redditoutreach.com
-/api/reddit/process-inbox
-7
-process-inbox: proxy_envs_restored
-Nov 01 20:00:03.02
+/api/gemini/reply
+18
+AUTHENTICATION TEMPORARILY DISABLED - Using placeholder user ID
+Releasing expired rate-limited keys...
+Expired rate-limited keys released successfully
+[temp_user_id] Acquiring API key for provider: gemini
+[temp_user_id] Successfully marked API key as being_used = true
+[temp_user_id] Acquired API key: AIzaSy...HZ9A (ID: b9831fc3-fd67-416c-b957-581edb9f5d80)
+============================================================
+GEMINI REPLY GENERATION REQUEST:
+API KEY: AIzaSy...HZ9A (LENGTH: 39)
+MODEL: gemini-2.0-flash-lite
+SUBREDDIT: r/marketing
+POST TITLE: PowerAdSpy Sucks...
+TONE: pseudo-advice marketing
+MAX LENGTH: 500
+KEYWORDS: platform, AI
+============================================================
+Cleaned JSON text: {
+  "reply": "Ouch, that's rough! PowerAdSpy's Reddit tool sounds like a total dud. Maybe the platform's ad scraping tech isn't up to snuff. Have you tried other ad spy tools? Some use AI to find ads, but results vary. I've had mixed luck too. Frustrating!",
+  "confidence": 0.9,
+  "tone_used": "pseudo-advice marketing",
+  "character_count": 236,
+  "keywords_used": [
+    "platform",
+    "AI"
+  ]
+}
+[temp_user_id] Waiting 15 seconds before releasing API key
+
+[temp_user_id] Waiting 15 seconds before releasing API key
+Nov 01 20:33:26.55
+GET
+200
+redditoutreach.com
+/api/auto-poster/status
+Nov 01 20:32:26.56
+GET
+200
+redditoutreach.com
+/api/auto-poster/status
+Nov 01 20:31:26.56
+GET
+200
+redditoutreach.com
+/api/auto-poster/status
+Nov 01 20:30:26.56
+GET
+200
+redditoutreach.com
+/api/auto-poster/status
+Nov 01 20:30:02.42
 POST
----
+200
 redditoutreach.com
 /api/reddit/proxy
-183
+149
+[GEMINI_SCORING] Error scoring discussion 1olc5cr: Error: Gemini API error: 429 - { "error": { "code": 429, "message": "Resource exhausted. Please try again later. Please refer to https://cloud.google.com/vertex-ai/generative-ai/docs/error-code-429 for more details.", "status": "RESOURCE_EXHAUSTED" } } at o (/var/task/.next/server/app/api/reddit/proxy/route.js:41:451) at process.processTicksAndRejections (node:internal/process/task_queues:105:5) at async r (/var/task/.next/server/app/api/reddit/proxy/route.js:1:11208) at async g (/var/task/.next/server/app/api/reddit/proxy/route.js:1:5121) at async /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411 at async e_.execute (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880) at async e_.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943) at async en (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:25592) at async ea.responseCache.get.routeKind (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:1028) at async r9.renderToResponseWithComponentsImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:508) { status: 429 }
 [REDDIT_PROXY] Starting complete auto-poster flow for r/marketing with query: platform AI
-[REDDIT_PROXY] Pagination state for r/marketing: after=null, total_fetched=50
-[REDDIT_SERVICE] Trying RSS: https://old.reddit.com/r/marketing/hot.rss?limit=25
+[REDDIT_PROXY] Pagination state for r/marketing: after=null, total_fetched=100
+[REDDIT_SERVICE] Trying RSS: https://old.reddit.com/r/marketing/hot.rss?limit=10
 [REDDIT_SERVICE] RSS Response: 200
-[REDDIT_SERVICE] RSS content length: 43975 chars
-[REDDIT_SERVICE] RSS sample: <?xml version="1.0" encoding="UTF-8"?><feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/"><category term="marketing" label="r/marketing"/><updated>2025-11-02T03:00:04+00:00</updated><icon>https://www.redditstatic.com/icon.png/</icon><id>/r/marketing/hot.rss?limit=25</id><link rel="self" href="https://old.reddit.com/r/marketing/hot.rss?limit=25" type="application/atom+xml" /><link rel="alternate" href="https://old.reddit.com/r/marketing/hot?limit=25" type="text/h...
-[RSS_PARSER] Parsing feed for r/marketing, content length: 43975
-[RSS_PARSER] Feed sample: <?xml version="1.0" encoding="UTF-8"?><feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/"><category term="marketing" label="r/marketing"/><updated>2025-11-02T03:00:04+00:00</updated><icon>https://www.redditstatic.com/icon.png/</icon><id>/r/marketing/hot.rss?limit=25</id><link rel="self" href="https://old.reddit.com/r/marketing/hot.rss?limit=25" type="application/atom+xml" /><link rel="alternate" href="https://old.reddit.com/r/marketing/hot?limit=25" type="text/h...
-[RSS_PARSER] Found 27 entries in feed
+[REDDIT_SERVICE] RSS content length: 20900 chars
+[REDDIT_SERVICE] RSS sample: <?xml version="1.0" encoding="UTF-8"?><feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/"><category term="marketing" label="r/marketing"/><updated>2025-11-02T03:30:03+00:00</updated><icon>https://www.redditstatic.com/icon.png/</icon><id>/r/marketing/hot.rss?limit=10</id><link rel="self" href="https://old.reddit.com/r/marketing/hot.rss?limit=10" type="application/atom+xml" /><link rel="alternate" href="https://old.reddit.com/r/marketing/hot?limit=10" type="text/h...
+[RSS_PARSER] Parsing feed for r/marketing, content length: 20900
+[RSS_PARSER] Feed sample: <?xml version="1.0" encoding="UTF-8"?><feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/"><category term="marketing" label="r/marketing"/><updated>2025-11-02T03:30:03+00:00</updated><icon>https://www.redditstatic.com/icon.png/</icon><id>/r/marketing/hot.rss?limit=10</id><link rel="self" href="https://old.reddit.com/r/marketing/hot.rss?limit=10" type="application/atom+xml" /><link rel="alternate" href="https://old.reddit.com/r/marketing/hot?limit=10" type="text/h...
+[RSS_PARSER] Found 12 entries in feed
 [RSS_PARSER] Entry title match: New Job Listings
 [RSS_PARSER] Checking post: "New Job Listings" against query: "platform AI"
 [RSS_PARSER] Entry title match: Please use the Report link to report posts and comments which don't belong in r/Marketing
@@ -78,285 +158,155 @@ redditoutreach.com
 [RSS_PARSER] Checking post: "How to land a job in social media marketing without a great portfolio?" against query: "platform AI"
 [RSS_PARSER] Entry title match: How do you connect marketing strategy to actual results?
 [RSS_PARSER] Checking post: "How do you connect marketing strategy to actual results?" against query: "platform AI"
-[RSS_PARSER] Entry title match: Contract with US client paused......!
-[RSS_PARSER] Checking post: "Contract with US client paused......!" against query: "platform AI"
-[RSS_PARSER] Entry title match: How to reach out the target audience?
-[RSS_PARSER] Checking post: "How to reach out the target audience?" against query: "platform AI"
-[RSS_PARSER] Entry title match: Is this true? Are we being scammed by Google?
-[RSS_PARSER] Checking post: "Is this true? Are we being scammed by Google?" against query: "platform AI"
-[RSS_PARSER] Entry title match: Unstructured Data Mining: Transforming Call Transcripts into Marketing Insight.
-[RSS_PARSER] Checking post: "Unstructured Data Mining: Transforming Call Transcripts into Marketing Insight." against query: "platform AI"
-[RSS_PARSER] Entry title match: This is some lowkey evil marketing
-[RSS_PARSER] Checking post: "This is some lowkey evil marketing" against query: "platform AI"
-[RSS_PARSER] Entry title match: Is attribution dead or just evolving under privacy??
-[RSS_PARSER] Checking post: "Is attribution dead or just evolving under privacy??" against query: "platform AI"
-[RSS_PARSER] Entry title match: Working in an agency is awful. Why is people fascinated with it?
-[RSS_PARSER] Checking post: "Working in an agency is awful. Why is people fascinated with it?" against query: "platform AI"
-[RSS_PARSER] Entry title match: How much automation is too much in social media management?
-[RSS_PARSER] Checking post: "How much automation is too much in social media management?" against query: "platform AI"
-[RSS_PARSER] Entry title match: Influencer campaigns feel like throwing money into the void — how do you guys handle tracking &amp;
-[RSS_PARSER] Checking post: "Influencer campaigns feel like throwing money into the void — how do you guys handle tracking &amp; fairness?" against query: "platform AI"
-[RSS_PARSER] Entry title match: What is the best lines you ever heard about marketing
-[RSS_PARSER] Checking post: "What is the best lines you ever heard about marketing" against query: "platform AI"
-[RSS_PARSER] Entry title match: Source for New Business Opening (License / Registration) Lists
-[RSS_PARSER] Checking post: "Source for New Business Opening (License / Registration) Lists" against query: "platform AI"
-[RSS_PARSER] Entry title match: Does anyone have a solid content repurposing strategy / work flow?
-[RSS_PARSER] Checking post: "Does anyone have a solid content repurposing strategy / work flow?" against query: "platform AI"
-[RSS_PARSER] Entry title match: When you know deep inside the most honest and underwhelming answer to most questions in marketing is
-[RSS_PARSER] Checking post: "When you know deep inside the most honest and underwhelming answer to most questions in marketing is “it depends”… how do you give advice with certainty without sounding “flakey”?" against query: "platform AI"
-[REDDIT_SERVICE] RSS parsed 25 discussions
-[REDDIT_PROXY] Fetched 25 discussions from r/marketing
-[PAGINATION_SERVER] Updated pagination for r/marketing: after=null, fetched=25
-[REDDIT_PROXY] Updated pagination state: fetched 25 posts
+[REDDIT_SERVICE] RSS parsed 12 discussions
+[REDDIT_PROXY] Fetched 12 discussions from r/marketing
+[PAGINATION_SERVER] Updated pagination for r/marketing: after=null, fetched=12
+[REDDIT_PROXY] Updated pagination state: fetched 12 posts
 [REDDIT_PROXY] Found 0 already posted discussions to exclude
-[GEMINI_FILTERING] Starting comprehensive Gemini scoring for 25 discussions
+[GEMINI_FILTERING] Starting comprehensive Gemini scoring for 12 discussions
 [system] Acquiring API key for provider: gemini
 [system] Successfully marked API key as being_used = true
-[system] Acquired API key: AIzaSy...8gTw (ID: e08663dd-6f3c-4a04-aa0f-bff56bd2c1c1)
+[system] Acquired API key: AIzaSy...4dHA (ID: 378bc4bd-91df-48d6-bc59-4db9a690d849)
 [GEMINI_SCORING] Acquired API key for discussion 1o2ewhw (attempt 1)
-[GEMINI_SCORING] Discussion 1o2ewhw scored 20/100 by Gemini AI - The post is an automated job listing announcement. It doesn't express any user intent to buy or seek help. While it's in a relevant subreddit (r/marketing), the content itself doesn't directly relate to Reddit outreach automation. The quality is moderate; it's a clear announcement, but not particularly engaging for a business looking to sell a platform. The final score is low because there's no clear opportunity for engagement related to the website's core offering.
+[GEMINI_SCORING] Discussion 1o2ewhw scored 25/100 by Gemini AI - The post is a job listing announcement, not a discussion about Reddit outreach or marketing automation. While it's in the r/marketing subreddit (context match), it doesn't express any intent to use a platform or seek solutions related to the website's offerings. The quality is decent as it provides clear instructions, but the topic is not directly relevant to the business.
 [system] Waiting 15 seconds before releasing API key
 [system] API key released successfully
 [GEMINI_SCORING] Released API key for discussion 1o2ewhw
 [system] Acquiring API key for provider: gemini
 [system] Successfully marked API key as being_used = true
-[system] Acquired API key: AIzaSy...ovP8 (ID: e5fe2c81-cd04-409a-96b2-12e499338077)
+[system] Acquired API key: AIzaSy...dKjs (ID: 0c8ab611-9648-4b9e-a9af-112177b12243)
 [GEMINI_SCORING] Acquired API key for discussion 1mb96gb (attempt 1)
-[GEMINI_SCORING] Discussion 1mb96gb scored 20/100 by Gemini AI - The post is about moderating the r/marketing subreddit and doesn't express any buying intent or need for a Reddit outreach platform. While it mentions bots, it's in the context of removing spam, not using a platform. The quality is good, but the context match is low because the topic is about moderation, not outreach. The final score is low because there's no direct relevance to the business.
+[GEMINI_SCORING] Discussion 1mb96gb scored 15/100 by Gemini AI - The post is about moderating a subreddit and doesn't express any buying intent or need for a marketing platform. While it mentions marketing, the context is about removing irrelevant content, not seeking solutions. The quality is decent, but the topic is not directly relevant to the website's offering. The context match is low because the post is about moderation, not using marketing tools. The final score is low because there is no opportunity for engagement.
 [system] Waiting 15 seconds before releasing API key
 [system] API key released successfully
 [GEMINI_SCORING] Released API key for discussion 1mb96gb
 [system] Acquiring API key for provider: gemini
 [system] Successfully marked API key as being_used = true
-[system] Acquired API key: AIzaSy...Wz4E (ID: dd9176da-5bec-4c65-8669-86e302e18a70)
+[system] Acquired API key: AIzaSy...oBZs (ID: 9d38b791-20b3-44ff-bcd1-60ed80a09417)
 [GEMINI_SCORING] Acquired API key for discussion 1olr9gk (attempt 1)
-[GEMINI_SCORING] Discussion 1olr9gk scored 10/100 by Gemini AI - The post is a vague complaint with no clear indication of needing marketing automation or a platform. The context match is low as it doesn't mention any relevant keywords or customer segments. The quality is also low due to the lack of detail and actionable content. Therefore, the overall relevance is very low.
+[GEMINI_SCORING] Discussion 1olr9gk scored 10/100 by Gemini AI - The post is a vague complaint with no clear indication of needing marketing automation or any related services. It lacks any specific problems or questions that align with the website's value proposition. The context match is low because the post doesn't mention any relevant keywords or customer segments. The quality is also low due to the lack of detail and the general nature of the complaint. Therefore, the overall relevance is very low.
 [system] Waiting 15 seconds before releasing API key
 [system] API key released successfully
 [GEMINI_SCORING] Released API key for discussion 1olr9gk
 [system] Acquiring API key for provider: gemini
 [system] Successfully marked API key as being_used = true
-[system] Acquired API key: AIzaSy...aHqQ (ID: 25f8c0bb-86af-4800-95f7-9aa1890ed4be)
+[system] Acquired API key: AIzaSy...0cdM (ID: 7361df5e-8c01-4417-bb3f-9ab84d460c8c)
 [GEMINI_SCORING] Acquired API key for discussion 1olp3to (attempt 1)
-[GEMINI_SCORING] Discussion 1olp3to scored 75/100 by Gemini AI - The user is seeking help with a common marketing problem (understanding digital metrics), indicating a need for solutions. This aligns with the target audience of marketers. While the post doesn't directly mention Reddit outreach, the underlying problem of managing marketing campaigns and explaining results could benefit from automated outreach and reporting, which is the website's value proposition. The post is well-written and detailed, making it a high-quality discussion. The final score is high because the user is a marketer seeking help, and the website offers a solution to a related problem.
+[GEMINI_SCORING] Discussion 1olp3to scored 75/100 by Gemini AI - The user is clearly seeking help and asking a question related to a common marketing challenge. This indicates a strong intent to find solutions. The context match is moderate; while the post doesn't directly mention Reddit outreach, it's about managing marketing campaigns, which is a relevant area. The quality is high, with a clear question and specific context. The final score is high because the user is a marketer facing a problem that could potentially be solved by a tool like the website's platform, even if not directly stated.
 [system] Waiting 15 seconds before releasing API key
 [system] API key released successfully
 [GEMINI_SCORING] Released API key for discussion 1olp3to
 [system] Acquiring API key for provider: gemini
 [system] Successfully marked API key as being_used = true
-[system] Acquired API key: AIzaSy...kVG4 (ID: d183a62e-a6bc-4d0b-ad26-294526d41776)
+[system] Acquired API key: AIzaSy...uADs (ID: fee704b6-ca77-4b34-8a50-8758ee65cb1b)
 [GEMINI_SCORING] Acquired API key for discussion 1olhe1c (attempt 1)
-[GEMINI_SCORING] Discussion 1olhe1c scored 75/100 by Gemini AI - The user clearly expresses a marketing problem and seeks solutions, indicating high intent. The post aligns with the website's business context (marketing) but doesn't directly mention Reddit outreach or automation, slightly lowering the context match. The post is well-written and detailed, earning a high quality score. The final score is high due to the strong intent and quality, making it a potentially valuable discussion to engage with, even if the direct connection to the website's core offering is not immediately apparent. A bot platform could be suggested as a solution to help with social proof and reviews.
+[GEMINI_SCORING] Discussion 1olhe1c scored 75/100 by Gemini AI - The user clearly expresses a marketing problem and seeks advice, indicating high intent. The topic of marketing aligns with the website's target audience (marketers) and business context (platform for outreach). The post is well-written and detailed, indicating high quality. The final score is high because the user is actively seeking marketing solutions, which could be addressed using a platform like the website's. While the post doesn't directly mention Reddit outreach, the problem is relevant to the website's target audience.
 [system] Waiting 15 seconds before releasing API key
 [system] API key released successfully
 [GEMINI_SCORING] Released API key for discussion 1olhe1c
 [system] Acquiring API key for provider: gemini
 [system] Successfully marked API key as being_used = true
-[system] Acquired API key: AIzaSy...pf5s (ID: b551f61d-aa98-4b42-bf17-f7b5b5be1c2c)
+[system] Acquired API key: AIzaSy...u824 (ID: 0541df4d-a483-4478-9244-983f0406ad35)
 [GEMINI_SCORING] Acquired API key for discussion 1olnkf7 (attempt 1)
-[GEMINI_SCORING] Discussion 1olnkf7 scored 10/100 by Gemini AI - The post discusses a website footer, which touches on marketing but doesn't indicate any buying intent or need for a Reddit outreach platform. The context match is low as it doesn't directly relate to Reddit outreach automation. The quality is moderate, as it's a short post with an image, but not particularly insightful for the business. Overall, the post has very low relevance.
+[GEMINI_SCORING] Discussion 1olnkf7 scored 10/100 by Gemini AI - The post discusses a website footer, which is tangentially related to marketing. However, it doesn't express any intent to buy, seek help, or discuss automation. The context match is low because the post doesn't mention automation or platforms. The quality is moderate as it's a simple observation with a link to an image.
 [system] Waiting 15 seconds before releasing API key
 [system] API key released successfully
 [GEMINI_SCORING] Released API key for discussion 1olnkf7
 [system] Acquiring API key for provider: gemini
 [system] Successfully marked API key as being_used = true
-[system] Acquired API key: AIzaSy...jYTE (ID: 96f3de17-f3be-4542-af1c-25861d6d45db)
+[system] Acquired API key: AIzaSy...pf5s (ID: b551f61d-aa98-4b42-bf17-f7b5b5be1c2c)
 [GEMINI_SCORING] Acquired API key for discussion 1ol9lf9 (attempt 1)
-[GEMINI_SCORING] Discussion 1ol9lf9 scored 40/100 by Gemini AI - The user is seeking guidance on marketing skills, indicating a need for information. This aligns with the target audience of marketers. However, the post is about education, not directly about Reddit outreach or the website's core value proposition (automation platform). The quality is decent, but the relevance to the website's specific offering is limited. The intent is there to learn about marketing, but not to find a tool to automate Reddit outreach. Therefore, the context match is low.
+[GEMINI_SCORING] Discussion 1ol9lf9 scored 20/100 by Gemini AI - The user is seeking guidance on marketing skills for students, indicating a need for information. However, the post's context is about education and curriculum development, not directly related to Reddit outreach or the website's core value proposition (automation platform). The quality is decent, but the lack of direct relevance to the website's offerings significantly lowers the scores. The post doesn't express any intent to use a platform or automate Reddit outreach.
 [system] Waiting 15 seconds before releasing API key
 [system] API key released successfully
 [GEMINI_SCORING] Released API key for discussion 1ol9lf9
 [system] Acquiring API key for provider: gemini
 [system] Successfully marked API key as being_used = true
-[system] Acquired API key: AIzaSy...0cdM (ID: 7361df5e-8c01-4417-bb3f-9ab84d460c8c)
+[system] Acquired API key: AIzaSy...78Pc (ID: 77d963bc-3d69-4d89-8e7f-9126dd4733e4)
 [GEMINI_SCORING] Acquired API key for discussion 1oli018 (attempt 1)
-[GEMINI_SCORING] Discussion 1oli018 scored 70/100 by Gemini AI - The post asks a question about personalizing outreach, indicating a need for solutions. While the focus is on cold calls, the underlying problem of personalization aligns with the website's value proposition of automating outreach. The quality is decent, with a clear question and some context. The final score is 70 because the topic is relevant to the business context, but the specific focus on cold calls is not a direct match for Reddit outreach.
+[GEMINI_SCORING] Discussion 1oli018 scored 70/100 by Gemini AI - The post asks a question about personalizing outreach, indicating a need for solutions. While the focus is on cold calls, the underlying problem of personalization and workflow optimization aligns with the website's value proposition of automating outreach. The quality is decent, with a clear question and some context. The final score is slightly above the relevance threshold due to the indirect connection to Reddit outreach, but the core problem is relevant.
 [system] Waiting 15 seconds before releasing API key
 [system] API key released successfully
 [GEMINI_SCORING] Released API key for discussion 1oli018
 [system] Acquiring API key for provider: gemini
 [system] Successfully marked API key as being_used = true
-[system] Acquired API key: AIzaSy...dKjs (ID: 0c8ab611-9648-4b9e-a9af-112177b12243)
+[system] Acquired API key: AIzaSy...43_M (ID: ffdc52ba-8f00-4653-8736-2e27a7c77ead)
 [GEMINI_SCORING] Acquired API key for discussion 1olc5cr (attempt 1)
-[GEMINI_SCORING] Discussion 1olc5cr scored 45/100 by Gemini AI - The user is seeking help with a marketing-related issue (signup form). While not directly related to Reddit outreach, the post is in the target subreddit and the user is a marketer. The intent is clear (seeking help), and the quality is decent. However, the core topic is about form validation, not Reddit outreach, so the context match is low. The final score reflects a moderate opportunity for engagement, potentially offering the website as a tool to reach out to users who signed up.
+[system] Waiting 15 seconds before releasing API key
+[system] API key released successfully
+[GEMINI_SCORING] Released API key for discussion 1olc5cr
+[GEMINI_SCORING] Error scoring discussion 1olc5cr: Error: Gemini API error: 429 - {
+  "error": {
+    "code": 429,
+    "message": "Resource exhausted. Please try again later. Please refer to https://cloud.google.com/vertex-ai/generative-ai/docs/error-code-429 for more details.",
+    "status": "RESOURCE_EXHAUSTED"
+  }
+}
+
+    at o (/var/task/.next/server/app/api/reddit/proxy/route.js:41:451)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async r (/var/task/.next/server/app/api/reddit/proxy/route.js:1:11208)
+    at async g (/var/task/.next/server/app/api/reddit/proxy/route.js:1:5121)
+    at async /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411
+    at async e_.execute (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880)
+    at async e_.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943)
+    at async en (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:25592)
+    at async ea.responseCache.get.routeKind (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:1028)
+    at async r9.renderToResponseWithComponentsImpl (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:17:508) {
+  status: 429
+}
+[GEMINI_FILTERING] Attempt 1 failed for discussion 1olc5cr, trying different API key...
+[system] Acquiring API key for provider: gemini
+[system] Successfully marked API key as being_used = true
+[system] Acquired API key: AIzaSy...d6O0 (ID: 991fa2b4-5a2d-4b18-a25e-1d5f8788b723)
+[GEMINI_SCORING] Acquired API key for discussion 1olc5cr (attempt 1)
+[GEMINI_SCORING] Discussion 1olc5cr scored 45/100 by Gemini AI - The user is seeking help with a marketing-related issue (signup form). While not directly related to Reddit outreach, the post is in the target subreddit and the user is a marketer. The intent is clear (seeking help), and the quality is decent. However, the core topic is about form validation, not Reddit outreach, so the context match is low. The final score is moderate because while the topic isn't directly relevant, the user is a potential customer of marketing tools.
 [system] Waiting 15 seconds before releasing API key
 [system] API key released successfully
 [GEMINI_SCORING] Released API key for discussion 1olc5cr
 [system] Acquiring API key for provider: gemini
 [system] Successfully marked API key as being_used = true
-[system] Acquired API key: AIzaSy...9lFY (ID: 773358d9-9b41-472a-bbb4-a0496c4e3d6a)
+[system] Acquired API key: AIzaSy...RaIY (ID: bdfd3d70-5251-4b09-9ff7-9481c8dd6757)
 [GEMINI_SCORING] Acquired API key for discussion 1okpfoh (attempt 1)
-[GEMINI_SCORING] Discussion 1okpfoh scored 80/100 by Gemini AI - The user expresses frustration with an ad spying tool (PowerAdSpy) and seeks a solution to see competitor ads. This aligns well with the website's business context of providing a Reddit outreach platform. The post is detailed and genuine, indicating a high-quality discussion. The intent is not directly buying, but the user is clearly looking for a way to analyze competitor ads, which is a problem the website solves. The context match is high because the post discusses a tool for analyzing ads on Reddit, which is directly related to the website's functionality. The quality is high due to the detailed explanation of the user's experience. The final score is high because the post presents a relevant problem and the website offers a solution, making it a valuable opportunity for engagement.
+[GEMINI_SCORING] Discussion 1okpfoh scored 80/100 by Gemini AI - The user expresses dissatisfaction with a competitor's ad spying tool, indicating a need for a solution to analyze competitor ads. This aligns well with the website's business context of providing a Reddit outreach platform. The post is detailed and genuine, making it a high-quality discussion. The intent is present, though not explicitly seeking a new tool, the pain point is clear. The context match is high because the user is discussing a tool that analyzes ads on Reddit, which is directly related to the website's functionality. The quality is high due to the detailed explanation of the user's experience. The final score is high because the post presents an opportunity to position the website as a superior alternative to the mentioned tool.
 [system] Waiting 15 seconds before releasing API key
 [system] API key released successfully
 [GEMINI_SCORING] Released API key for discussion 1okpfoh
 [system] Acquiring API key for provider: gemini
 [system] Successfully marked API key as being_used = true
-[system] Acquired API key: AIzaSy...zeO0 (ID: 7ac0dd33-f3a6-4028-ad0e-cd20c65e187e)
+[system] Acquired API key: AIzaSy...rS6s (ID: 7751b78e-b91b-4c1a-a76d-1d9e5f283bdb)
 [GEMINI_SCORING] Acquired API key for discussion 1okp5ci (attempt 1)
-[GEMINI_SCORING] Discussion 1okp5ci scored 45/100 by Gemini AI - The user is seeking help and has a clear problem (lack of portfolio). This indicates a moderate intent score. The context match is low because the post is about job searching, not directly about automating Reddit outreach. While the target audience (marketers) is present, the topic is not directly related to the website's core offering. The quality is decent, with a clear problem statement. The final score is moderate due to the indirect relevance to the website's business context.
+[GEMINI_SCORING] Discussion 1okp5ci scored 45/100 by Gemini AI - The user is seeking help and has a clear problem (lack of portfolio). This indicates a moderate intent score. The context match is low because the post is about job searching, not directly about automating Reddit outreach. While the target audience (marketers) is present, the topic isn't directly related to the website's core offering. The quality is decent, with a clear problem statement. The final score is a weighted average, reflecting the user's intent but limited relevance to the website's core business. The website could potentially engage by offering advice on marketing, but it's not a direct lead.
 [system] Waiting 15 seconds before releasing API key
 [system] API key released successfully
 [GEMINI_SCORING] Released API key for discussion 1okp5ci
 [system] Acquiring API key for provider: gemini
 [system] Successfully marked API key as being_used = true
-[system] Acquired API key: AIzaSy...rW18 (ID: fadc6f69-915a-4b73-8e55-6dcb5d61439c)
+[system] Acquired API key: AIzaSy...d6O0 (ID: 991fa2b4-5a2d-4b18-a25e-1d5f8788b723)
 [GEMINI_SCORING] Acquired API key for discussion 1ok3xen (attempt 1)
-[GEMINI_SCORING] Discussion 1ok3xen scored 80/100 by Gemini AI - The user expresses a clear pain point: difficulty connecting marketing strategy to tangible results. This indicates a need for solutions and potential interest in tools that can improve marketing effectiveness. The post aligns well with the website's target audience (marketers) and business context (improving marketing outcomes). The post is well-written and detailed, suggesting a genuine discussion. The final score is high because the post addresses a core problem that the website's platform aims to solve, making it a valuable opportunity for engagement.
+[GEMINI_SCORING] Discussion 1ok3xen scored 80/100 by Gemini AI - The user expresses a clear pain point: difficulty connecting marketing strategy to tangible results. This indicates a need for solutions and potential interest in tools that can improve marketing performance. The post aligns well with the website's business context, targeting marketers and addressing a core challenge in the field. The post is well-written and detailed, suggesting a genuine discussion. The final score is high because the post addresses a relevant problem and is of good quality, making it a valuable opportunity for engagement.
 [system] Waiting 15 seconds before releasing API key
 [system] API key released successfully
 [GEMINI_SCORING] Released API key for discussion 1ok3xen
-[system] Acquiring API key for provider: gemini
-[system] Successfully marked API key as being_used = true
-[system] Acquired API key: AIzaSy...EqGc (ID: 0882df87-f325-4bd1-b905-f3d4ed0829ed)
-[GEMINI_SCORING] Acquired API key for discussion 1ok2rk1 (attempt 1)
-[GEMINI_SCORING] Discussion 1ok2rk1 scored 20/100 by Gemini AI - The post expresses confusion and seeks understanding about a paused contract, not a solution. While it's in r/marketing, the topic is about a specific contract issue, not marketing automation or platform solutions. The quality is decent, but the relevance to the website's business is low. The post doesn't show any intent to buy or seek a solution related to Reddit outreach.
-[system] Waiting 15 seconds before releasing API key
-[system] API key released successfully
-[GEMINI_SCORING] Released API key for discussion 1ok2rk1
-[system] Acquiring API key for provider: gemini
-[system] Successfully marked API key as being_used = true
-[system] Acquired API key: AIzaSy...9lFY (ID: 773358d9-9b41-472a-bbb4-a0496c4e3d6a)
-[GEMINI_SCORING] Acquired API key for discussion 1okdr81 (attempt 1)
-[GEMINI_SCORING] Discussion 1okdr81 scored 80/100 by Gemini AI - The user explicitly asks for help with reaching their target audience, demonstrating a clear need. The topic directly relates to the website's core function (Reddit outreach). The post is genuine and asks a relevant question, although the content is brief. The final score is high because the user's need aligns well with the website's value proposition.
-[system] Waiting 15 seconds before releasing API key
-[system] API key released successfully
-[GEMINI_SCORING] Released API key for discussion 1okdr81
-[system] Acquiring API key for provider: gemini
-[system] Successfully marked API key as being_used = true
-[system] Acquired API key: AIzaSy...T4ks (ID: 387b634e-0c2a-41dd-93a6-3c2cfa50fde7)
-[GEMINI_SCORING] Acquired API key for discussion 1okcap3 (attempt 1)
-[GEMINI_SCORING] Discussion 1okcap3 scored 25/100 by Gemini AI - The post asks a question about marketing practices, indicating a low level of intent. While it's in the r/marketing subreddit, which aligns with the target audience, the topic is about Google's advertising practices, not Reddit outreach. The quality is decent, but the relevance to the website's core offering (Reddit outreach automation) is limited. Therefore, the final score is low.
-[system] Waiting 15 seconds before releasing API key
-[system] API key released successfully
-[GEMINI_SCORING] Released API key for discussion 1okcap3
-[system] Acquiring API key for provider: gemini
-[system] Successfully marked API key as being_used = true
-[system] Acquired API key: AIzaSy...9lFY (ID: 773358d9-9b41-472a-bbb4-a0496c4e3d6a)
-[GEMINI_SCORING] Acquired API key for discussion 1oknfku (attempt 1)
-[GEMINI_SCORING] Discussion 1oknfku scored 75/100 by Gemini AI - The user is discussing using AI to analyze data for marketing insights, which aligns with the website's focus on AI and platform-based solutions. The post asks a question, indicating a desire for information and potentially a need for a solution. The quality is decent, with a clear explanation of the problem and a specific question. The context match is high because the discussion revolves around using AI for marketing, which is directly relevant to the website's value proposition. The intent is moderate as the user is seeking information, not explicitly looking for a product, but the discussion suggests a potential need for automation or a platform. The final score is high because the post is relevant to the target audience and the topic is directly related to the website's business.
-[system] Waiting 15 seconds before releasing API key
-Vercel Runtime Timeout Error: Task timed out after 300 seconds
+[GEMINI_FILTERING] Found 5 relevant discussions out of 12 scored (threshold: 70%)
+[REDDIT_PROXY] 5 discussions passed relevance filtering
+[REDDIT_PROXY] Using Reddit account: H2REBE2R
+[REDDIT_PROXY] Processing discussion 1okpfoh (score: 80)
+[REDDIT_PROXY] Successfully posted reply to discussion 1okpfoh
 
-Nov 01 20:00:01.99
+Nov 01 20:30:00.59
 POST
 200
-redditoutreach.com
-/api/reddit/process-inbox
-Nov 01 20:00:01.98
-POST
-200
-redditoutreach.com
-/api/reddit/process-inbox
-Nov 01 20:00:01.86
-POST
-200
-redditoutreach.com
-/api/reddit/process-inbox
-Nov 01 20:00:01.07
-POST
----
 redditoutreach.com
 /api/cron/auto-poster
-24
-[CRON] ===== CRON ENDPOINT CALLED =====
-[CRON] Request URL: https://redditoutreach.com/api/cron/auto-poster
-[CRON] Request method: POST
-[CRON] All headers: {
-  accept: '*/*',
-  'accept-encoding': 'gzip',
-  authorization: 'Bearer eyJVc2VySUQiOiI3NTIzNjcwYi05NjVlLTQxNjItOGFhNy1hNjE2YjhjZTVlNTkiLCJQYXNzd29yZCI6Ijg0YWZjNDE3NjZkMDRmZmJhOWUxYTJkNzEzNmM0YTlkIn0=',
-  connection: 'close',
-  'content-length': '121',
-  'content-type': 'application/json',
-  date: 'Sun, 02 Nov 2025 03:00:01 GMT',
-  forwarded: 'for=3.69.220.58;host=redditoutreach.com;proto=https;sig=0QmVhcmVyIGNhZGVjZTIxZjk0NDdjYzA2ZDQ5YjIyZDFhMWNkZWVjMDY5NTljZmE5NGU2MTdmMjYzY2ZmZGYwYWQxNDBlNGU=;exp=1762052701',
-  host: 'redditoutreach.com',
-  'upstash-caller-ip': '18.212.16.171',
-  'upstash-message-id': 'msg_26hZCxZCuWyyTWPmSVBrNC1RACqDqPmULx7GHARiWz5gFoZJWMtbjH8kPfwYN2m',
-  'upstash-retried': '0',
-  'upstash-schedule-id': 'scd_6rTTGerA9tZYEcrKvXT6rjJiExvB',
-  'upstash-signature': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIiLCJib2R5IjoiLTBMaG5oZTY5dFBUN1A5cFYxS3AtYldmbi10U1RSUEEtNDFWQ0M0STdJOD0iLCJleHAiOjE3NjIwNTI3MDAsImlhdCI6MTc2MjA1MjQwMCwiaXNzIjoiVXBzdGFzaCIsImp0aSI6Imp3dF83ZENBZUdnS1d0UWtMdUtCRGJUb200WXQyTGdwIiwibmJmIjotNjIxMzU1OTY4MDAsInN1YiI6Imh0dHBzOi8vcmVkZGl0b3V0cmVhY2guY29tL2FwaS9jcm9uL2F1dG8tcG9zdGVyIn0.t_fAk4U-y2iyxdBoTYLh-hBHc46XxBALDkVPe1kGr5U',
-  'user-agent': 'Upstash-QStash',
-  'x-clerk-auth-message': 'Invalid JWT form. A JWT consists of three parts separated by dots. (reason=token-invalid, token-carrier=header)',
-  'x-clerk-auth-reason': 'token-invalid',
-  'x-clerk-auth-status': 'signed-out',
-  'x-clerk-auth-token': '',
-  'x-forwarded-for': '3.69.220.58',
-  'x-forwarded-host': 'redditoutreach.com',
-  'x-forwarded-port': '443',
-  'x-forwarded-proto': 'https',
-  'x-matched-path': '/api/cron/auto-poster',
-  'x-real-ip': '3.69.220.58',
-  'x-vercel-deployment-url': 'redditbotwebbb-mdjyh9kj3-buyyasams-projects.vercel.app',
-  'x-vercel-forwarded-for': '3.69.220.58',
-  'x-vercel-function-path': 'api/cron/auto-poster',
-  'x-vercel-id': 'fra1::242xw-1762052401079-e0e1e7bef470',
-  'x-vercel-internal-bot-category': 'webhook',
-  'x-vercel-internal-bot-check': 'pass',
-  'x-vercel-internal-bot-name': 'qstash',
-  'x-vercel-internal-ingress-bucket': 'bucket017',
-  'x-vercel-internal-ingress-port': '17443',
-  'x-vercel-ip-as-number': '16509',
-  'x-vercel-ip-city': 'Frankfurt%20am%20Main',
-  'x-vercel-ip-continent': 'EU',
-  'x-vercel-ip-country': 'DE',
-  'x-vercel-ip-country-region': 'HE',
-  'x-vercel-ip-latitude': '50.1169',
-  'x-vercel-ip-longitude': '8.6837',
-  'x-vercel-ip-postal-code': '60313',
-  'x-vercel-ip-timezone': 'Europe/Berlin',
-  'x-vercel-ja4-digest': 't13d1311h2_f57a46bbacb6_e7c285222651',
-  'x-vercel-oidc-token': 'eyJraWQiOiJtcmstNDMwMmVjMWI2NzBmNDhhOThhZDYxZGFkZTRhMjNiZTciLCJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYmYiOjE3NjIwNTI0MDEsImlzcyI6Imh0dHBzOlwvXC9vaWRjLnZlcmNlbC5jb21cL2J1eXlhc2Ftcy1wcm9qZWN0cyIsInByb2plY3QiOiJyZWRkaXRib3R3ZWJiYiIsInNjb3BlIjoib3duZXI6YnV5eWFzYW1zLXByb2plY3RzOnByb2plY3Q6cmVkZGl0Ym90d2ViYmI6ZW52aXJvbm1lbnQ6cHJvZHVjdGlvbiIsImVudmlyb25tZW50IjoicHJvZHVjdGlvbiIsInZlcmNlbF9pZCI6ImZyYTE6OjI0Mnh3LTE3NjIwNTI0MDA5NTAtNWU5NTMwNjRmMGNjIiwiZXhwIjoxNzYyMDU2MDAxLCJvd25lciI6ImJ1eXlhc2Ftcy1wcm9qZWN0cyIsInBsYW4iOiJob2JieSIsImlhdCI6MTc2MjA1MjQwMSwib3duZXJfaWQiOiJ0ZWFtX3FwbFFIb1Z4MjFjdWdMblVucmVzeko2TiIsImF1ZCI6Imh0dHBzOlwvXC92ZXJjZWwuY29tXC9idXl5YXNhbXMtcHJvamVjdHMiLCJwcm9qZWN0X2lkIjoicHJqX0IxNDRKMWZOc1lsTWJSSDhCdFpCYjJXUEg3dHEiLCJzdWIiOiJvd25lcjpidXl5YXNhbXMtcHJvamVjdHM6cHJvamVjdDpyZWRkaXRib3R3ZWJiYjplbnZpcm9ubWVudDpwcm9kdWN0aW9uIn0.WS2V63TiM5U9q9y6dqN6QCvt2W2OX8HsU_ArUrITvzLpsMmPEmwmhNMJXnApr_jY5GZmhhVnMF72mdOsqu9ZzhUrXqazxDA2ab6JfJmdwd709FThbLRBaNnqyRPHYAeyE2gq_wq2HcP0O5KoyPBdDtGqsJ7Prp14Bdlf95a1oi6KDMKJyEvIboAWcXCyYWDwIowiJOZLeEqpdUmpLI1ROplMNTjVc-ouG7HN8fsuuFu18EC8F23_x_ojyoH0vZiVIf-dE8sSEUYIexzNdP8hYcbgVEdef08OIGkzoDExl3dM7r52X_XxUpNF6i6v7ayxv_ubFPpjF98AW59TqI8xKA',
-  'x-vercel-proxied-for': '3.69.220.58',
-  'x-vercel-proxy-signature': 'Bearer cadece21f9447cc06d49b22d1a1cdeec06959cfa94e617f263cffdf0ad140e4e',
-  'x-vercel-proxy-signature-ts': '1762052701',
-  'x-vercel-sc-basepath': '',
-  'x-vercel-sc-headers': '{"Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjIwNTMzMjIsInVubGltaXRlZCI6ZmFsc2UsImRlcGxveW1lbnRJZCI6ImRwbF9EM1lDZ2ExdVhpVmNmNXF0Qm1zc1lYYmFVQzIzIiwibmV4dFZlcnNpb24iOiIxNC4yLjI4IiwicHJvamVjdElkIjoicHJqX0IxNDRKMWZOc1lsTWJSSDhCdFpCYjJXUEg3dHEiLCJlbnYiOiJwcm9kdWN0aW9uIiwiZG9tYWluIjoicmVkZGl0b3V0cmVhY2guY29tIiwib3duZXJJZCI6InRlYW1fcXBsUUhvVngyMWN1Z0xuVW5yZXN6SjZOIiwiaWF0IjoxNzYyMDUyNDAyLCJpc3MiOiJzZXJ2ZXJsZXNzIiwicmVxdWVzdElkIjoiMjQyeHctMTc2MjA1MjQwMTA3OS1lMGUxZTdiZWY0NzAiLCJwbGFuIjoiaG9iYnkiLCJibG9jayI6ZmFsc2V9.9DF79FWpDi-F5WBmiXj69bJMpWc3Be_f6jK-ank8XOI","x-vercel-function-platform":"vercel\\/proxy+serverless","x-vercel-ept":"1"}',
-  'x-vercel-sc-host': 'iad1.suspense-cache.vercel-infra.com'
-}
-[CRON] ===== AUTO-POSTER CRON JOB STARTED =====
-[CRON] Auth check - received: Bearer eyJVc2VySU...
-[CRON] Expected: Bearer eyJVc2VySU...
-[CRON] Authentication successful, starting auto-poster job...
-[CRON] 1 Reddit accounts available for posting
-[CRON] DEBUG: Total configs in database: 3
-[CRON] DEBUG Config 577bd3b5-8376-4c4b-af92-a9154bbf6bd8: enabled=true, status=active, next_post_at=2025-11-02T03:05:31.228831+00:00, posts_today=0/10
-[CRON] DEBUG Config 0a5d275d-58f2-4775-b801-6f4c6f34e4ed: enabled=false, status=paused, next_post_at=null, posts_today=0/10
-[CRON] DEBUG Config 25aea7d9-0902-44ce-85e4-cb9186bd77a4: enabled=false, status=paused, next_post_at=null, posts_today=0/10
-[CRON] Current time for comparison: 2025-11-02T03:00:02.671Z
-[CRON] Configs matching enabled=true AND status=active: 0
-[CRON] Found 0 configs ready to post after daily limit filter
-[CRON] Found 1 active configs with future post times, resetting to post now
-[CRON] Successfully reset config post times, re-querying for ready configs
-[CRON] Fresh time for re-query: 2025-11-02T03:00:02.815Z
-[CRON] After reset: 1 configs now ready to post
-[CRON] Processing config 577bd3b5-8376-4c4b-af92-a9154bbf6bd8 for product 21ccf61c-bc90-445b-bd2c-475997969e5e
-[CRON] Using subreddit: r/marketing (index 3)
-[CRON] Using Reddit account: H2REBE2R (ID: a20a03d7-f487-4032-9d39-b865e0f7e934)
-[CRON] Calling proxy endpoint for r/marketing with query: platform AI
-Vercel Runtime Timeout Error: Task timed out after 300 seconds
-
-Nov 01 20:00:01.00
-POST
-200
-redditoutreach.com
-/api/reddit/process-inbox
-2
-process-inbox: proxy_envs_restored
-Nov 01 20:00:00.95
-POST
-200
-redditoutreach.com
-/api/reddit/process-inbox
-2
-process-inbox: proxy_envs_restored
-Nov 01 19:59:26.48
+27
+[CRON] Auto-poster job completed. Posts: 1, Errors: 0
+Nov 01 20:29:26.55
 GET
 200
 redditoutreach.com
 /api/auto-poster/status
-Nov 01 19:59:02.48
+Nov 01 20:28:26.55
 GET
 200
 redditoutreach.com

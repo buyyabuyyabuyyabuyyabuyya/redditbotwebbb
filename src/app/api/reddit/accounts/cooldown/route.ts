@@ -17,7 +17,7 @@ export async function GET(req: Request) {
       // Check if specific account is available
       const { data: account } = await supabaseAdmin
         .from('reddit_accounts')
-        .select('id, last_used_at, cooldown_minutes, is_available')
+        .select('id, last_used_at, cooldown_minutes, is_available, current_cooldown_until')
         .eq('id', accountId)
         .eq('is_discussion_poster', true)
         .eq('is_validated', true)
@@ -28,28 +28,33 @@ export async function GET(req: Request) {
       }
 
       const now = new Date();
-      const lastUsed = account.last_used_at ? new Date(account.last_used_at) : null;
-      const cooldownMinutes = account.cooldown_minutes || 30;
       
-      if (lastUsed) {
-        const cooldownEnd = new Date(lastUsed.getTime() + cooldownMinutes * 60 * 1000);
-        const isAvailable = now >= cooldownEnd && account.is_available;
-        
-        return NextResponse.json({ 
-          available: isAvailable,
-          cooldownEndsAt: cooldownEnd.toISOString(),
-          minutesRemaining: Math.max(0, Math.ceil((cooldownEnd.getTime() - now.getTime()) / (60 * 1000)))
-        });
+      // Use current_cooldown_until if available, otherwise calculate from last_used_at
+      let cooldownEnd: Date;
+      if (account.current_cooldown_until) {
+        cooldownEnd = new Date(account.current_cooldown_until);
+      } else if (account.last_used_at) {
+        const lastUsed = new Date(account.last_used_at);
+        const cooldownMinutes = account.cooldown_minutes || 30;
+        cooldownEnd = new Date(lastUsed.getTime() + cooldownMinutes * 60 * 1000);
+      } else {
+        return NextResponse.json({ available: account.is_available });
       }
-
-      return NextResponse.json({ available: account.is_available });
+      
+      const isAvailable = now >= cooldownEnd && account.is_available;
+      
+      return NextResponse.json({ 
+        available: isAvailable,
+        cooldownEndsAt: cooldownEnd.toISOString(),
+        minutesRemaining: Math.max(0, Math.ceil((cooldownEnd.getTime() - now.getTime()) / (60 * 1000)))
+      });
     }
 
     if (action === 'list') {
       // Get all available accounts
       const { data: accounts } = await supabaseAdmin
         .from('reddit_accounts')
-        .select('id, username, is_validated, is_discussion_poster, last_used_at, cooldown_minutes, is_available, total_posts_made')
+        .select('id, username, is_validated, is_discussion_poster, last_used_at, cooldown_minutes, is_available, total_posts_made, current_cooldown_until')
         .eq('is_discussion_poster', true)
         .eq('is_validated', true);
 
@@ -58,11 +63,17 @@ export async function GET(req: Request) {
       const onCooldownAccounts = [];
 
       for (const account of accounts || []) {
-        const lastUsed = account.last_used_at ? new Date(account.last_used_at) : null;
-        const cooldownMinutes = account.cooldown_minutes || 30;
+        // Use current_cooldown_until if available, otherwise calculate from last_used_at
+        let cooldownEnd: Date | null = null;
+        if (account.current_cooldown_until) {
+          cooldownEnd = new Date(account.current_cooldown_until);
+        } else if (account.last_used_at) {
+          const lastUsed = new Date(account.last_used_at);
+          const cooldownMinutes = account.cooldown_minutes || 30;
+          cooldownEnd = new Date(lastUsed.getTime() + cooldownMinutes * 60 * 1000);
+        }
         
-        if (lastUsed) {
-          const cooldownEnd = new Date(lastUsed.getTime() + cooldownMinutes * 60 * 1000);
+        if (cooldownEnd) {
           const isAvailable = now >= cooldownEnd && account.is_available;
           
           if (isAvailable) {
@@ -90,7 +101,7 @@ export async function GET(req: Request) {
       // Get status of all accounts
       const { data: accounts } = await supabaseAdmin
         .from('reddit_accounts')
-        .select('id, username, is_validated, is_discussion_poster, last_used_at, cooldown_minutes, is_available, total_posts_made')
+        .select('id, username, is_validated, is_discussion_poster, last_used_at, cooldown_minutes, is_available, total_posts_made, current_cooldown_until')
         .eq('is_discussion_poster', true)
         .eq('is_validated', true);
 
@@ -99,11 +110,17 @@ export async function GET(req: Request) {
       const onCooldownAccounts = [];
 
       for (const account of accounts || []) {
-        const lastUsed = account.last_used_at ? new Date(account.last_used_at) : null;
-        const cooldownMinutes = account.cooldown_minutes || 30;
+        // Use current_cooldown_until if available, otherwise calculate from last_used_at
+        let cooldownEnd: Date | null = null;
+        if (account.current_cooldown_until) {
+          cooldownEnd = new Date(account.current_cooldown_until);
+        } else if (account.last_used_at) {
+          const lastUsed = new Date(account.last_used_at);
+          const cooldownMinutes = account.cooldown_minutes || 30;
+          cooldownEnd = new Date(lastUsed.getTime() + cooldownMinutes * 60 * 1000);
+        }
         
-        if (lastUsed) {
-          const cooldownEnd = new Date(lastUsed.getTime() + cooldownMinutes * 60 * 1000);
+        if (cooldownEnd) {
           const isAvailable = now >= cooldownEnd && account.is_available;
           
           if (isAvailable) {
@@ -152,6 +169,7 @@ export async function POST(req: Request) {
 
     const cooldownTime = cooldownMinutes || 30;
     const now = new Date();
+    const cooldownUntil = new Date(now.getTime() + cooldownTime * 60 * 1000);
 
     // First get current total_posts_made count
     const { data: currentAccount } = await supabaseAdmin
@@ -166,6 +184,7 @@ export async function POST(req: Request) {
       .update({
         last_used_at: now.toISOString(),
         cooldown_minutes: cooldownTime,
+        current_cooldown_until: cooldownUntil.toISOString(),
         is_available: false,
         total_posts_made: (currentAccount?.total_posts_made || 0) + 1
       })
@@ -205,7 +224,8 @@ export async function DELETE(req: Request) {
       .from('reddit_accounts')
       .update({
         is_available: true,
-        last_used_at: null
+        last_used_at: null,
+        current_cooldown_until: null
       })
       .eq('id', accountId);
 
