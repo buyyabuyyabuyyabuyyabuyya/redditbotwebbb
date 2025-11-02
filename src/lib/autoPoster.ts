@@ -127,7 +127,7 @@ export class AutoPoster {
         queries[0], // Use the first query
         this.userId,
         undefined, // Use default subreddits
-        25,
+        10,
         this.status.currentWebsiteConfig,
         true // Use pagination
       );

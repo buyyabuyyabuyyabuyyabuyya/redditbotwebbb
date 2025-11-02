@@ -246,7 +246,7 @@ export async function POST(req: Request) {
             body: JSON.stringify({
               query,
               subreddit: targetSubreddit,
-              limit: 25,
+              limit: 10,
               userId: config.user_id,
               websiteConfig: websiteConfig,
               configId: config.id

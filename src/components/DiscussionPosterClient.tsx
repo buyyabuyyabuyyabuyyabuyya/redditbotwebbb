@@ -164,7 +164,7 @@ export default function DiscussionPosterClient() {
         queries[0],
         user.id,
         undefined, // Use default subreddits
-        25,
+        10,
         selectedConfig,
         true // Use pagination
       );

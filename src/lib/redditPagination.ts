@@ -156,7 +156,7 @@ export function extractPaginationTokens(redditResponse: any): {
  */
 export function buildRedditUrlWithPagination(
   subreddit: string,
-  limit: number = 25,
+  limit: number = 10,
   after?: string | null,
   before?: string | null,
   sort: string = 'hot'

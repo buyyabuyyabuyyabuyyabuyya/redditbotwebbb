@@ -362,7 +362,7 @@ export async function searchMultipleSubredditsWithPagination(
   query: string,
   userId: string,
   subreddits: string[] = BUSINESS_SUBREDDITS,
-  limitPerSubreddit: number = 25,
+  limitPerSubreddit: number = 10,
   websiteConfig?: WebsiteConfig,
   usePagination: boolean = true
 ): Promise<RedditDiscussion[]> {
@@ -490,7 +490,7 @@ export async function searchMultipleSubredditsWithPagination(
 export async function searchMultipleSubreddits(
   query: string,
   subreddits: string[] = BUSINESS_SUBREDDITS,
-  limitPerSubreddit: number = 25,
+  limitPerSubreddit: number = 10,
   websiteConfig?: WebsiteConfig
 ): Promise<RedditDiscussion[]> {
   const allDiscussions: RedditDiscussion[] = [];
