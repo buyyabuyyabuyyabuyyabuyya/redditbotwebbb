@@ -1,11 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { BUSINESS_SUBREDDITS, getRedditDiscussions } from '../../../../lib/redditService';
-import { filterRelevantDiscussions } from '../../../../lib/relevanceFiltering';
-import { redditReplyService } from '../../../../lib/redditReplyService';
+import { BUSINESS_SUBREDDITS } from '../../../../lib/redditService';
 import { PostQueueService } from '../../../../lib/postQueueService';
 import { CircuitBreakerService } from '../../../../lib/circuitBreakerService';
-import { RedditPaginationManagerServer } from '../../../../lib/redditPaginationServer';
 
 // Cron job endpoint for automated posting
 export async function POST(req: Request) {
@@ -234,191 +231,62 @@ export async function POST(req: Request) {
 
         console.log(`[CRON] Using Reddit account: ${redditAccount.username} (ID: ${redditAccount.id})`);
 
-        // Initialize pagination manager for this config
-        const paginationManager = new RedditPaginationManagerServer(config.user_id, config.id);
-        
-        // Use RSS feed for reliable fetching (no 403 errors)
+        // Call the main proxy endpoint to handle everything
         const query = websiteConfig.target_keywords?.join(' ') || websiteConfig.customer_segments?.join(' ') || 'business';
         
-        console.log(`[CRON] Fetching hot posts from r/${targetSubreddit} with query: ${query}`);
+        console.log(`[CRON] Calling proxy endpoint for r/${targetSubreddit} with query: ${query}`);
         
-        let discussions;
         try {
-          // Get pagination state for this subreddit
-          const paginationState = await paginationManager.getPaginationState(targetSubreddit);
-          console.log(`[CRON] Pagination state for r/${targetSubreddit}:`, paginationState ? `after=${paginationState.after}` : 'first fetch');
-          
-          // Fetch discussions using RSS (more reliable than JSON API)
-          const result = await getRedditDiscussions(query, targetSubreddit, 25);
-          discussions = result.items;
-          
-          console.log(`[CRON] Fetched ${discussions?.length || 0} discussions from r/${targetSubreddit}`);
-          
-          // Update pagination state (for future use when we implement after_token)
-          if (discussions && discussions.length > 0) {
-            // For now, we're using RSS which doesn't provide after tokens
-            // This will be updated when we switch to JSON API with pagination
-            await paginationManager.updatePaginationState(
-              targetSubreddit,
-              null, // RSS doesn't provide after token yet
-              null,
-              discussions.length
-            );
-          }
-        } catch (error) {
-          console.error(`[CRON] Reddit fetch failed for r/${targetSubreddit}:`, error);
-          
-          // Rotate to next subreddit on error
-          const nextIndex = (currentIndex + 1) % BUSINESS_SUBREDDITS.length;
-          await supabaseAdmin
-            .from('auto_poster_configs')
-            .update({
-              current_subreddit_index: nextIndex,
-              last_subreddit_used: BUSINESS_SUBREDDITS[nextIndex]
+          const proxyResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://redditoutreach.com'}/api/reddit/proxy`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${process.env.CRON_SECRET}`
+            },
+            body: JSON.stringify({
+              query,
+              subreddit: targetSubreddit,
+              limit: 25,
+              userId: config.user_id,
+              websiteConfig: websiteConfig,
+              configId: config.id
             })
-            .eq('id', config.id);
+          });
+
+          if (!proxyResponse.ok) {
+            throw new Error(`Proxy failed: ${proxyResponse.status}`);
+          }
+
+          const proxyData = await proxyResponse.json();
+          console.log(`[CRON] Proxy response:`, { 
+            success: proxyData.success, 
+            posted: proxyData.posted,
+            relevant: proxyData.relevant,
+            total: proxyData.total 
+          });
+
+          if (proxyData.success && proxyData.posted) {
+            console.log(`[CRON] Successfully posted via proxy for config ${config.id}`);
+            totalPosts++;
+            
+            // Update config's next post time
+            await supabaseAdmin
+              .from('auto_poster_configs')
+              .update({
+                next_post_at: new Date(Date.now() + config.interval_minutes * 60 * 1000).toISOString()
+              })
+              .eq('id', config.id);
+          } else {
+            console.log(`[CRON] Proxy completed but no post made for config ${config.id}`);
+          }
           
+          continue; // Move to next config
+        } catch (error) {
+          console.error(`[CRON] Proxy call failed for r/${targetSubreddit}:`, error);
           totalErrors++;
           continue;
         }
-        
-        console.log(`[CRON] Final discussions check: ${discussions?.length || 0} discussions for r/${targetSubreddit}`);
-        
-        if (!discussions || discussions.length === 0) {
-          console.log(`[CRON] No discussions found in r/${targetSubreddit} for config ${config.id}`);
-          continue;
-        }
-        
-        console.log(`[CRON] Found ${discussions.length} discussions in r/${targetSubreddit}`);
-        
-        // Get already posted discussions to avoid duplicates
-        const { data: postedDiscussions } = await supabaseAdmin
-          .from('posted_reddit_discussions')
-          .select('reddit_post_id')
-          .eq('user_id', config.user_id);
-        
-        const postedIds = postedDiscussions?.map(p => p.reddit_post_id) || [];
-        
-        // Step 3: Apply relevance filtering with Gemini AI scoring
-        const relevantDiscussions = await filterRelevantDiscussions(
-          discussions,
-          websiteConfig,
-          postedIds
-        );
-        
-        console.log(`[CRON] ${relevantDiscussions.length} discussions passed relevance filtering`);
 
-        if (relevantDiscussions.length === 0) {
-          console.log(`[CRON] No relevant discussions after filtering for config ${config.id} - rotating to next subreddit`);
-          
-          // Rotate to next subreddit since current one has no relevant posts
-          const nextIndex = (currentIndex + 1) % BUSINESS_SUBREDDITS.length;
-          await supabaseAdmin
-            .from('auto_poster_configs')
-            .update({
-              next_post_at: new Date(Date.now() + config.interval_minutes * 60 * 1000).toISOString(),
-              current_subreddit_index: nextIndex,
-              last_subreddit_used: BUSINESS_SUBREDDITS[nextIndex]
-            })
-            .eq('id', config.id);
-          
-          continue;
-        }
-
-        // Process discussions with Gemini AI integration
-        let posted = false;
-        for (const { discussion, scores } of relevantDiscussions) {
-          console.log(`[CRON] Processing discussion ${discussion.id} (score: ${scores.finalScore})`);
-          
-          try {
-            // Use redditReplyService for Gemini-powered reply generation and posting
-            const result = await redditReplyService.generateAndPostReply(
-              {
-                id: discussion.id,
-                title: discussion.title,
-                selftext: discussion.content || '',
-                subreddit: discussion.subreddit,
-                score: discussion.score || 0,
-                url: discussion.url,
-                permalink: discussion.url.replace('https://reddit.com', '')
-              },
-              {
-                tone: 'pseudo-advice marketing',
-                maxLength: 400,
-                keywords: websiteConfig.target_keywords || [],
-                accountId: redditAccount.id,
-                userId: config.user_id
-              }
-            );
-
-            if (result.success) {
-              console.log(`[CRON] Successfully posted AI-generated comment to ${discussion.id}`);
-              console.log(`[CRON] Comment confidence: ${result.confidence}`);
-              console.log(`[CRON] Comment URL: ${result.commentUrl}`);
-              console.log(`[CRON] Account ${redditAccount.username} will be available again in 30 minutes`);
-              
-              // Mark account as used (starts 30min cooldown) - direct database update
-              await supabaseAdmin
-                .from('reddit_accounts')
-                .update({
-                  last_used_at: new Date().toISOString(),
-                  is_available: false,
-                  total_posts_made: (redditAccount.total_posts_made || 0) + 1
-                })
-                .eq('id', redditAccount.id);
-              
-              // Store posted discussion with relevance scores and account info
-              await supabaseAdmin.from('posted_reddit_discussions').insert({
-                reddit_post_id: discussion.id,
-                reddit_post_title: discussion.title,
-                reddit_post_url: discussion.url,
-                subreddit: discussion.subreddit,
-                user_id: config.user_id,
-                relevance_score: scores.finalScore,
-                intent_score: scores.intentScore,
-                context_match_score: scores.contextMatchScore,
-                quality_score: scores.qualityScore,
-                ai_confidence: result.confidence,
-                comment_text: result.generatedReply,
-                reddit_account_id: redditAccount.id,
-                reddit_account_username: redditAccount.username
-              });
-              
-              totalPosts++;
-              posted = true;
-              break; // Only post to one discussion per config per run
-            } else if (result.skipped) {
-              console.log(`[CRON] Skipped discussion ${discussion.id}: ${result.reason}`);
-              continue;
-            } else {
-              console.error(`[CRON] Failed to post to ${discussion.id}: ${result.error}`);
-              totalErrors++;
-              continue;
-            }
-          } catch (error) {
-            console.error(`[CRON] Error processing discussion ${discussion.id}:`, error);
-            totalErrors++;
-            continue;
-          }
-        }
-
-        if (!posted) {
-          console.log(`[CRON] No posts made for config ${config.id} in r/${targetSubreddit}`);
-        } else {
-          console.log(`[CRON] Successfully posted for config ${config.id} in r/${targetSubreddit}`);
-        }
-
-        // Update config's next post time, stats, and subreddit rotation
-        await supabaseAdmin
-          .from('auto_poster_configs')
-          .update({
-            last_posted_at: posted ? new Date().toISOString() : config.last_posted_at,
-            next_post_at: new Date(Date.now() + config.interval_minutes * 60 * 1000).toISOString(),
-            posts_today: posted ? (config.posts_today || 0) + 1 : config.posts_today,
-            current_subreddit_index: (currentIndex + 1) % BUSINESS_SUBREDDITS.length,
-            last_subreddit_used: targetSubreddit
-          })
-          .eq('id', config.id);
 
       } catch (error) {
         totalErrors++;

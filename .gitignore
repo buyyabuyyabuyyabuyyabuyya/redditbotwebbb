@@ -24,7 +24,8 @@ pnpm-debug.log*
 .logs
 logs/
 log/
-logs_website.txt
+logs-website.txt
+logs-website/
 
 log.txt
 

@@ -110,13 +110,24 @@ export async function POST(req: Request) {
       
       if (!isAvailable) {
         const cooldownInfo = await cooldownManager.getAccountCooldownInfo(accountId);
-        console.log(`❌ [POST-COMMENT] Account ${accountId} is on cooldown:`, cooldownInfo);
+        console.log(`❌ [POST-COMMENT] Account ${accountId} availability check failed:`, cooldownInfo);
         
+        // Only return 429 if actually on cooldown
+        if (cooldownInfo.isOnCooldown) {
+          return NextResponse.json({ 
+            error: 'Account is on cooldown',
+            status: 'rate_limited',
+            cooldownInfo: cooldownInfo
+          }, { status: 429 });
+        }
+        
+        // If not on cooldown but still unavailable, it's a different error
+        console.log(`⚠️ [POST-COMMENT] Account ${accountId} is unavailable but not on cooldown - may be authentication issue`);
         return NextResponse.json({ 
-          error: 'Account is on cooldown',
-          status: 'rate_limited',
+          error: 'Account unavailable',
+          status: 'account_unavailable',
           cooldownInfo: cooldownInfo
-        }, { status: 429 });
+        }, { status: 503 });
       }
 
       const { data: specificAccount } = await supabaseAdmin

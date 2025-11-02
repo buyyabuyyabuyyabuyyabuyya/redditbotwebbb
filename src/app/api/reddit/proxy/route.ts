@@ -27,7 +27,7 @@ export async function POST(req: Request) {
     if (!userId || !websiteConfig) {
       console.log(`[REDDIT_PROXY] Legacy mode - fetching basic discussions for r/${subreddit}`);
       
-      const discussions = await getRedditDiscussions(query, subreddit, limit || 25);
+      const discussions = await getRedditDiscussions(query, subreddit, limit || 10);
       
       return NextResponse.json({
         success: true,
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
     console.log(`[REDDIT_PROXY] Pagination state for r/${subreddit}:`, paginationState ? `after=${paginationState.after}, total_fetched=${paginationState.total_fetched}` : 'first fetch');
 
     // Step 1: Fetch Reddit discussions
-    const discussions = await getRedditDiscussions(query, subreddit, limit || 25);
+    const discussions = await getRedditDiscussions(query, subreddit, limit || 10);
     console.log(`[REDDIT_PROXY] Fetched ${discussions.items.length} discussions from r/${subreddit}`);
     
     // Update pagination state after successful fetch

@@ -55,7 +55,10 @@ export class AccountCooldownManager {
   async getAvailableAccounts(): Promise<AvailableAccount[]> {
     try {
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || 'https://redditoutreach.com';
-      const response = await fetch(`${baseUrl}/api/reddit/accounts/available?action=list`);
+      const isServer = typeof window === 'undefined';
+      const response = await fetch(`${baseUrl}/api/reddit/accounts/available?action=list`, {
+        headers: isServer ? { 'X-Internal-API': 'true' } : {}
+      });
       if (response.ok) {
         const data = await response.json();
         return data.accounts || [];
@@ -86,9 +89,13 @@ export class AccountCooldownManager {
   async markAccountAsUsed(accountId: string): Promise<void> {
     try {
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || 'https://redditoutreach.com';
+      const isServer = typeof window === 'undefined';
       const response = await fetch(`${baseUrl}/api/reddit/accounts/cooldown`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(isServer ? { 'X-Internal-API': 'true' } : {})
+        },
         body: JSON.stringify({ accountId, cooldownMinutes: this.COOLDOWN_MINUTES })
       });
       
@@ -107,7 +114,10 @@ export class AccountCooldownManager {
   async isAccountAvailable(accountId: string): Promise<boolean> {
     try {
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || 'https://redditoutreach.com';
-      const response = await fetch(`${baseUrl}/api/reddit/accounts/available?action=check&accountId=${accountId}`);
+      const isServer = typeof window === 'undefined';
+      const response = await fetch(`${baseUrl}/api/reddit/accounts/available?action=check&accountId=${accountId}`, {
+        headers: isServer ? { 'X-Internal-API': 'true' } : {}
+      });
       if (response.ok) {
         const data = await response.json();
         return data.available || false;
@@ -127,7 +137,10 @@ export class AccountCooldownManager {
   }> {
     try {
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || 'https://redditoutreach.com';
-      const response = await fetch(`${baseUrl}/api/reddit/accounts/available?action=status`);
+      const isServer = typeof window === 'undefined';
+      const response = await fetch(`${baseUrl}/api/reddit/accounts/available?action=status`, {
+        headers: isServer ? { 'X-Internal-API': 'true' } : {}
+      });
       if (response.ok) {
         const data = await response.json();
         return {
@@ -147,9 +160,13 @@ export class AccountCooldownManager {
   async resetAccountCooldown(accountId: string): Promise<void> {
     try {
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || 'https://redditoutreach.com';
+      const isServer = typeof window === 'undefined';
       const response = await fetch(`${baseUrl}/api/reddit/accounts/cooldown`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(isServer ? { 'X-Internal-API': 'true' } : {})
+        },
         body: JSON.stringify({ accountId })
       });
       
@@ -174,7 +191,10 @@ export class AccountCooldownManager {
   }> {
     try {
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || 'https://redditoutreach.com';
-      const response = await fetch(`${baseUrl}/api/reddit/accounts/available?action=cooldown-info&accountId=${accountId}`);
+      const isServer = typeof window === 'undefined';
+      const response = await fetch(`${baseUrl}/api/reddit/accounts/available?action=cooldown-info&accountId=${accountId}`, {
+        headers: isServer ? { 'X-Internal-API': 'true' } : {}
+      });
       if (response.ok) {
         const data = await response.json();
         return data.cooldownInfo || {
@@ -211,8 +231,10 @@ export class AccountCooldownManager {
   async cleanupExpiredCooldowns(): Promise<void> {
     try {
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || 'https://redditoutreach.com';
+      const isServer = typeof window === 'undefined';
       const response = await fetch(`${baseUrl}/api/reddit/accounts/cooldown?action=cleanup`, {
-        method: 'POST'
+        method: 'POST',
+        headers: isServer ? { 'X-Internal-API': 'true' } : {}
       });
       
       if (!response.ok) {
