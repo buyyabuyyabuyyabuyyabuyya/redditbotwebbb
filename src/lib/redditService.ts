@@ -65,7 +65,7 @@ export async function getRedditDiscussions(
       
       const response = await fetch(endpoint.url, {
         headers: {
-          'Accept': endpoint.type === 'rss' ? 'application/rss+xml, application/xml, text/xml' : 'application/json',
+          'Accept': 'application/json',
           'User-Agent': getRandomUserAgent(),
           'Accept-Language': 'en-US,en;q=0.5',
           'Accept-Encoding': 'gzip, deflate, br',
