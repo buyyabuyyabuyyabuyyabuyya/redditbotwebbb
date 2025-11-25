@@ -58,26 +58,96 @@ export async function POST(req: Request) {
     // Initialize pagination manager for this user/config
     const paginationManager = new RedditPaginationManagerServer(userId, configId);
     
-    // Get pagination state for this subreddit
-    const paginationState = await paginationManager.getPaginationState(subreddit);
-    console.log(`[REDDIT_PROXY] Pagination state for r/${subreddit}:`, paginationState ? `after=${paginationState.after}, total_fetched=${paginationState.total_fetched}` : 'first fetch');
+    // Get smart pagination URL (auto-decides reset vs continue)
+    const { url: redditUrl, isReset, state: paginationState } = await paginationManager.getSmartPaginationUrl(subreddit, limit || 10);
+    console.log(`[REDDIT_PROXY] Pagination state for r/${subreddit}:`, paginationState ? `after=${paginationState.after}, total_fetched=${paginationState.total_fetched}, pages=${paginationState.pages_processed}` : 'first fetch');
 
-    // Step 1: Fetch Reddit discussions
-    const discussions = await getRedditDiscussions(query, subreddit, limit || 10);
-    console.log(`[REDDIT_PROXY] Fetched ${discussions.items.length} discussions from r/${subreddit}`);
-    
-    // Update pagination state after successful fetch
-    if (discussions.items && discussions.items.length > 0) {
-      await paginationManager.updatePaginationState(
-        subreddit,
-        null, // RSS doesn't provide after token yet - will be added when we switch to JSON API
-        null,
-        discussions.items.length
-      );
-      console.log(`[REDDIT_PROXY] Updated pagination state: fetched ${discussions.items.length} posts`);
+    // Step 1: Fetch Reddit discussions using smart pagination URL
+    console.log(`[REDDIT_SERVICE] Fetching from: ${redditUrl}`);
+    const response = await fetch(redditUrl, {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Reddit API error: ${response.status}`);
     }
 
-    if (!discussions.items || discussions.items.length === 0) {
+    const data = await response.json();
+    const afterToken = data.data?.after || null;
+    const beforeToken = data.data?.before || null;
+    
+    // Parse discussions from JSON response
+    const discussions = data.data?.children
+      ?.filter((post: any) => {
+        const title = post.data.title.toLowerCase();
+        const content = (post.data.selftext || '').toLowerCase();
+        const queryLower = query.toLowerCase();
+        return title.includes(queryLower) || content.includes(queryLower);
+      })
+      ?.map((post: any) => ({
+        id: post.data.id,
+        title: post.data.title,
+        content: post.data.selftext || '',
+        description: post.data.selftext || post.data.title,
+        url: `https://reddit.com${post.data.permalink}`,
+        subreddit: post.data.subreddit,
+        author: post.data.author,
+        score: post.data.score,
+        num_comments: post.data.num_comments,
+        created_utc: post.data.created_utc,
+        raw_comment: post.data.selftext || post.data.title,
+        is_self: post.data.is_self
+      })) || [];
+    
+    console.log(`[REDDIT_PROXY] Fetched ${discussions.length} discussions from r/${subreddit}`);
+    
+    // Check if we've already posted to these discussions
+    const postIds = discussions.map((d: any) => d.id);
+    const alreadyPostedIds = await paginationManager.checkAlreadyPosted(postIds);
+    
+    // If ALL posts on this page are already processed, skip to next page
+    if (alreadyPostedIds.length === discussions.length && discussions.length > 0 && afterToken) {
+      console.log(`[REDDIT_PROXY] All ${discussions.length} posts already processed, skipping to next page...`);
+      
+      // Update pagination to next page and recursively call
+      await paginationManager.updatePaginationState(
+        subreddit,
+        afterToken,
+        beforeToken,
+        discussions.length,
+        isReset
+      );
+      
+      // Recursively fetch next page (with safety limit)
+      const recursionDepth = (req as any).recursionDepth || 0;
+      if (recursionDepth < 3) { // Max 3 recursive calls to avoid infinite loops
+        console.log(`[REDDIT_PROXY] Recursively fetching next page (depth: ${recursionDepth + 1})`);
+        const modifiedReq = new Request(req.url, {
+          method: req.method,
+          headers: req.headers,
+          body: JSON.stringify({ query, subreddit, limit, userId, websiteConfig, configId })
+        });
+        (modifiedReq as any).recursionDepth = recursionDepth + 1;
+        return POST(modifiedReq);
+      }
+    }
+    
+    // Update pagination state after successful fetch
+    if (discussions.length > 0) {
+      await paginationManager.updatePaginationState(
+        subreddit,
+        afterToken,
+        beforeToken,
+        discussions.length,
+        isReset
+      );
+      console.log(`[REDDIT_PROXY] Updated pagination state: fetched ${discussions.length} posts`);
+    }
+
+    if (!discussions || discussions.length === 0) {
       return NextResponse.json({
         success: true,
         message: 'No discussions found',
@@ -86,20 +156,25 @@ export async function POST(req: Request) {
       });
     }
 
-    // Step 2: Get already posted discussions to avoid duplicates
-    const { data: postedDiscussions } = await supabaseAdmin
-      .from('posted_reddit_discussions')
-      .select('reddit_post_id')
-      .eq('user_id', userId);
-    
-    const postedIds = postedDiscussions?.map(p => p.reddit_post_id) || [];
-    console.log(`[REDDIT_PROXY] Found ${postedIds.length} already posted discussions to exclude`);
+    // Step 2: Filter out already posted discussions
+    const newDiscussions = discussions.filter((d: any) => !alreadyPostedIds.includes(d.id));
+    console.log(`[REDDIT_PROXY] Found ${alreadyPostedIds.length} already posted discussions to exclude`);
+    console.log(`[REDDIT_PROXY] ${newDiscussions.length} new discussions to process`);
+
+    if (newDiscussions.length === 0) {
+      return NextResponse.json({
+        success: true,
+        message: 'All discussions already processed',
+        discussions: [],
+        total: 0
+      });
+    }
 
     // Step 3: Apply relevance filtering with Gemini AI scoring
     const relevantDiscussions = await filterRelevantDiscussions(
-      discussions.items,
+      newDiscussions,
       safeWebsiteConfig,
-      postedIds
+      alreadyPostedIds
     );
     
     console.log(`[REDDIT_PROXY] ${relevantDiscussions.length} discussions passed relevance filtering`);

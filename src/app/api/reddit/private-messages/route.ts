@@ -16,6 +16,44 @@ const supabaseAdmin = createClient(
   }
 );
 
+// Helper function to retry Reddit API calls with exponential backoff
+async function retryRedditApiCall<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 2,
+  initialDelay: number = 500
+): Promise<T> {
+  let lastError: any;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      lastError = error;
+
+      // Check if it's a 500 error from Reddit
+      const is500Error = error?.statusCode === 500 ||
+        error?.message?.includes('500') ||
+        error?.message?.includes('Internal Server Error');
+
+      // Only retry on 500 errors and if we have retries left
+      if (is500Error && attempt < maxRetries) {
+        const delay = initialDelay * Math.pow(2, attempt);
+        console.log(`Reddit API returned 500 error, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+
+      // If it's not a 500 error or we're out of retries, throw
+      throw error;
+    }
+  }
+
+  throw lastError;
+}
+
+// Helper function to wait for a specified duration
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 // GET endpoint to fetch Reddit private messages
 export async function GET(request: NextRequest) {
   try {
@@ -77,18 +115,24 @@ export async function GET(request: NextRequest) {
           if (process.env.NO_PROXY !== undefined) delete process.env.NO_PROXY;
           console.log('private-messages: proxy_enabled', `${account.proxy_type}://${account.proxy_host}:${account.proxy_port}`);
         } else {
-          // Aggressively clear ALL proxy environment variables
-          delete process.env.HTTP_PROXY;
-          delete process.env.HTTPS_PROXY;
-          delete process.env.http_proxy;
-          delete process.env.https_proxy;
-          delete process.env.ALL_PROXY;
-          delete process.env.all_proxy;
-          delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+          // Aggressively clear ALL proxy environment variables BEFORE setting NO_PROXY
+          // This ensures a clean state and prevents pollution from previous requests
+          const varsToDelete = [
+            'HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy',
+            'ALL_PROXY', 'all_proxy', 'NO_PROXY', 'no_proxy',
+            'NODE_TLS_REJECT_UNAUTHORIZED'
+          ];
+          varsToDelete.forEach(varName => delete process.env[varName]);
+
+          // Now set NO_PROXY after cleanup
           process.env.NO_PROXY = '*';
           process.env.no_proxy = '*';
           console.log('private-messages: proxy_disabled');
         }
+
+        // Wait a bit to ensure environment variables are fully propagated
+        // This prevents race conditions in serverless environments
+        await wait(100);
 
         // Create a Reddit API client with custom User Agent
         const customUserAgent = generateUserAgent({
@@ -116,8 +160,12 @@ export async function GET(request: NextRequest) {
 
         // Fetch both inbox and sent messages with increased limit
         // Use type assertion since the Snoowrap type definitions might be incomplete
-        const inbox = await reddit.getInbox({ limit } as any);
-        const sent = await reddit.getSentMessages({ limit } as any);
+        // Wrap in retry logic to handle transient Reddit API 500 errors
+        const [inbox, sent] = await retryRedditApiCall(async () => {
+          const inboxResult = await reddit.getInbox({ limit } as any);
+          const sentResult = await reddit.getSentMessages({ limit } as any);
+          return [inboxResult, sentResult];
+        });
 
         // Process and combine the messages
         const inboxMessages = inbox.map((msg: any) => ({
@@ -233,18 +281,23 @@ export async function POST(request: NextRequest) {
           if (process.env.NO_PROXY !== undefined) delete process.env.NO_PROXY;
           console.log('private-messages: proxy_enabled', `${account.proxy_type}://${account.proxy_host}:${account.proxy_port}`);
         } else {
-          // Aggressively clear ALL proxy environment variables
-          delete process.env.HTTP_PROXY;
-          delete process.env.HTTPS_PROXY;
-          delete process.env.http_proxy;
-          delete process.env.https_proxy;
-          delete process.env.ALL_PROXY;
-          delete process.env.all_proxy;
-          delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+          // Aggressively clear ALL proxy environment variables BEFORE setting NO_PROXY
+          // This ensures a clean state and prevents pollution from previous requests
+          const varsToDelete = [
+            'HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy',
+            'ALL_PROXY', 'all_proxy', 'NO_PROXY', 'no_proxy',
+            'NODE_TLS_REJECT_UNAUTHORIZED'
+          ];
+          varsToDelete.forEach(varName => delete process.env[varName]);
+
+          // Now set NO_PROXY after cleanup
           process.env.NO_PROXY = '*';
           process.env.no_proxy = '*';
           console.log('private-messages: proxy_disabled');
         }
+
+        // Wait a bit to ensure environment variables are fully propagated
+        await wait(100);
 
         // Use the Reddit API to actually send the reply
         try {

@@ -10,6 +10,9 @@ export interface PaginationState {
   last_fetched: string;
   total_fetched: number;
   auto_poster_config_id?: string;
+  pages_processed?: number;
+  last_reset_at?: string;
+  should_reset?: boolean;
 }
 
 export class RedditPaginationManagerServer {
@@ -24,6 +27,41 @@ export class RedditPaginationManagerServer {
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY || ''
     );
+  }
+
+  /**
+   * Check if pagination should reset to page 1
+   * Resets if: no token, 5+ pages processed, >1 hour since reset, or manual flag
+   */
+  private shouldResetPagination(state: PaginationState | null): boolean {
+    if (!state || !state.after) {
+      return true; // No state or no token = first run
+    }
+
+    // Check if manual reset flag is set
+    if (state.should_reset) {
+      return true;
+    }
+
+    // Check if we've gone too deep (5+ pages)
+    if (state.pages_processed && state.pages_processed >= 5) {
+      console.log('[PAGINATION_SERVER] Reset: Reached max depth (5 pages)');
+      return true;
+    }
+
+    // Check if it's been more than 1 hour since last reset
+    if (state.last_reset_at) {
+      const lastReset = new Date(state.last_reset_at);
+      const now = new Date();
+      const hoursSinceReset = (now.getTime() - lastReset.getTime()) / (1000 * 60 * 60);
+      
+      if (hoursSinceReset >= 1) {
+        console.log(`[PAGINATION_SERVER] Reset: 1 hour passed since last reset (${hoursSinceReset.toFixed(2)}h)`);
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**
@@ -61,13 +99,14 @@ export class RedditPaginationManagerServer {
   }
 
   /**
-   * Update pagination state for a subreddit
+   * Update pagination state for a subreddit with smart reset logic
    */
   async updatePaginationState(
     subreddit: string,
     after: string | null,
     before: string | null = null,
-    incrementFetched: number = 0
+    incrementFetched: number = 0,
+    isReset: boolean = false
   ): Promise<boolean> {
     try {
       // First, try to get existing state
@@ -80,7 +119,10 @@ export class RedditPaginationManagerServer {
         before,
         last_fetched: new Date().toISOString(),
         total_fetched: (existingState?.total_fetched || 0) + incrementFetched,
-        auto_poster_config_id: this.configId || null
+        auto_poster_config_id: this.configId || null,
+        pages_processed: isReset ? 1 : (existingState?.pages_processed || 0) + 1,
+        last_reset_at: isReset ? new Date().toISOString() : (existingState?.last_reset_at || new Date().toISOString()),
+        should_reset: false // Clear the reset flag after update
       };
 
       const { error } = await this.supabase
@@ -96,11 +138,63 @@ export class RedditPaginationManagerServer {
         return false;
       }
 
-      console.log(`[PAGINATION_SERVER] Updated pagination for r/${subreddit}: after=${after}, fetched=${incrementFetched}`);
+      const resetInfo = isReset ? ' (RESET TO PAGE 1)' : '';
+      console.log(`[PAGINATION_SERVER] Updated pagination for r/${subreddit}: after=${after}, page=${updateData.pages_processed}, fetched=${incrementFetched}${resetInfo}`);
       return true;
     } catch (error) {
       console.error('[PAGINATION_SERVER] Error in updatePaginationState:', error);
       return false;
+    }
+  }
+
+  /**
+   * Get smart pagination URL - decides whether to reset or continue
+   */
+  async getSmartPaginationUrl(
+    subreddit: string,
+    limit: number = 10
+  ): Promise<{ url: string; isReset: boolean; state: PaginationState | null }> {
+    const state = await this.getPaginationState(subreddit);
+    const shouldReset = this.shouldResetPagination(state);
+
+    if (shouldReset) {
+      console.log(`[PAGINATION_SERVER] Starting fresh from page 1 for r/${subreddit}`);
+      return {
+        url: buildRedditUrlWithPagination(subreddit, limit),
+        isReset: true,
+        state
+      };
+    }
+
+    console.log(`[PAGINATION_SERVER] Continuing pagination for r/${subreddit} with after=${state?.after}`);
+    return {
+      url: buildRedditUrlWithPagination(subreddit, limit, state?.after),
+      isReset: false,
+      state
+    };
+  }
+
+  /**
+   * Check if post IDs have already been processed
+   */
+  async checkAlreadyPosted(postIds: string[]): Promise<string[]> {
+    try {
+      const { data, error } = await this.supabase
+        .from('posted_discussions')
+        .select('discussion_id')
+        .in('discussion_id', postIds);
+
+      if (error) {
+        console.error('[PAGINATION_SERVER] Error checking posted discussions:', error);
+        return [];
+      }
+
+      const alreadyPostedIds = data?.map(d => d.discussion_id) || [];
+      console.log(`[PAGINATION_SERVER] Found ${alreadyPostedIds.length}/${postIds.length} already posted`);
+      return alreadyPostedIds;
+    } catch (error) {
+      console.error('[PAGINATION_SERVER] Error in checkAlreadyPosted:', error);
+      return [];
     }
   }
 
