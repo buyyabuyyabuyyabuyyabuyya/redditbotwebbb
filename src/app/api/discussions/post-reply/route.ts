@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { callGeminiForText } from '../../../../utils/geminiTextGeneration';
+import { callGroqForText } from '../../../../utils/groqTextGeneration';
 import { scheduleQStashMessage } from '../../../../utils/qstash';
 import snoowrap from 'snoowrap';
 
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
 
     // Parse request body
     const { discussion_id, account_id, reply_content } = await req.json();
-    
+
     if (!discussion_id || !account_id || !reply_content) {
       return NextResponse.json(
         { success: false, error: 'Missing required fields' },
@@ -129,7 +129,7 @@ export async function POST(req: Request) {
       } catch (replyError) {
         throw new Error(`Failed to post reply: ${replyError instanceof Error ? replyError.message : 'Unknown error'}`);
       }
-      
+
       // Update discussion status to 'replied'
       const { error: updateDiscussionError } = await supabase
         .from('discussions')
@@ -178,7 +178,7 @@ export async function POST(req: Request) {
 
     } catch (redditError) {
       console.error('Reddit API error:', redditError);
-      
+
       // Update discussion reply status to 'failed'
       await supabase
         .from('discussion_replies')
@@ -195,7 +195,7 @@ export async function POST(req: Request) {
 
   } catch (error) {
     console.error('Post reply error:', error);
-    
+
     const response = {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred'
@@ -207,8 +207,8 @@ export async function POST(req: Request) {
 
 // Health check endpoint
 export async function GET() {
-  return NextResponse.json({ 
-    status: 'ok', 
+  return NextResponse.json({
+    status: 'ok',
     message: 'Discussion reply posting service is running',
     timestamp: new Date().toISOString()
   });

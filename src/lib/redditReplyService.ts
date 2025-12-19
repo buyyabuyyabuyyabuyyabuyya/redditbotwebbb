@@ -8,7 +8,7 @@ interface RedditPost {
   permalink: string;
 }
 
-interface GeminiReplyResponse {
+interface AIReplyResponse {
   reply: string;
   confidence: number;
   tone_used: string;
@@ -39,8 +39,8 @@ export class RedditReplyService {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = typeof window !== 'undefined' 
-      ? window.location.origin 
+    this.baseUrl = typeof window !== 'undefined'
+      ? window.location.origin
       : process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://redditoutreach.com';
   }
 
@@ -50,7 +50,7 @@ export class RedditReplyService {
   async generateReply(
     post: RedditPost,
     options: Omit<RedditReplyOptions, 'accountId' | 'userId'> = {}
-  ): Promise<{ success: boolean; reply?: GeminiReplyResponse; error?: string }> {
+  ): Promise<{ success: boolean; reply?: AIReplyResponse; error?: string }> {
     try {
       const response = await fetch(`${this.baseUrl}/api/gemini/reply`, {
         method: 'POST',
@@ -77,11 +77,11 @@ export class RedditReplyService {
       }
 
       const data = await response.json();
-      
+
       if (!data.success || !data.reply) {
         return {
           success: false,
-          error: 'Invalid response from Gemini API',
+          error: 'Invalid response from AI API',
         };
       }
 
@@ -176,9 +176,9 @@ export class RedditReplyService {
     options: RedditReplyOptions
   ): Promise<RedditReplyResult> {
     try {
-      // Step 1: Generate the reply using Gemini
+      // Step 1: Generate the reply using AI
       const replyResult = await this.generateReply(post, options);
-      
+
       if (!replyResult.success || !replyResult.reply) {
         return {
           success: false,
@@ -233,14 +233,14 @@ export class RedditReplyService {
     onProgress?: (processed: number, total: number, result: RedditReplyResult) => void
   ): Promise<RedditReplyResult[]> {
     const results: RedditReplyResult[] = [];
-    
+
     for (let i = 0; i < posts.length; i++) {
       const post = posts[i];
-      
+
       try {
         const result = await this.generateAndPostReply(post, options);
         results.push(result);
-        
+
         if (onProgress) {
           onProgress(i + 1, posts.length, result);
         }
@@ -255,13 +255,13 @@ export class RedditReplyService {
           error: error instanceof Error ? error.message : 'Unknown error',
         };
         results.push(errorResult);
-        
+
         if (onProgress) {
           onProgress(i + 1, posts.length, errorResult);
         }
       }
     }
-    
+
     return results;
   }
 

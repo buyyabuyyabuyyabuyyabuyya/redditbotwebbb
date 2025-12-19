@@ -34,7 +34,7 @@ export async function filterRelevantDiscussions(
   websiteConfig: WebsiteConfig,
   postedDiscussions: string[] = []
 ): Promise<{ discussion: RedditDiscussion; scores: RelevanceScores }[]> {
-  const unpostedDiscussions = discussions.filter(discussion => 
+  const unpostedDiscussions = discussions.filter(discussion =>
     !postedDiscussions.includes(discussion.id)
   );
 
@@ -44,11 +44,11 @@ export async function filterRelevantDiscussions(
 
   for (const discussion of unpostedDiscussions) {
     let scores: RelevanceScores;
-    
+
     // Use Gemini AI for comprehensive relevance scoring - retry with different API keys if needed
     let attempts = 0;
     const maxAttempts = 5; // Try up to 5 different API keys
-    
+
     while (attempts < maxAttempts) {
       try {
         scores = await getGeminiRelevanceScore(discussion, websiteConfig);
@@ -56,23 +56,23 @@ export async function filterRelevantDiscussions(
       } catch (error: any) {
         attempts++;
         console.log(`[GEMINI_FILTERING] Attempt ${attempts} failed for discussion ${discussion.id}, trying different API key...`);
-        
+
         if (attempts >= maxAttempts) {
           console.error(`[GEMINI_FILTERING] All ${maxAttempts} attempts failed for discussion ${discussion.id}, skipping...`);
           continue; // Skip this discussion entirely
         }
-        
+
         // Wait a bit before trying next API key
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
-    
+
     // If we couldn't score this discussion, skip it
     if (!scores!) {
       console.log(`[GEMINI_FILTERING] Skipping discussion ${discussion.id} - no score obtained`);
       continue;
     }
-    
+
     scoredDiscussions.push({ discussion, scores });
   }
 
@@ -81,7 +81,7 @@ export async function filterRelevantDiscussions(
     .sort((a, b) => b.scores.finalScore - a.scores.finalScore);
 
   console.log(`[GEMINI_FILTERING] Found ${relevantDiscussions.length} relevant discussions out of ${scoredDiscussions.length} scored (threshold: ${websiteConfig.relevance_threshold}%)`);
-  
+
   return relevantDiscussions;
 }
 
@@ -93,25 +93,25 @@ async function getGeminiRelevanceScore(
     // Import the API key manager and make direct Gemini API call
     // This avoids internal fetch calls that cause 401 errors in serverless environments
     const { apiKeyManager } = await import('../utils/apiKeyManager');
-    
+
     let apiKey: string | null = null;
     let retryCount = 0;
     const maxRetries = 3;
-    
+
     while (retryCount < maxRetries) {
       try {
         // Acquire API key
-        apiKey = await apiKeyManager.acquireApiKey('system', 'gemini');
-        
+        apiKey = await apiKeyManager.acquireApiKey('system', 'groq');
+
         if (!apiKey) {
           throw new Error('No API keys available');
         }
-        
+
         console.log(`[GEMINI_SCORING] Acquired API key for discussion ${discussion.id} (attempt ${retryCount + 1})`);
-        
+
         const content = `${discussion.title}\n\n${discussion.content || ''}`;
         const keywords = websiteConfig.target_keywords || websiteConfig.keywords || [];
-        
+
         // Comprehensive Gemini scoring with full context
         const prompt = `You are an expert business analyst evaluating Reddit discussions for marketing relevance. Analyze this Reddit post against the website's business context and provide detailed scoring.
 
@@ -153,21 +153,20 @@ Evaluate this discussion on these criteria (0-100 scale each):
 Respond with ONLY a JSON object in this exact format (no markdown, no extra text):
 {"intentScore": 0-100, "contextMatchScore": 0-100, "qualityScore": 0-100, "finalScore": 0-100, "reasoning": "Brief explanation"}`;
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`, {
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
           },
           body: JSON.stringify({
-            contents: [{
-              parts: [{
-                text: prompt
-              }]
+            model: 'llama-3.1-8b-instant',
+            messages: [{
+              role: 'user',
+              content: prompt
             }],
-            generationConfig: {
-              temperature: 0.1,
-              maxOutputTokens: 200
-            }
+            temperature: 0.1,
+            max_tokens: 200
           })
         });
 
@@ -179,12 +178,12 @@ Respond with ONLY a JSON object in this exact format (no markdown, no extra text
         }
 
         const data = await response.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        
+        const text = data.choices?.[0]?.message?.content;
+
         if (text) {
           // Try multiple JSON extraction methods
           let scores = null;
-          
+
           // Method 1: Try to find JSON object with regex
           const jsonMatch = text.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
@@ -194,7 +193,7 @@ Respond with ONLY a JSON object in this exact format (no markdown, no extra text
               console.log(`[GEMINI_SCORING] JSON parse failed for discussion ${discussion.id}, trying cleanup...`);
             }
           }
-          
+
           // Method 2: Try to clean markdown code blocks
           if (!scores) {
             const cleanedText = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
@@ -207,10 +206,10 @@ Respond with ONLY a JSON object in this exact format (no markdown, no extra text
               }
             }
           }
-          
+
           if (scores && scores.finalScore !== undefined) {
             console.log(`[GEMINI_SCORING] Discussion ${discussion.id} scored ${scores.finalScore}/100 by Gemini AI - ${scores.reasoning}`);
-            
+
             return {
               intentScore: scores.intentScore || 0,
               contextMatchScore: scores.contextMatchScore || 0,
@@ -220,35 +219,35 @@ Respond with ONLY a JSON object in this exact format (no markdown, no extra text
             };
           }
         }
-        
+
         console.error(`[GEMINI_SCORING] Invalid response for ${discussion.id}:`, text?.substring(0, 200));
         throw new Error('Invalid Gemini response format');
-        
+
       } catch (error: any) {
         // Check if this is a transient error (503, 502, etc.)
         const isTransient = error.status === 503 || error.status === 502 || error.status === 504 ||
-                           error.message?.toLowerCase().includes('service unavailable') ||
-                           error.message?.toLowerCase().includes('bad gateway') ||
-                           error.message?.toLowerCase().includes('gateway timeout');
-        
+          error.message?.toLowerCase().includes('service unavailable') ||
+          error.message?.toLowerCase().includes('bad gateway') ||
+          error.message?.toLowerCase().includes('gateway timeout');
+
         if (isTransient && retryCount < maxRetries - 1) {
           console.log(`[GEMINI_SCORING] Transient error (${error.status}) for discussion ${discussion.id}, retrying in ${Math.pow(2, retryCount)} seconds...`);
-          
+
           // Release the current API key before retrying
           if (apiKey) {
             await apiKeyManager.releaseApiKey(apiKey, 'system');
             apiKey = null;
           }
-          
+
           // Exponential backoff: 1s, 2s, 4s
           await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
           retryCount++;
           continue;
         }
-        
+
         // If not transient or max retries reached, throw the error
         throw error;
-        
+
       } finally {
         // Always release the API key for this attempt
         if (apiKey) {
@@ -258,10 +257,10 @@ Respond with ONLY a JSON object in this exact format (no markdown, no extra text
         }
       }
     }
-    
+
     // If we get here, all retries failed
     throw new Error(`All ${maxRetries} retry attempts failed for discussion ${discussion.id}`);
-    
+
   } catch (error) {
     console.error(`[GEMINI_SCORING] Error scoring discussion ${discussion.id}:`, error);
     // No fallback - try another API key by throwing error to retry with different key

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { callGeminiForText } from '../../../../utils/geminiTextGeneration';
+import { callGroqForText } from '../../../../utils/groqTextGeneration';
 import snoowrap from 'snoowrap';
 
 const createSupabaseServerClient = () => {
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
 
     // Parse request body
     const { product_id, subreddits, keywords = [] } = await req.json();
-    
+
     if (!product_id || !subreddits || !Array.isArray(subreddits)) {
       return NextResponse.json(
         { success: false, error: 'Missing required fields' },
@@ -117,7 +117,7 @@ export async function POST(req: Request) {
 
         // Get recent posts from subreddit
         const posts = await reddit.getSubreddit(subreddit).getNew({ limit: 50 });
-        
+
         for (const post of posts) {
           try {
             // Skip posts that are too old or already processed
@@ -178,7 +178,7 @@ export async function POST(req: Request) {
               try {
                 // Select a random discussion posting account for rotation
                 const randomAccount = discussionAccounts[Math.floor(Math.random() * discussionAccounts.length)];
-                
+
                 // Generate AI reply content
                 const aiReplyPrompt = `You are an expert at providing helpful, non-promotional responses to Reddit discussions.
 
@@ -201,14 +201,14 @@ TASK: Generate a helpful, genuine response that provides value to this discussio
 
 Return only the response text, no additional formatting:`;
 
-                const aiReplyResponse = await callGeminiForText(aiReplyPrompt, { userId: 'system' });
-                
+                const aiReplyResponse = await callGroqForText(aiReplyPrompt, { userId: 'system' });
+
                 if (aiReplyResponse && aiReplyResponse.text && !aiReplyResponse.error) {
                   const replyContent = aiReplyResponse.text.trim();
-                  
+
                   // Schedule the reply posting with 3.20 minute delay using Upstash QStash
                   const { scheduleQStashMessage } = await import('../../../../utils/qstash');
-                  
+
                   await scheduleQStashMessage({
                     destination: '/api/discussions/post-reply',
                     body: {
@@ -255,7 +255,7 @@ Return only the response text, no additional formatting:`;
 
   } catch (error) {
     console.error('Discussion monitoring error:', error);
-    
+
     const response = {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred'
@@ -300,14 +300,14 @@ Consider:
 
 Return only a number between 1-10:`;
 
-    const aiResponse = await callGeminiForText(aiPrompt, { userId: 'system' });
-    
+    const aiResponse = await callGroqForText(aiPrompt, { userId: 'system' });
+
     if (!aiResponse || aiResponse.error) {
       return 3; // Default low score if AI fails
     }
 
     const score = parseInt(aiResponse.text.trim());
-    
+
     if (isNaN(score) || score < 1 || score > 10) {
       return 3; // Default score if AI returns invalid response
     }
@@ -322,8 +322,8 @@ Return only a number between 1-10:`;
 
 // Health check endpoint
 export async function GET() {
-  return NextResponse.json({ 
-    status: 'ok', 
+  return NextResponse.json({
+    status: 'ok',
     message: 'Discussion monitoring service is running',
     timestamp: new Date().toISOString()
   });

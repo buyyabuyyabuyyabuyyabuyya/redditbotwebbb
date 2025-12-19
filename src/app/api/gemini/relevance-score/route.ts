@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+
 import { apiKeyManager } from '../../../../utils/apiKeyManager';
 
 export async function POST(req: Request) {
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     }
 
     // Acquire API key from pool
-    apiKey = await apiKeyManager.acquireApiKey(userId, 'gemini');
+    apiKey = await apiKeyManager.acquireApiKey(userId, 'groq');
     if (!apiKey) {
       console.warn('[GEMINI_RELEVANCE] No API keys available, falling back to basic scoring');
       return NextResponse.json({
@@ -27,10 +27,6 @@ export async function POST(req: Request) {
         fallback: true
       }, { status: 503 });
     }
-
-    // Initialize Gemini AI
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
 
     // Create scoring prompt
     const prompt = `
@@ -74,10 +70,31 @@ Respond with ONLY a JSON object in this exact format:
 The finalScore should be a weighted average: (intentScore * 0.25) + (contextMatchScore * 0.35) + (qualityScore * 0.25) + (engagementScore * 0.15)
 If finalScore < ${websiteConfig.relevance_threshold || 70}, provide a filteringReason explaining why.`;
 
-    // Generate relevance scores
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    const text = response.text();
+    // Call Groq API
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
+        messages: [{
+          role: 'user',
+          content: prompt
+        }],
+        temperature: 0.1,
+        max_tokens: 200
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Groq API error: ${response.status} - ${errorText}`);
+    }
+
+    const result = await response.json();
+    const text = result.choices[0].message.content;
 
     // Parse JSON response
     let scores;
@@ -129,13 +146,13 @@ If finalScore < ${websiteConfig.relevance_threshold || 70}, provide a filteringR
     }
 
     // Check if it's a rate limit or API key error
-    const isRateLimitError = error.message?.includes('429') || 
-                            error.message?.includes('rate limit') ||
-                            error.message?.includes('quota');
-    
+    const isRateLimitError = error.message?.includes('429') ||
+      error.message?.includes('rate limit') ||
+      error.message?.includes('quota');
+
     const isApiKeyError = error.message?.includes('API key') ||
-                         error.message?.includes('invalid') ||
-                         error.message?.includes('expired');
+      error.message?.includes('invalid') ||
+      error.message?.includes('expired');
 
     return NextResponse.json({
       success: false,

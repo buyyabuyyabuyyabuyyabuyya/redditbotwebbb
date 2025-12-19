@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { callGeminiForText } from '../../../../utils/geminiTextGeneration';
+import { callGroqForText } from '../../../../utils/groqTextGeneration';
 
 const createSupabaseServerClient = () => {
   const cookieStore = cookies();
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
 
     // Parse request body
     const { product_id, customer_segments, product_description } = await req.json();
-    
+
     if (!product_id || !customer_segments || !product_description) {
       return NextResponse.json(
         { success: false, error: 'Missing required fields' },
@@ -76,14 +76,14 @@ Example response format:
 Return only the JSON array, no additional text:`;
 
     // Get AI suggestions for relevant subreddits
-    const aiResponse = await callGeminiForText(aiPrompt, { userId });
-    
+    const aiResponse = await callGroqForText(aiPrompt, { userId });
+
     if (!aiResponse || aiResponse.error) {
       throw new Error(aiResponse?.error || 'Failed to generate subreddit suggestions');
     }
 
     let suggestedSubreddits: string[] = [];
-    
+
     try {
       // Try to parse the AI response as JSON
       const jsonMatch = aiResponse.text.match(/\[.*\]/);
@@ -123,7 +123,7 @@ Return only the JSON array, no additional text:`;
 
     // Update the product with customer segments and suggested subreddits
     const supabase = createSupabaseServerClient();
-    
+
     const { error: updateError } = await supabase
       .from('products')
       .update({
@@ -148,7 +148,7 @@ Return only the JSON array, no additional text:`;
 
   } catch (error) {
     console.error('Find customers error:', error);
-    
+
     const response = {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred'
@@ -160,8 +160,8 @@ Return only the JSON array, no additional text:`;
 
 // Health check endpoint
 export async function GET() {
-  return NextResponse.json({ 
-    status: 'ok', 
+  return NextResponse.json({
+    status: 'ok',
     message: 'Find customers service is running',
     timestamp: new Date().toISOString()
   });

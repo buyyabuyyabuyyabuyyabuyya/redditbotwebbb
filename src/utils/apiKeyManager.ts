@@ -31,7 +31,7 @@ export class ApiKeyManager {
   private static instance: ApiKeyManager;
   private lastRequestTime: number = 0;
   private minRequestInterval: number = 2000; // 2 secondsl between requests
-  
+
   static getInstance(): ApiKeyManager {
     if (!ApiKeyManager.instance) {
       ApiKeyManager.instance = new ApiKeyManager();
@@ -45,13 +45,13 @@ export class ApiKeyManager {
   private async throttleRequest(userId: string): Promise<void> {
     const now = Date.now();
     const timeSinceLastRequest = now - this.lastRequestTime;
-    
+
     if (timeSinceLastRequest < this.minRequestInterval) {
       const waitTime = this.minRequestInterval - timeSinceLastRequest;
       console.log(`[${userId}] Throttling request, waiting ${waitTime}ms`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
-    
+
     this.lastRequestTime = Date.now();
   }
 
@@ -67,13 +67,14 @@ export class ApiKeyManager {
     try {
       console.log(`[${userId}] Acquiring API key for provider: ${provider}`);
 
-      // Retrieve a pool of available keys that are not being used or rate-limited
+      // Retrieve a pool of available keys that are not rate-limited
+      // NOTE: being_used check commented out - using single API key for all requests
       const { data: availableKeys, error } = await supabaseAdmin
         .from('api_keys')
         .select('*')
         .eq('provider', provider)
         .eq('is_active', true)
-        .eq('being_used', false)
+        // .eq('being_used', false)  // COMMENTED OUT: Single key usage
         .or(`rate_limit_reset.is.null,rate_limit_reset.lt.${new Date().toISOString()}`)
         // Limit the candidate set to keep the payload small (adjust as needed)
         .limit(100);
@@ -93,7 +94,9 @@ export class ApiKeyManager {
       const randomIndex = Math.floor(Math.random() * availableKeys.length);
       const apiKey = availableKeys[randomIndex] as ApiKey;
 
-      // Mark the key as being used
+      // COMMENTED OUT: Mark the key as being used (single key usage)
+      // NOTE: This entire block is commented out since we're using one API key for all requests
+      /*
       const { data: updateData, error: updateError } = await supabaseAdmin
         .from('api_keys')
         .update({
@@ -119,6 +122,17 @@ export class ApiKeyManager {
       }
 
       console.log(`[${userId}] Successfully marked API key as being_used = true`);
+      */
+
+      // Update usage stats without locking the key
+      await supabaseAdmin
+        .from('api_keys')
+        .update({
+          last_used: new Date().toISOString(),
+          usage_count: apiKey.usage_count + 1,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', apiKey.id);
 
       const keyPrefix = apiKey.key.substring(0, 6);
       const keySuffix = apiKey.key.substring(apiKey.key.length - 4);
@@ -137,6 +151,9 @@ export class ApiKeyManager {
    * @param userId - User ID for tracking
    */
   async releaseApiKey(apiKey: string, userId: string): Promise<void> {
+    // COMMENTED OUT: Release API key logic (single key usage)
+    // NOTE: This entire function is essentially a no-op now since we're using one key
+    /*
     try {
       // Hold the key for a grace period (15 s) *synchronously* so that rapid
       // successive requests do not grab the exact same key immediately. This is
@@ -162,6 +179,9 @@ export class ApiKeyManager {
     } catch (error) {
       console.error(`[${userId}] Error scheduling releaseApiKey:`, error);
     }
+    */
+    // No-op: Single key usage means no need to release
+    console.log(`[${userId}] releaseApiKey called (no-op for single key usage)`);
   }
 
   /**
@@ -175,16 +195,19 @@ export class ApiKeyManager {
       console.log(`[${userId}] Handling API key error:`, error.message);
 
       // Get current key data
-      const { data: keyData, error: fetchError } = await supabaseAdmin
+      // Use limit(1) instead of single() to handle potential duplicate keys
+      const { data: keyDataArray, error: fetchError } = await supabaseAdmin
         .from('api_keys')
         .select('*')
         .eq('key', apiKey)
-        .single();
+        .limit(1);
 
-      if (fetchError || !keyData) {
+      if (fetchError || !keyDataArray || keyDataArray.length === 0) {
         console.error(`[${userId}] Error fetching key data:`, fetchError);
         return;
       }
+
+      const keyData = keyDataArray[0];
 
       const updates: any = {
         error_count: keyData.error_count + 1,
@@ -197,20 +220,21 @@ export class ApiKeyManager {
         const resetTime = new Date();
         resetTime.setHours(resetTime.getHours() + 1);
         updates.rate_limit_reset = resetTime.toISOString();
-        
+
         console.log(`[${userId}] API key rate limited until: ${resetTime.toISOString()}`);
-        
-        // Keep being_used as true during rate limit period
+
+        // COMMENTED OUT: Keep being_used as true during rate limit period
+        // NOTE: No longer needed with single key usage
         // It will be released when rate limit expires
       } else if (this.isInvalidKeyError(error)) {
         // Deactivate invalid keys permanently
         updates.is_active = false;
-        updates.being_used = false;
+        // updates.being_used = false;  // COMMENTED OUT: Single key usage
         console.log(`[${userId}] API key marked as inactive due to invalid/unauthorized error`);
       } else {
-        // For other errors, release the key immediately
-        updates.being_used = false;
-        console.log(`[${userId}] API key released due to non-rate-limit error`);
+        // COMMENTED OUT: For other errors, release the key immediately
+        // updates.being_used = false;  // COMMENTED OUT: Single key usage
+        console.log(`[${userId}] Non-rate-limit error occurred`);
       }
 
       const { error: updateError } = await supabaseAdmin
@@ -230,24 +254,26 @@ export class ApiKeyManager {
    * Release all rate-limited keys that have passed their reset time
    */
   async releaseExpiredRateLimitedKeys(): Promise<void> {
+    // COMMENTED OUT: Release expired rate-limited keys (single key usage)
+    // NOTE: This function is mostly a no-op now, but we still clear rate_limit_reset
     try {
-      console.log('Releasing expired rate-limited keys...');
+      console.log('Clearing expired rate limits...');
 
       const { error } = await supabaseAdmin
         .from('api_keys')
         .update({
-          being_used: false,
+          // being_used: false,  // COMMENTED OUT: Single key usage
           rate_limit_reset: null,
           updated_at: new Date().toISOString()
         })
-        .eq('being_used', true)
+        // .eq('being_used', true)  // COMMENTED OUT: Single key usage
         .not('rate_limit_reset', 'is', null)
         .lt('rate_limit_reset', new Date().toISOString());
 
       if (error) {
-        console.error('Error releasing expired rate-limited keys:', error);
+        console.error('Error clearing expired rate limits:', error);
       } else {
-        console.log('Expired rate-limited keys released successfully');
+        console.log('Expired rate limits cleared successfully');
       }
     } catch (error) {
       console.error('Error in releaseExpiredRateLimitedKeys:', error);
@@ -272,9 +298,9 @@ export class ApiKeyManager {
       const stats = {
         total: data.length,
         active: data.filter(k => k.is_active).length,
-        being_used: data.filter(k => k.being_used).length,
+        // being_used: data.filter(k => k.being_used).length,  // COMMENTED OUT: Single key usage
         rate_limited: data.filter(k => k.rate_limit_reset && new Date(k.rate_limit_reset) > new Date()).length,
-        available: data.filter(k => k.is_active && !k.being_used && (!k.rate_limit_reset || new Date(k.rate_limit_reset) <= new Date())).length
+        available: data.filter(k => k.is_active && /* !k.being_used && */ (!k.rate_limit_reset || new Date(k.rate_limit_reset) <= new Date())).length
       };
 
       return stats;
@@ -290,7 +316,7 @@ export class ApiKeyManager {
   private isRateLimitError(error: any): boolean {
     const errorMessage = error.message?.toLowerCase() || '';
     const errorStatus = error.status || 0;
-    
+
     return (
       errorStatus === 429 ||
       errorMessage.includes('rate limit') ||
@@ -307,7 +333,7 @@ export class ApiKeyManager {
   private isTransientError(error: any): boolean {
     const errorMessage = error.message?.toLowerCase() || '';
     const errorStatus = error.status || 0;
-    
+
     return (
       errorStatus === 503 ||
       errorStatus === 502 ||
@@ -325,7 +351,7 @@ export class ApiKeyManager {
   private isInvalidKeyError(error: any): boolean {
     const errorMessage = error.message?.toLowerCase() || '';
     const errorStatus = error.status || 0;
-    
+
     return (
       errorStatus === 400 ||
       errorStatus === 401 ||
@@ -348,7 +374,7 @@ export class ApiKeyManager {
         .from('api_keys')
         .update({
           is_active: false,
-          being_used: false,
+          // being_used: false,  // COMMENTED OUT: Single key usage
           updated_at: new Date().toISOString()
         })
         .eq('key', apiKey);
@@ -373,7 +399,7 @@ export class ApiKeyManager {
     baseDelay: number = 1000
   ): Promise<T> {
     let lastError: any;
-    
+
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         if (attempt > 0) {
@@ -381,26 +407,26 @@ export class ApiKeyManager {
           console.log(`[${userId}] Retry attempt ${attempt}, waiting ${delay}ms`);
           await new Promise(resolve => setTimeout(resolve, delay));
         }
-        
+
         return await operation();
       } catch (error) {
         lastError = error;
-        
+
         if (attempt === maxRetries) {
           console.error(`[${userId}] All retry attempts failed`);
           throw error;
         }
-        
+
         // Don't retry for certain error types
         if (this.isInvalidKeyError(error)) {
           console.log(`[${userId}] Not retrying for invalid key error`);
           throw error;
         }
-        
+
         console.log(`[${userId}] Attempt ${attempt + 1} failed, will retry:`, (error as Error).message);
       }
     }
-    
+
     throw lastError;
   }
 }

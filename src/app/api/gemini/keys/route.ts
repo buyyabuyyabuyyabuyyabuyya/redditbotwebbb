@@ -93,8 +93,8 @@ export async function POST(req: Request) {
     // Parse the request body
     const {
       key,
-      provider = 'gemini',
-      model = 'gemini-2.0-flash-lite',
+      provider = 'groq',
+      model = 'llama-3.1-8b-instant',
     } = await req.json();
 
     // Validate the required fields

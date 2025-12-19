@@ -19,14 +19,14 @@ const supabaseAdmin = createClient(
 async function getValidApiKey(userId: string): Promise<string> {
   // First, release any expired rate-limited keys
   await apiKeyManager.releaseExpiredRateLimitedKeys();
-  
+
   // Acquire a new API key
-  const apiKey = await apiKeyManager.acquireApiKey(userId, 'gemini');
-  
+  const apiKey = await apiKeyManager.acquireApiKey(userId, 'groq');
+
   if (!apiKey) {
     throw new Error('No available API keys');
   }
-  
+
   return apiKey;
 }
 
@@ -145,19 +145,19 @@ export async function POST(req: Request) {
     while (attempts < maxAttempts) {
       try {
         attempts++;
-        
+
         // Get a valid API key with rotation (always random)
         apiKey = await getValidApiKey(userId);
-        
+
         if (!apiKey) {
           throw new Error('No API keys available');
         }
 
-      // Prepare the prompt for Gemini – prefer caller-supplied template
-      const basePrompt =
-        customPrompt && customPrompt.trim() ? customPrompt.trim() : '';
+        // Prepare the prompt for Gemini – prefer caller-supplied template
+        const basePrompt =
+          customPrompt && customPrompt.trim() ? customPrompt.trim() : '';
 
-      const prompt = `
+        const prompt = `
       ${basePrompt}
       
       Post content:
@@ -178,175 +178,171 @@ export async function POST(req: Request) {
       REMINDER: Return ONLY the raw JSON. No markdown, no code blocks, no explanations.
       `;
 
-      // Show the key being used in the console (partial for security)
-      const keyPrefix = apiKey.substring(0, 6);
-      const keySuffix = apiKey.substring(apiKey.length - 4);
-      console.log(`
+        // Show the key being used in the console (partial for security)
+        const keyPrefix = apiKey.substring(0, 6);
+        const keySuffix = apiKey.substring(apiKey.length - 4);
+        console.log(`
 ============================================================`);
-      console.log(`GEMINI API REQUEST DETAILS:`);
-      console.log(
-        `API KEY: ${keyPrefix}...${keySuffix} (LENGTH: ${apiKey.length})`
-      );
-      console.log(`MODEL: gemini-2.0-flash-lite`);
-      console.log(`SUBREDDIT: ${subreddit}`);
-      console.log(`CONTENT LENGTH: ${content.length} characters`);
-      console.log(`KEYWORDS: ${keywords ? keywords.join(', ') : 'none'}`);
-      console.log(`============================================================
-`);
-
-      // Call the Gemini API
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  {
-                    text: prompt,
-                  },
-                ],
-              },
-            ],
-            generationConfig: {
-              temperature: 0.2,
-              topP: 0.8,
-              topK: 40,
-              maxOutputTokens: 1024,
-            },
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        // Get response status for better error handling
-        const status = response.status;
-        // Read body ONCE to avoid "Body has already been read" errors
-        const errorTextRaw = await response.text();
-        let errorText = errorTextRaw;
-        let errorData: any = null;
-        try {
-          errorData = JSON.parse(errorTextRaw);
-          errorText =
-            errorData?.error?.message ||
-            errorData?.error?.details ||
-            JSON.stringify(errorData);
-        } catch {
-          // Not JSON – wrap in our own structure so downstream code still works
-          errorData = { error: { message: errorText } };
-        }
-
-        console.error(`GEMINI API ERROR (${status}):`);
-        console.error(
+        console.log(`GEMINI API REQUEST DETAILS:`);
+        console.log(
           `API KEY: ${keyPrefix}...${keySuffix} (LENGTH: ${apiKey.length})`
         );
-        console.error(`ERROR DETAILS: ${errorText}`);
-        console.error(
-          `REQUEST URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent`
-        );
-        console.error(`============================================================
+        console.log(`MODEL: llama-3.1-8b-instant`);
+        console.log(`SUBREDDIT: ${subreddit}`);
+        console.log(`CONTENT LENGTH: ${content.length} characters`);
+        console.log(`KEYWORDS: ${keywords ? keywords.join(', ') : 'none'}`);
+        console.log(`============================================================
 `);
 
-        // Handle the API key error using the new manager
-        await apiKeyManager.handleApiKeyError(apiKey, new Error(errorText), userId);
+        // Call the Gemini API
+        const response = await fetch(
+          'https://api.groq.com/openai/v1/chat/completions',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+              model: 'llama-3.1-8b-instant',
+              messages: [
+                {
+                  role: 'user',
+                  content: prompt,
+                },
+              ],
+              temperature: 0.2,
+              max_tokens: 1024,
+              top_p: 0.8,
+            }),
+          }
+        );
 
-        // Check if this is a retryable error (400, 429, or API key issues)
-        if (status === 400 || status === 429 || 
-            errorText.toLowerCase().includes('expired') || 
+        if (!response.ok) {
+          // Get response status for better error handling
+          const status = response.status;
+          // Read body ONCE to avoid "Body has already been read" errors
+          const errorTextRaw = await response.text();
+          let errorText = errorTextRaw;
+          let errorData: any = null;
+          try {
+            errorData = JSON.parse(errorTextRaw);
+            errorText =
+              errorData?.error?.message ||
+              errorData?.error?.details ||
+              JSON.stringify(errorData);
+          } catch {
+            // Not JSON – wrap in our own structure so downstream code still works
+            errorData = { error: { message: errorText } };
+          }
+
+          console.error(`GEMINI API ERROR (${status}):`);
+          console.error(
+            `API KEY: ${keyPrefix}...${keySuffix} (LENGTH: ${apiKey.length})`
+          );
+          console.error(`ERROR DETAILS: ${errorText}`);
+          console.error(
+            `REQUEST URL: https://api.groq.com/openai/v1/chat/completions`
+          );
+          console.error(`============================================================
+`);
+
+          // Handle the API key error using the new manager
+          await apiKeyManager.handleApiKeyError(apiKey, new Error(errorText), userId);
+
+          // Check if this is a retryable error (400, 429, or API key issues)
+          if (status === 400 || status === 429 ||
+            errorText.toLowerCase().includes('expired') ||
             errorText.toLowerCase().includes('invalid') ||
             errorText.toLowerCase().includes('quota')) {
-          
-          console.log(`Retryable error detected (${status}), attempt ${attempts}/${maxAttempts}`);
-          lastError = new Error(`Gemini API error (${status}): ${errorText}`);
-          
-          // Release the current API key
+
+            console.log(`Retryable error detected (${status}), attempt ${attempts}/${maxAttempts}`);
+            lastError = new Error(`Gemini API error (${status}): ${errorText}`);
+
+            // Release the current API key
+            if (apiKey) {
+              apiKeyManager.releaseApiKey(apiKey, userId);
+            }
+
+            // If this isn't the last attempt, continue to next iteration
+            if (attempts < maxAttempts) {
+              console.log(`Trying with a different API key...`);
+              continue;
+            }
+          }
+
+          throw new Error(`Gemini API error (${status}): ${errorText}`);
+        }
+
+        const data = await response.json();
+
+        // Extract the JSON response from Gemini
+        let analysisResult;
+        try {
+          // Try to parse the text response as JSON
+          const textResponse = data.choices[0].message.content;
+
+          // Check if the response is wrapped in markdown code blocks
+          let jsonText = textResponse;
+
+          // Clean up markdown formatting if present
+          if (jsonText.includes('```json')) {
+            // Extract content between ```json and ``` markers
+            const match = jsonText.match(/```json\s*([\s\S]*?)\s*```/);
+            if (match && match[1]) {
+              jsonText = match[1].trim();
+            }
+          } else if (jsonText.includes('```')) {
+            // Extract content between ``` and ``` markers
+            const match = jsonText.match(/```\s*([\s\S]*?)\s*```/);
+            if (match && match[1]) {
+              jsonText = match[1].trim();
+            }
+          }
+
+          console.log('Cleaned JSON text:', jsonText);
+          analysisResult = JSON.parse(jsonText);
+        } catch (parseError) {
+          console.error('Error parsing Gemini response:', parseError);
+          // Log the raw response to debug
+          console.error(
+            'Raw response:',
+            data?.candidates?.[0]?.content?.parts?.[0]?.text || 'No text content'
+          );
+
+          // Release the API key on parse error
           if (apiKey) {
             apiKeyManager.releaseApiKey(apiKey, userId);
           }
-          
-          // If this isn't the last attempt, continue to next iteration
-          if (attempts < maxAttempts) {
-            console.log(`Trying with a different API key...`);
-            continue;
-          }
+
+          return NextResponse.json(
+            { error: 'Error parsing AI response' },
+            { status: 500 }
+          );
         }
 
-        throw new Error(`Gemini API error (${status}): ${errorText}`);
-      }
+        // Release the API key after successful processing
+        apiKeyManager.releaseApiKey(apiKey, userId);
 
-      const data = await response.json();
-
-      // Extract the JSON response from Gemini
-      let analysisResult;
-      try {
-        // Try to parse the text response as JSON
-        const textResponse = data.candidates[0].content.parts[0].text;
-
-        // Check if the response is wrapped in markdown code blocks
-        let jsonText = textResponse;
-
-        // Clean up markdown formatting if present
-        if (jsonText.includes('```json')) {
-          // Extract content between ```json and ``` markers
-          const match = jsonText.match(/```json\s*([\s\S]*?)\s*```/);
-          if (match && match[1]) {
-            jsonText = match[1].trim();
-          }
-        } else if (jsonText.includes('```')) {
-          // Extract content between ``` and ``` markers
-          const match = jsonText.match(/```\s*([\s\S]*?)\s*```/);
-          if (match && match[1]) {
-            jsonText = match[1].trim();
-          }
-        }
-
-        console.log('Cleaned JSON text:', jsonText);
-        analysisResult = JSON.parse(jsonText);
-      } catch (parseError) {
-        console.error('Error parsing Gemini response:', parseError);
-        // Log the raw response to debug
-        console.error(
-          'Raw response:',
-          data?.candidates?.[0]?.content?.parts?.[0]?.text || 'No text content'
-        );
-        
-        // Release the API key on parse error
-        if (apiKey) {
-          apiKeyManager.releaseApiKey(apiKey, userId);
-        }
-        
-        return NextResponse.json(
-          { error: 'Error parsing AI response' },
-          { status: 500 }
-        );
-      }
-
-      // Release the API key after successful processing
-      apiKeyManager.releaseApiKey(apiKey, userId);
-
-      return NextResponse.json({
-        success: true,
-        analysis: analysisResult,
-        attempts: attempts,
-        message:
-          'Analysis completed successfully. Note that your API key is not stored in our database for security reasons.',
-      });
+        return NextResponse.json({
+          success: true,
+          analysis: analysisResult,
+          attempts: attempts,
+          message:
+            'Analysis completed successfully. Note that your API key is not stored in our database for security reasons.',
+        });
       } catch (apiError: any) {
         console.error(`API processing error on attempt ${attempts}:`, apiError);
         lastError = apiError;
-        
+
         // Release the API key on error
         if (apiKey) {
           apiKeyManager.releaseApiKey(apiKey, userId);
         }
-        
+
         // If this isn't the last attempt and it's a retryable error, continue
         if (attempts < maxAttempts && (
-          apiError.message?.includes('400') || 
+          apiError.message?.includes('400') ||
           apiError.message?.includes('429') ||
           apiError.message?.includes('expired') ||
           apiError.message?.includes('quota')
@@ -354,7 +350,7 @@ export async function POST(req: Request) {
           console.log(`Retrying with different API key, attempt ${attempts + 1}/${maxAttempts}`);
           continue;
         }
-        
+
         // If it's the last attempt or non-retryable error, break
         break;
       }
@@ -363,7 +359,7 @@ export async function POST(req: Request) {
     // If we've exhausted all attempts, return the last error
     console.error('All API key attempts failed');
     return NextResponse.json(
-      { 
+      {
         error: `API error after ${maxAttempts} attempts: ${lastError?.message || 'Unknown API error'}`,
         attempts: attempts
       },
