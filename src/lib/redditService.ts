@@ -144,15 +144,16 @@ export async function scrapeRedditHTML(subreddit: string, query: string): Promis
   const discussions: RedditDiscussion[] = [];
 
   try {
-    const response = await fetch(`https://old.reddit.com/r/${subreddit}/hot`, {
+    const PROXY_WORKER_URL = 'https://redditprxy.devappshowcase.workers.dev/';
+    const redditUrl = `https://old.reddit.com/r/${subreddit}/hot`;
+    const proxyUrl = `${PROXY_WORKER_URL}?url=${encodeURIComponent(redditUrl)}`;
+
+    console.log(`[HTML_SCRAPER] Fetching via Cloudflare Proxy: ${proxyUrl}`);
+
+    const response = await fetch(proxyUrl, {
+      method: 'GET',
       headers: {
-        'User-Agent': getRandomUserAgent(),
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'DNT': '1',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
+        'Accept': 'text/html',
       },
     });
 
