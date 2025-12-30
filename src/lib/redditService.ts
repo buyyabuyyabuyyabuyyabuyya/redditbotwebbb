@@ -39,11 +39,11 @@ export function generateUserAgent(config?: { enabled?: boolean; type?: string; c
   if (!config?.enabled) {
     return userAgents[Math.floor(Math.random() * userAgents.length)];
   }
-  
+
   if (config.type === 'custom' && config.custom) {
     return config.custom;
   }
-  
+
   return userAgents[Math.floor(Math.random() * userAgents.length)];
 }
 
@@ -62,7 +62,7 @@ export async function getRedditDiscussions(
   for (const endpoint of endpoints) {
     try {
       console.log(`[REDDIT_SERVICE] Trying ${endpoint.type.toUpperCase()}: ${endpoint.url}`);
-      
+
       const response = await fetch(endpoint.url, {
         headers: {
           'Accept': 'application/json',
@@ -75,9 +75,9 @@ export async function getRedditDiscussions(
           'Cache-Control': 'max-age=0',
         },
       });
-      
+
       console.log(`[REDDIT_SERVICE] ${endpoint.type.toUpperCase()} Response: ${response.status}`);
-      
+
       if (response.ok) {
         // Parse JSON
         const data = await response.json();
@@ -102,7 +102,7 @@ export async function getRedditDiscussions(
             raw_comment: post.data.selftext || post.data.title,
             is_self: post.data.is_self
           })) || [];
-        
+
         return {
           items: discussions,
           total: discussions.length
@@ -115,7 +115,7 @@ export async function getRedditDiscussions(
       lastError = error as Error;
       console.log(`Error fetching from ${endpoint.url}:`, error);
     }
-    
+
     // Add delay between attempts
     await new Promise(resolve => setTimeout(resolve, 500));
   }
@@ -140,9 +140,9 @@ export async function getRedditDiscussions(
 }
 
 // HTML scraping fallback method
-async function scrapeRedditHTML(subreddit: string, query: string): Promise<RedditDiscussion[]> {
+export async function scrapeRedditHTML(subreddit: string, query: string): Promise<RedditDiscussion[]> {
   const discussions: RedditDiscussion[] = [];
-  
+
   try {
     const response = await fetch(`https://old.reddit.com/r/${subreddit}/hot`, {
       headers: {
@@ -171,27 +171,27 @@ async function scrapeRedditHTML(subreddit: string, query: string): Promise<Reddi
 
     let postMatch;
     let postIndex = 0;
-    
+
     while ((postMatch = postPattern.exec(html)) !== null && postIndex < 25) {
       const fullname = postMatch[1];
       const postId = fullname.replace('t3_', '');
-      
+
       // Find title for this post
       titlePattern.lastIndex = postMatch.index;
       const titleMatch = titlePattern.exec(html);
-      
+
       if (titleMatch) {
         const url = titleMatch[1].startsWith('/') ? `https://reddit.com${titleMatch[1]}` : titleMatch[1];
         const title = titleMatch[2].trim();
-        
+
         // Basic relevance filtering
         const titleLower = title.toLowerCase();
         const queryLower = query.toLowerCase();
         const businessKeywords = ['business', 'startup', 'entrepreneur', 'marketing', 'saas', 'platform'];
-        
-        const isRelevant = titleLower.includes(queryLower) || 
-                          businessKeywords.some(keyword => titleLower.includes(keyword)) ||
-                          query.length < 4;
+
+        const isRelevant = titleLower.includes(queryLower) ||
+          businessKeywords.some(keyword => titleLower.includes(keyword)) ||
+          query.length < 4;
 
         if (isRelevant) {
           discussions.push({
@@ -210,13 +210,13 @@ async function scrapeRedditHTML(subreddit: string, query: string): Promise<Reddi
           });
         }
       }
-      
+
       postIndex++;
     }
 
     console.log(`[HTML_SCRAPER] Extracted ${discussions.length} discussions from HTML`);
     return discussions;
-    
+
   } catch (error) {
     console.log(`[HTML_SCRAPER] Error:`, error);
     throw error;
@@ -226,56 +226,56 @@ async function scrapeRedditHTML(subreddit: string, query: string): Promise<Reddi
 // Parse Reddit RSS feed to extract discussions
 function parseRedditRSS(rssText: string, query: string, subreddit: string): RedditDiscussion[] {
   const discussions: RedditDiscussion[] = [];
-  
+
   try {
     console.log(`[RSS_PARSER] Parsing feed for r/${subreddit}, content length: ${rssText.length}`);
     console.log(`[RSS_PARSER] Feed sample: ${rssText.substring(0, 500)}...`);
-    
+
     // Reddit uses Atom format with <entry> tags, not RSS <item> tags
     const entries = rssText.split('<entry>').slice(1); // Remove first empty element
     console.log(`[RSS_PARSER] Found ${entries.length} entries in feed`);
-    
+
     for (const entryText of entries.slice(0, 25)) {
       const endIndex = entryText.indexOf('</entry>');
       const entry = endIndex > -1 ? entryText.substring(0, endIndex) : entryText;
-      
+
       // Atom format uses different tags than RSS
       const titleMatch = entry.match(/<title[^>]*>([\s\S]*?)<\/title>/);
       const linkMatch = entry.match(/<link[^>]*href="([^"]*)"[^>]*>/);
       const contentMatch = entry.match(/<content[^>]*>([\s\S]*?)<\/content>/);
       const authorMatch = entry.match(/<author><name>([^<]*)<\/name><\/author>/);
-      
+
       console.log(`[RSS_PARSER] Entry title match: ${titleMatch?.[1]?.substring(0, 100)}`);
-      
+
       if (titleMatch && linkMatch) {
         const title = titleMatch[1].replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1').trim();
         const url = linkMatch[1];
         const description = contentMatch?.[1]?.replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1').replace(/<[^>]*>/g, '').trim() || '';
         const author = authorMatch?.[1] || 'unknown';
-        
+
         // Filter by query relevance (more lenient for RSS)
         const titleLower = title.toLowerCase();
         const descLower = description.toLowerCase();
         const queryLower = query.toLowerCase();
-        
+
         console.log(`[RSS_PARSER] Checking post: "${title}" against query: "${query}"`);
-        
+
         // More lenient matching for business-relevant posts
         const businessKeywords = ['business', 'startup', 'entrepreneur', 'marketing', 'saas', 'platform', 'service', 'product', 'company', 'revenue', 'growth', 'customer', 'market'];
-        const isBusinessRelevant = businessKeywords.some(keyword => 
+        const isBusinessRelevant = businessKeywords.some(keyword =>
           titleLower.includes(keyword) || descLower.includes(keyword)
         );
-        
-        const isRelevant = titleLower.includes(queryLower) || 
-                          descLower.includes(queryLower) || 
-                          isBusinessRelevant || // Include business-relevant posts
-                          query.length < 4; // Include all posts for short queries
-        
+
+        const isRelevant = titleLower.includes(queryLower) ||
+          descLower.includes(queryLower) ||
+          isBusinessRelevant || // Include business-relevant posts
+          query.length < 4; // Include all posts for short queries
+
         if (isRelevant) {
           // Extract Reddit post ID from URL
           const idMatch = url.match(/\/comments\/([a-z0-9]+)\//);
           const postId = idMatch?.[1] || Math.random().toString(36);
-          
+
           discussions.push({
             id: postId,
             title: title,
@@ -296,7 +296,7 @@ function parseRedditRSS(rssText: string, query: string, subreddit: string): Redd
   } catch (error) {
     console.error('Error parsing RSS:', error);
   }
-  
+
   return discussions;
 }
 
@@ -304,7 +304,7 @@ function parseRedditRSS(rssText: string, query: string, subreddit: string): Redd
 // Search multiple subreddits relevant to business/marketing
 export const BUSINESS_SUBREDDITS = [
   'entrepreneur',
-  'startups', 
+  'startups',
   'smallbusiness',
   'marketing',
   'business',
@@ -378,7 +378,7 @@ export async function searchMultipleSubredditsWithPagination(
       }
 
       const data = await response.json();
-      
+
       // Update pagination state if using pagination
       if (paginationManager && data?.data) {
         const { after, before } = extractPaginationTokens(data);
@@ -392,7 +392,7 @@ export async function searchMultipleSubredditsWithPagination(
           const title = post.data.title.toLowerCase();
           const selftext = (post.data.selftext || '').toLowerCase();
           const queryLower = query.toLowerCase();
-          
+
           return title.includes(queryLower) || selftext.includes(queryLower);
         })
         ?.map((post: any) => ({
@@ -428,16 +428,16 @@ export async function searchMultipleSubredditsWithPagination(
   // Apply relevance filtering if website config is provided
   if (websiteConfig) {
     const duplicatePrevention = new DuplicatePostPrevention();
-    
+
     // Filter out already posted discussions
     const unpostedDiscussions = await duplicatePrevention.filterUnpostedDiscussions(
-      uniqueDiscussions, 
+      uniqueDiscussions,
       websiteConfig.id
     );
-    
+
     // Apply relevance scoring and filtering
     const relevantDiscussions = await filterRelevantDiscussions(unpostedDiscussions, websiteConfig);
-    
+
     return (await relevantDiscussions).map(item => item.discussion).slice(0, 20);
   }
 
@@ -451,7 +451,7 @@ export async function searchMultipleSubreddits(
   websiteConfig?: WebsiteConfig
 ): Promise<RedditDiscussion[]> {
   const allDiscussions: RedditDiscussion[] = [];
-  
+
   // Search each subreddit
   for (const subreddit of subreddits.slice(0, 10)) { // Limit to 10 subreddits to avoid rate limits
     try {
@@ -461,29 +461,29 @@ export async function searchMultipleSubreddits(
       console.warn(`Failed to search r/${subreddit}:`, error);
     }
   }
-  
+
   // Remove duplicates
   const uniqueDiscussions = allDiscussions
-    .filter((discussion, index, self) => 
+    .filter((discussion, index, self) =>
       index === self.findIndex(d => d.id === discussion.id)
     );
-  
+
   // Apply relevance filtering if website config is provided
   if (websiteConfig) {
     const duplicatePrevention = new DuplicatePostPrevention();
-    
+
     // Filter out already posted discussions
     const unpostedDiscussions = await duplicatePrevention.filterUnpostedDiscussions(
-      uniqueDiscussions, 
+      uniqueDiscussions,
       websiteConfig.id
     );
-    
+
     // Apply relevance scoring and filtering
     const relevantDiscussions = filterRelevantDiscussions(unpostedDiscussions, websiteConfig);
-    
+
     return (await relevantDiscussions).map(item => item.discussion).slice(0, 20);
   }
-  
+
   // Fallback to original sorting if no website config
   return uniqueDiscussions
     .sort((a, b) => b.score - a.score)
@@ -493,26 +493,26 @@ export async function searchMultipleSubreddits(
 // Generate search queries for Reddit
 export function generateRedditSearchQueries(websiteConfig: WebsiteConfig): string[] {
   const queries: string[] = [];
-  
+
   // Add customer segments as queries
   if (websiteConfig.customer_segments) {
     queries.push(...websiteConfig.customer_segments);
   }
-  
+
   // Add target keywords
   if (websiteConfig.target_keywords) {
     queries.push(...websiteConfig.target_keywords);
   }
-  
+
   // Add business context terms
   if (websiteConfig.business_context_terms) {
     queries.push(...websiteConfig.business_context_terms);
   }
-  
+
   // Fallback queries if no config
   if (queries.length === 0) {
     queries.push('business', 'startup', 'entrepreneur');
   }
-  
+
   return queries.slice(0, 5); // Limit to 5 queries
 }
