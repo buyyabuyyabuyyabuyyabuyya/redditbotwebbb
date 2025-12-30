@@ -101,6 +101,13 @@ export async function POST(req: Request): Promise<NextResponse> {
       }
 
       const data = await response.json();
+
+      if (!data?.data?.children || data.data.children.length === 0) {
+        console.log('[REDDIT_PROXY] WARNING: Received 200 OK but no posts found. Raw data sample:', JSON.stringify(data).substring(0, 500));
+      }
+
+      console.log(`[REDDIT_PROXY] Fetched ${data?.data?.children?.length || 0} discussions from r/${subreddit}`);
+
       afterToken = data.data?.after || null;
       beforeToken = data.data?.before || null;
 
