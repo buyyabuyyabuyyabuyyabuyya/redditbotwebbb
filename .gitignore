@@ -17,7 +17,7 @@ pnpm-debug.log*
 *.log
 *.logs
 
-DB_scheme.txt
+#DB_scheme.txt
 
 
 

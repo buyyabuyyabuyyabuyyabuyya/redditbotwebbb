@@ -54,7 +54,7 @@ export class RedditPaginationManagerServer {
       const lastReset = new Date(state.last_reset_at);
       const now = new Date();
       const hoursSinceReset = (now.getTime() - lastReset.getTime()) / (1000 * 60 * 60);
-      
+
       if (hoursSinceReset >= 1) {
         console.log(`[PAGINATION_SERVER] Reset: 1 hour passed since last reset (${hoursSinceReset.toFixed(2)}h)`);
         return true;
@@ -128,7 +128,7 @@ export class RedditPaginationManagerServer {
       const { error } = await this.supabase
         .from('reddit_pagination_state')
         .upsert(updateData, {
-          onConflict: this.configId 
+          onConflict: this.configId
             ? 'user_id,subreddit,auto_poster_config_id'
             : 'user_id,subreddit'
         });
@@ -180,16 +180,16 @@ export class RedditPaginationManagerServer {
   async checkAlreadyPosted(postIds: string[]): Promise<string[]> {
     try {
       const { data, error } = await this.supabase
-        .from('posted_discussions')
-        .select('discussion_id')
-        .in('discussion_id', postIds);
+        .from('posted_reddit_discussions')
+        .select('reddit_post_id')
+        .in('reddit_post_id', postIds);
 
       if (error) {
         console.error('[PAGINATION_SERVER] Error checking posted discussions:', error);
         return [];
       }
 
-      const alreadyPostedIds = data?.map(d => d.discussion_id) || [];
+      const alreadyPostedIds = data?.map(d => d.reddit_post_id) || [];
       console.log(`[PAGINATION_SERVER] Found ${alreadyPostedIds.length}/${postIds.length} already posted`);
       return alreadyPostedIds;
     } catch (error) {
