@@ -78,16 +78,13 @@ export async function POST(req: Request) {
     console.log(`[REDDIT_SERVICE] Fetching from: ${redditUrl}`);
     const response = await fetch(redditUrl, {
       headers: {
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Accept': 'application/json',
         'User-Agent': getRandomUserAgent(),
         'Accept-Language': 'en-US,en;q=0.5',
         'Accept-Encoding': 'gzip, deflate, br',
         'DNT': '1',
         'Connection': 'keep-alive',
         'Upgrade-Insecure-Requests': '1',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'none',
         'Cache-Control': 'max-age=0',
       },
     });
