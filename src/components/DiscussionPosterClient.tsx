@@ -39,11 +39,13 @@ interface PostingHistory {
   subreddit: string;
   comment_posted: string;
   created_at: string;
+  comment_url?: string;
+  website_config_id?: string;
 }
 
 export default function DiscussionPosterClient() {
   const { user, isLoaded } = useUser();
-  const [activeTab, setActiveTab] = useState<'search' | 'autoposter' | 'config' | 'history'>('search');
+  const [activeTab, setActiveTab] = useState<'search' | 'autoposter' | 'config' | 'history'>('autoposter');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedConfigId, setSelectedConfigId] = useState('');
   const [discussions, setDiscussions] = useState<RedditDiscussion[]>([]);
@@ -149,7 +151,7 @@ export default function DiscussionPosterClient() {
     setIsSearching(true);
     try {
       let queries: string[];
-      
+
       if (searchQuery.trim()) {
         queries = [searchQuery.trim()];
       } else {
@@ -198,7 +200,7 @@ export default function DiscussionPosterClient() {
 
       if (response.ok && result.success) {
         alert('Comment posted successfully!');
-        
+
         // Record the posted discussion
         await fetch('/api/posted-discussions', {
           method: 'POST',
@@ -275,7 +277,6 @@ export default function DiscussionPosterClient() {
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8 px-6">
               {[
-                { id: 'search', label: 'Search & Post', icon: '🔍' },
                 { id: 'autoposter', label: 'Auto-Poster', icon: '🤖' },
                 { id: 'config', label: 'Website Config', icon: '⚙️' },
                 { id: 'history', label: 'History', icon: '📝' }
@@ -286,16 +287,16 @@ export default function DiscussionPosterClient() {
                     setActiveTab(tab.id as any);
                     if (tab.id === 'history') loadPostingHistory();
                   }}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === tab.id
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
                 >
                   <span className="mr-2">{tab.icon}</span>
                   {tab.label}
                 </button>
-              ))}
+              ))
+              }
             </nav>
           </div>
 
@@ -395,6 +396,16 @@ export default function DiscussionPosterClient() {
                             <h4 className="font-medium text-gray-900">{post.post_title}</h4>
                             <p className="text-sm text-gray-600 mt-1">r/{post.subreddit}</p>
                             <p className="text-sm text-gray-500 mt-2">{post.comment_posted}</p>
+                            {post.comment_url && (
+                              <a
+                                href={post.comment_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm text-blue-600 hover:text-blue-800 mt-2 block"
+                              >
+                                View Comment on Reddit ↗
+                              </a>
+                            )}
                           </div>
                           <div className="text-sm text-gray-500">
                             {new Date(post.created_at).toLocaleDateString()}
@@ -426,13 +437,13 @@ function DiscussionCard({ discussion, onPostComment, websiteConfig }: Discussion
 
   const generateSuggestedComment = () => {
     if (!websiteConfig) return '';
-    
+
     const templates = [
       `I've been working on something that might help with this. ${websiteConfig.description} - you can check it out at ${websiteConfig.url}. Would love to get your thoughts!`,
       `This is exactly the kind of problem we're trying to solve. We built ${websiteConfig.url} to help with ${websiteConfig.description.toLowerCase()}. Happy to share more details if you're interested!`,
       `Great discussion! We actually created a solution for this at ${websiteConfig.url}. ${websiteConfig.description} Feel free to check it out and let me know what you think.`
     ];
-    
+
     return templates[Math.floor(Math.random() * templates.length)];
   };
 
@@ -443,7 +454,7 @@ function DiscussionCard({ discussion, onPostComment, websiteConfig }: Discussion
   const formatTimeAgo = (timestamp: number) => {
     const now = Date.now() / 1000;
     const diff = now - timestamp;
-    
+
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
     return `${Math.floor(diff / 86400)}d ago`;
@@ -527,7 +538,7 @@ function DiscussionCard({ discussion, onPostComment, websiteConfig }: Discussion
             Generate Comment
           </button>
         </div>
-        
+
         <textarea
           value={comment}
           onChange={(e) => setComment(e.target.value)}
@@ -535,7 +546,7 @@ function DiscussionCard({ discussion, onPostComment, websiteConfig }: Discussion
           rows={3}
           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
         />
-        
+
         <button
           onClick={() => onPostComment(discussion, comment)}
           disabled={!comment.trim()}
