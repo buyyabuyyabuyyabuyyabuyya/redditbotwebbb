@@ -117,7 +117,17 @@ export async function POST(req: Request): Promise<NextResponse> {
           const title = post.data.title.toLowerCase();
           const content = (post.data.selftext || '').toLowerCase();
           const queryLower = query.toLowerCase();
-          return title.includes(queryLower) || content.includes(queryLower);
+
+          // Split query into keywords for flexible matching
+          const keywords = queryLower.split(' ').filter((k: string) => k.length > 3);
+
+          // If no specific keywords (short query), revert to simple check
+          if (keywords.length === 0) {
+            return title.includes(queryLower) || content.includes(queryLower);
+          }
+
+          // Check if ANY keyword matches (OR logic)
+          return keywords.some((k: string) => title.includes(k) || content.includes(k));
         })
         ?.map((post: any) => ({
           id: post.data.id,

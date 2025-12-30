@@ -188,9 +188,16 @@ export async function scrapeRedditHTML(subreddit: string, query: string): Promis
         // Basic relevance filtering
         const titleLower = title.toLowerCase();
         const queryLower = query.toLowerCase();
+
+        // Split query into keywords
+        const keywords = queryLower.split(' ').filter(k => k.length > 3);
         const businessKeywords = ['business', 'startup', 'entrepreneur', 'marketing', 'saas', 'platform'];
 
-        const isRelevant = titleLower.includes(queryLower) ||
+        const isContextRelevant = keywords.length > 0
+          ? keywords.some(k => titleLower.includes(k))
+          : titleLower.includes(queryLower);
+
+        const isRelevant = isContextRelevant ||
           businessKeywords.some(keyword => titleLower.includes(keyword)) ||
           query.length < 4;
 
