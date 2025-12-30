@@ -26,11 +26,11 @@ interface WebsiteConfigManagerProps {
   initialConfig?: Partial<WebsiteConfig>;
 }
 
-export default function WebsiteConfigManagerStepByStep({ 
-  productId, 
-  onConfigSaved, 
+export default function WebsiteConfigManagerStepByStep({
+  productId,
+  onConfigSaved,
   onConfigsChange,
-  initialConfig 
+  initialConfig
 }: WebsiteConfigManagerProps) {
   const { user } = useUser();
   const [currentStep, setCurrentStep] = useState(1);
@@ -45,7 +45,7 @@ export default function WebsiteConfigManagerStepByStep({
     auto_poster_enabled: false,
     ...initialConfig
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -66,13 +66,13 @@ export default function WebsiteConfigManagerStepByStep({
     try {
       const params = new URLSearchParams();
       if (productId) params.append('productId', productId);
-      
+
       const response = await fetch(`/api/website-config?${params}`);
       const data = await response.json();
-      
+
       if (data.configs) {
         setExistingConfigs(data.configs);
-        
+
         if (data.configs.length > 0 && !initialConfig) {
           // Don't auto-load existing config, always start fresh
           // setConfig(data.configs[0]);
@@ -101,7 +101,7 @@ export default function WebsiteConfigManagerStepByStep({
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
         setConfig(prev => ({
           ...prev,
@@ -111,7 +111,7 @@ export default function WebsiteConfigManagerStepByStep({
           negative_keywords: data.negativeKeywords || prev.negative_keywords,
           business_context_terms: data.businessTerms || prev.business_context_terms
         }));
-        
+
         // Auto-advance to next step
         setCurrentStep(2);
       } else {
@@ -134,18 +134,18 @@ export default function WebsiteConfigManagerStepByStep({
     setSaving(true);
     try {
       const method = config.id ? 'PUT' : 'POST';
-      
+
       // Generate a UUID if not provided
       const generateUUID = () => {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
           const r = Math.random() * 16 | 0;
           const v = c == 'x' ? r : (r & 0x3 | 0x8);
           return v.toString(16);
         });
       };
-      
+
       const finalProductId = productId || generateUUID();
-      
+
       const body = {
         productId: finalProductId,
         configId: config.id,
@@ -166,7 +166,7 @@ export default function WebsiteConfigManagerStepByStep({
       });
 
       const data = await response.json();
-      
+
       if (data.config) {
         setConfig(data.config);
         onConfigSaved?.();
@@ -185,7 +185,7 @@ export default function WebsiteConfigManagerStepByStep({
 
   const addKeyword = (arrayName: keyof WebsiteConfig, value: string) => {
     if (!value.trim()) return;
-    
+
     const currentArray = (config[arrayName] as string[]) || [];
     if (!currentArray.includes(value.trim())) {
       setConfig(prev => ({
@@ -283,14 +283,24 @@ export default function WebsiteConfigManagerStepByStep({
   const handleAddItem = (arrayName: keyof WebsiteConfig, value: string, setValue: (val: string) => void) => {
     if (value.trim()) {
       // Split by comma and add multiple items
-      const items = value.split(',').map(item => item.trim()).filter(item => item.length > 0);
-      const currentArray = (config[arrayName] as string[]) || [];
-      
-      items.forEach(item => {
-        if (!currentArray.includes(item)) {
-          addKeyword(arrayName, item);
-        }
-      });
+      const newItems = value.split(',')
+        .map(item => item.trim())
+        .filter(item => item.length > 0);
+
+      if (newItems.length > 0) {
+        setConfig(prev => {
+          const currentArray = (prev[arrayName] as string[]) || [];
+          // Filter out items that already exist
+          const uniqueNewItems = newItems.filter(item => !currentArray.includes(item));
+
+          if (uniqueNewItems.length === 0) return prev;
+
+          return {
+            ...prev,
+            [arrayName]: [...currentArray, ...uniqueNewItems]
+          };
+        });
+      }
       setValue('');
     }
   };
@@ -325,7 +335,7 @@ export default function WebsiteConfigManagerStepByStep({
             </div>
           </div>
           <p className="text-xs text-gray-400 mb-3">Who are your ideal customers? (e.g., entrepreneurs, small business owners, marketers)</p>
-          
+
           <div className="flex gap-2 mb-3">
             <input
               type="text"
@@ -342,7 +352,7 @@ export default function WebsiteConfigManagerStepByStep({
               Add
             </button>
           </div>
-          
+
           <div className="flex flex-wrap gap-2">
             {(config.customer_segments || []).map((segment, index) => (
               <span
@@ -375,7 +385,7 @@ export default function WebsiteConfigManagerStepByStep({
             </div>
           </div>
           <p className="text-xs text-gray-400 mb-3">Keywords that indicate relevant discussions for your business</p>
-          
+
           <div className="flex gap-2 mb-3">
             <input
               type="text"
@@ -392,7 +402,7 @@ export default function WebsiteConfigManagerStepByStep({
               Add
             </button>
           </div>
-          
+
           <div className="flex flex-wrap gap-2">
             {(config.target_keywords || []).map((keyword, index) => (
               <span
@@ -425,7 +435,7 @@ export default function WebsiteConfigManagerStepByStep({
             </div>
           </div>
           <p className="text-xs text-gray-400 mb-3">Industry-specific terms that provide business context</p>
-          
+
           <div className="flex gap-2 mb-3">
             <input
               type="text"
@@ -442,7 +452,7 @@ export default function WebsiteConfigManagerStepByStep({
               Add
             </button>
           </div>
-          
+
           <div className="flex flex-wrap gap-2">
             {(config.business_context_terms || []).map((term, index) => (
               <span
@@ -475,7 +485,7 @@ export default function WebsiteConfigManagerStepByStep({
             </div>
           </div>
           <p className="text-xs text-gray-400 mb-3">Keywords that indicate posts to avoid (e.g., politics, entertainment, memes)</p>
-          
+
           <div className="flex gap-2 mb-3">
             <input
               type="text"
@@ -492,7 +502,7 @@ export default function WebsiteConfigManagerStepByStep({
               Add
             </button>
           </div>
-          
+
           <div className="flex flex-wrap gap-2">
             {(config.negative_keywords || []).map((keyword, index) => (
               <span
@@ -624,11 +634,10 @@ export default function WebsiteConfigManagerStepByStep({
           {[1, 2, 3, 4].map((step) => (
             <div
               key={step}
-              className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
-                step <= currentStep
+              className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${step <= currentStep
                   ? 'bg-purple-600 text-white'
                   : 'bg-gray-600 text-gray-300'
-              }`}
+                }`}
             >
               {step}
             </div>
