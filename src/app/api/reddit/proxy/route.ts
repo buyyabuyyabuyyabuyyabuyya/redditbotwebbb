@@ -79,26 +79,18 @@ export async function POST(req: Request): Promise<NextResponse> {
     let beforeToken: string | null = null;
 
     try {
-      // Step 1: Fetch Reddit discussions using smart pagination URL
-      console.log(`[REDDIT_SERVICE] Fetching from: ${redditUrl}`);
+      // Step 1: Fetch Reddit discussions via Cloudflare Worker Proxy
+      const PROXY_WORKER_URL = 'https://redditprxy.devappshowcase.workers.dev/';
+      const proxyUrl = `${PROXY_WORKER_URL}?url=${encodeURIComponent(redditUrl)}`;
 
-      const userAgent = getRandomUserAgent();
-      const requestHeaders = {
-        'Accept': 'application/json',
-        'User-Agent': userAgent,
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'DNT': '1',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
-        'Cache-Control': 'max-age=0',
-      };
+      console.log(`[REDDIT_SERVICE] Fetching via Cloudflare Proxy: ${proxyUrl}`);
 
-      console.log(`[REDDIT_SERVICE] Using User-Agent: ${userAgent.substring(0, 50)}...`);
-      console.log(`[REDDIT_SERVICE] Full headers:`, JSON.stringify(requestHeaders, null, 2));
-
-      const response = await fetch(redditUrl, {
-        headers: requestHeaders,
+      // The Worker sets the User-Agent and other headers for the outgoing request to Reddit
+      const response = await fetch(proxyUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
       });
 
       if (!response.ok) {
