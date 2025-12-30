@@ -7,16 +7,16 @@ export async function GET(req: Request) {
     // Check for internal API header (for cron jobs and system calls)
     const internalApiHeader = req.headers.get('X-Internal-API');
     const isInternalCall = internalApiHeader === 'true';
-    
+
     // Parse URL parameters
     const url = new URL(req.url);
     const action = url.searchParams.get('action') || 'list';
     const accountId = url.searchParams.get('accountId');
-    
+
     console.log(`🔍 [REDDIT_ACCOUNTS] API called with action: ${action}, accountId: ${accountId}, internal: ${isInternalCall}`);
-    
+
     let userId: string | null = null;
-    
+
     if (isInternalCall) {
       // For internal calls, we don't need user authentication
       // We'll fetch all admin accounts with is_discussion_poster=true
@@ -25,7 +25,7 @@ export async function GET(req: Request) {
       // For regular user calls, require authentication
       const authResult = auth();
       userId = authResult.userId;
-      
+
       if (!userId) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
@@ -36,15 +36,29 @@ export async function GET(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY || ''
     );
 
+    if (!isInternalCall && userId) {
+      // Check if user is admin
+      const { data: userData } = await supabaseAdmin
+        .from('users')
+        .select('is_admin')
+        .eq('user_id', userId)
+        .single();
+
+      if (!userData?.is_admin) {
+        console.log(`⛔ [REDDIT_ACCOUNTS] User ${userId} is not an admin, denying access`);
+        return NextResponse.json({ error: 'Forbidden: Admin access only' }, { status: 403 });
+      }
+    }
+
     // Handle different actions
     switch (action) {
       case 'cooldown-info':
         if (!accountId) {
           return NextResponse.json({ error: 'Account ID required for cooldown-info' }, { status: 400 });
         }
-        
+
         console.log(`📊 [REDDIT_ACCOUNTS] Getting cooldown info for account: ${accountId}`);
-        
+
         const { data: account } = await supabaseAdmin
           .from('reddit_accounts')
           .select('id, username, last_used_at, cooldown_minutes, is_available')
@@ -54,12 +68,12 @@ export async function GET(req: Request) {
           .single();
 
         if (!account) {
-          return NextResponse.json({ 
-            cooldownInfo: { 
-              accountId, 
-              isOnCooldown: false, 
-              error: 'Account not found' 
-            } 
+          return NextResponse.json({
+            cooldownInfo: {
+              accountId,
+              isOnCooldown: false,
+              error: 'Account not found'
+            }
           });
         }
 
@@ -72,7 +86,7 @@ export async function GET(req: Request) {
           const lastUsed = new Date(account.last_used_at);
           const cooldownMinutes = account.cooldown_minutes || 30;
           const cooldownExpiry = new Date(lastUsed.getTime() + cooldownMinutes * 60 * 1000);
-          
+
           if (now < cooldownExpiry) {
             isOnCooldown = true;
             cooldownEndsAt = cooldownExpiry.toISOString();
@@ -101,9 +115,9 @@ export async function GET(req: Request) {
         if (!accountId) {
           return NextResponse.json({ error: 'Account ID required for availability check' }, { status: 400 });
         }
-        
+
         console.log(`✅ [REDDIT_ACCOUNTS] Checking availability for account: ${accountId}`);
-        
+
         const { data: checkAccount } = await supabaseAdmin
           .from('reddit_accounts')
           .select('id, username, last_used_at, cooldown_minutes, is_available')
@@ -124,7 +138,7 @@ export async function GET(req: Request) {
           const cooldownMinutes = checkAccount.cooldown_minutes || 30;
           const cooldownExpiry = new Date(lastUsed.getTime() + cooldownMinutes * 60 * 1000);
           const now = new Date();
-          
+
           if (now >= cooldownExpiry) {
             available = true;
             reason = 'Cooldown expired, account should be available';
@@ -135,16 +149,16 @@ export async function GET(req: Request) {
 
         console.log(`✅ [REDDIT_ACCOUNTS] Account ${checkAccount.username} availability: ${available} (${reason})`);
 
-        return NextResponse.json({ 
-          available, 
+        return NextResponse.json({
+          available,
           reason,
-          username: checkAccount.username 
+          username: checkAccount.username
         });
 
       case 'list':
       default:
         console.log('📋 [REDDIT_ACCOUNTS] Listing all available accounts');
-        
+
         // Get all admin-controlled Reddit accounts for discussion posting
         // Only accounts with is_discussion_poster=true (set by admin) are returned
         const { data: accounts } = await supabaseAdmin
