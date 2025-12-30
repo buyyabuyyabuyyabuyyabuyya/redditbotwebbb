@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+// TEMPORARY CHANGE FOR TESTING: Triggering immediately, then every 15 mins. Needs to be reverted.
 import { auth } from '@clerk/nextjs/server';
 import { createClient } from '@supabase/supabase-js';
 
@@ -9,43 +10,43 @@ export async function POST(req: Request) {
     console.log('[UPSTASH] Starting cron job setup...');
 
     const userIdFromHeader = req.headers.get('X-User-ID');
-    
+
     let effectiveUserId: string | null = null;
-    
+
     console.log('[UPSTASH] Checking auth - internal:', internal, 'userIdFromHeader:', !!userIdFromHeader);
-    
+
     if (internal && userIdFromHeader) {
       effectiveUserId = userIdFromHeader;
     } else {
       const { userId } = auth();
       effectiveUserId = userId;
     }
-    
+
     console.log('[UPSTASH] Effective user ID:', !!effectiveUserId);
-    
+
     if (!effectiveUserId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await req.json();
     console.log('[UPSTASH] Request body:', body);
-    
+
     const { productId, accountId, intervalMinutes } = body;
 
     if (!productId || !accountId || !intervalMinutes) {
-      return NextResponse.json({ 
-        error: 'Missing required fields: productId, accountId, intervalMinutes' 
+      return NextResponse.json({
+        error: 'Missing required fields: productId, accountId, intervalMinutes'
       }, { status: 400 });
     }
 
     console.log('[UPSTASH] Validating QStash token...');
-    
+
     // Use admin's QStash token from environment
     const qstashToken = process.env.QSTASH_TOKEN;
     if (!qstashToken) {
       console.error('[UPSTASH] QSTASH_TOKEN environment variable not found');
-      return NextResponse.json({ 
-        error: 'QStash token not configured on server' 
+      return NextResponse.json({
+        error: 'QStash token not configured on server'
       }, { status: 500 });
     }
     console.log('[UPSTASH] QStash token found, length:', qstashToken.length);
@@ -79,15 +80,15 @@ export async function POST(req: Request) {
     // Create Upstash QStash schedule using correct API format
     const targetUrl = `https://redditoutreach.com/api/cron/auto-poster`;
     const scheduleUrl = `https://qstash.upstash.io/v2/schedules`;
-    
+
     console.log('[UPSTASH] Target URL:', targetUrl);
     console.log('[UPSTASH] Schedule URL:', scheduleUrl);
-    
+
     // Convert minutes to cron expression
-    const cronExpression = intervalMinutes >= 60 
+    const cronExpression = intervalMinutes >= 60
       ? `0 */${Math.floor(intervalMinutes / 60)} * * *` // Every X hours
       : `*/${intervalMinutes} * * * *`; // Every X minutes
-    
+
     console.log('[UPSTASH] Cron expression:', cronExpression);
 
     const requestBody = JSON.stringify({
@@ -95,9 +96,9 @@ export async function POST(req: Request) {
       configId: config.id,
       source: 'upstash'
     });
-    
+
     console.log('[UPSTASH] Request body:', requestBody);
-    
+
     const scheduleResponse = await fetch(`${scheduleUrl}/${targetUrl}`, {
       method: 'POST',
       headers: {
@@ -108,7 +109,7 @@ export async function POST(req: Request) {
       },
       body: requestBody
     });
-    
+
     console.log('[UPSTASH] Schedule response status:', scheduleResponse.status);
 
     if (!scheduleResponse.ok) {
@@ -119,7 +120,7 @@ export async function POST(req: Request) {
         'Authorization': `Bearer ${qstashToken.substring(0, 10)}...`,
         'Content-Type': 'application/json'
       });
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: 'Failed to create Upstash schedule',
         details: error,
         status: scheduleResponse.status,
@@ -130,6 +131,21 @@ export async function POST(req: Request) {
     const scheduleData = await scheduleResponse.json();
     console.log('[UPSTASH] Schedule created successfully:', scheduleData);
 
+    // TEMPORARY: Trigger immediately for testing
+    console.log('[UPSTASH] Triggering immediate run for testing...');
+    const publishUrl = `https://qstash.upstash.io/v2/publish/${targetUrl}`;
+
+    await fetch(publishUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${qstashToken}`,
+        'Content-Type': 'application/json',
+        'Upstash-Forward-Authorization': `Bearer ${process.env.CRON_SECRET}`
+      },
+      body: requestBody
+    });
+    console.log('[UPSTASH] Immediate test run triggered');
+
     // Store the Upstash schedule ID in our config
     const updateResult = await supabaseAdmin
       .from('auto_poster_configs')
@@ -138,7 +154,7 @@ export async function POST(req: Request) {
         status: 'active'
       })
       .eq('id', config.id);
-    
+
     if (updateResult.error) {
       console.error('[UPSTASH] Failed to update config with schedule ID:', updateResult.error);
     } else {
@@ -156,7 +172,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error('[UPSTASH] Cron setup error:', error);
     console.error('[UPSTASH] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Server error',
       details: error instanceof Error ? error.message : String(error)
     }, { status: 500 });
