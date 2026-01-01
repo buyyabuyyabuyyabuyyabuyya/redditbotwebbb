@@ -60,15 +60,43 @@ export async function GET(request: NextRequest) {
       .lt('created_at', `${today}T23:59:59.999Z`)
       .eq('status', 'posted');
 
-    return NextResponse.json({
-      isRunning: autoposterConfig?.enabled && autoposterConfig?.status === 'active',
-      nextPostTime: autoposterConfig?.next_post_at || null,
-      postsToday: autoposterConfig?.posts_today || 0,
-      lastPostResult: autoposterConfig?.status === 'active' ? 'Running...' : 'Stopped',
+    // Default response if no autoposter config found
+    const defaultResponse = {
+      isRunning: false,
+      nextPostTime: null,
+      postsToday: 0,
+      lastPostResult: 'Not started',
       currentWebsiteConfig: config,
-      intervalMinutes: autoposterConfig?.interval_minutes || 30,
-      maxPostsPerDay: autoposterConfig?.max_posts_per_day || 10,
-      redditAccount: autoposterConfig?.reddit_accounts?.username || 'No account assigned'
+      intervalMinutes: 30,
+      maxPostsPerDay: 10,
+      redditAccount: 'No account assigned'
+    };
+
+    // If no autoposter config exists, return default
+    if (!autoposterConfig) {
+      return NextResponse.json(defaultResponse);
+    }
+
+    // Check if auto-poster is actually running
+    const isRunning = autoposterConfig.enabled === true && autoposterConfig.status === 'active';
+
+    console.log('[STATUS_CHECK]', {
+      websiteConfigId,
+      enabled: autoposterConfig.enabled,
+      status: autoposterConfig.status,
+      isRunning,
+      next_post_at: autoposterConfig.next_post_at
+    });
+
+    return NextResponse.json({
+      isRunning,
+      nextPostTime: autoposterConfig.next_post_at || null,
+      postsToday: autoposterConfig.posts_today || 0,
+      lastPostResult: isRunning ? 'Running...' : 'Stopped',
+      currentWebsiteConfig: config,
+      intervalMinutes: autoposterConfig.interval_minutes || 30,
+      maxPostsPerDay: autoposterConfig.max_posts_per_day || 10,
+      redditAccount: autoposterConfig.reddit_accounts?.username || 'No account assigned'
     });
 
   } catch (error) {

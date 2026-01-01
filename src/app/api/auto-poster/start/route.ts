@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     // Update the config to enable auto-posting
     const { error: updateError } = await supabaseAdmin
       .from('website_configs')
-      .update({ 
+      .update({
         auto_poster_enabled: true,
         updated_at: new Date().toISOString()
       })
@@ -82,11 +82,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to create auto-poster config' }, { status: 500 });
     }
 
+    // Verify the config was created/updated successfully
+    const { data: verifyConfig, error: verifyError } = await supabaseAdmin
+      .from('auto_poster_configs')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('product_id', config.id)
+      .eq('account_id', account.id)
+      .single();
+
+    if (verifyError || !verifyConfig) {
+      console.error('Failed to verify auto-poster config creation:', verifyError);
+      return NextResponse.json({ error: 'Auto-poster config verification failed' }, { status: 500 });
+    }
+
+    console.log('[AUTO_POSTER_START] Config verified:', {
+      enabled: verifyConfig.enabled,
+      status: verifyConfig.status,
+      next_post_at: verifyConfig.next_post_at
+    });
+
     // Auto-create Upstash cron job with internal auth
     try {
       const cronResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/upstash/setup-cron`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'X-Internal-API': 'true',
           'X-User-ID': userId
@@ -107,8 +127,8 @@ export async function POST(request: NextRequest) {
       // Continue anyway - manual fallback available
     }
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       message: 'Auto-poster started successfully',
       config: config
     });
