@@ -10,23 +10,34 @@ export async function POST(req: Request) {
   console.log('[CRON] Request URL:', req.url);
   console.log('[CRON] Request method:', req.method);
   console.log('[CRON] All headers:', Object.fromEntries(req.headers.entries()));
-  
+
   try {
     console.log('[CRON] ===== AUTO-POSTER CRON JOB STARTED =====');
-    
+
     // Verify cron secret from headers (Upstash sends it this way)
     const authHeader = req.headers.get('Authorization');
     const expectedAuth = `Bearer ${process.env.CRON_SECRET}`;
-    
+
     console.log('[CRON] Auth check - received:', authHeader ? `Bearer ${authHeader.substring(7, 17)}...` : 'none');
     console.log('[CRON] Expected:', expectedAuth ? `Bearer ${expectedAuth.substring(7, 17)}...` : 'none');
-    
+
     if (authHeader !== expectedAuth) {
       console.error('[CRON] Authentication failed');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     console.log('[CRON] Authentication successful, starting auto-poster job...');
+
+    // Trigger account cooldown cleanup before anything else
+    try {
+      console.log('[CRON] Triggering account cooldown cleanup...');
+      await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/reddit/accounts/cooldown?action=cleanup`, {
+        method: 'POST',
+        headers: { 'X-Internal-API': 'true' }
+      });
+    } catch (e) {
+      console.error('[CRON] Cooldown cleanup trigger failed (non-blocking):', e);
+    }
 
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -82,7 +93,7 @@ export async function POST(req: Request) {
     // Get configs that are ready to post
     const currentTime = new Date().toISOString();
     console.log(`[CRON] Current time for comparison: ${currentTime}`);
-    
+
     const { data: allConfigs, error: configError } = await supabaseAdmin
       .from('auto_poster_configs')
       .select('*')
@@ -98,7 +109,7 @@ export async function POST(req: Request) {
     }
 
     // Filter configs that haven't reached daily limit
-    const readyConfigs = allConfigs?.filter(config => 
+    const readyConfigs = allConfigs?.filter(config =>
       config.posts_today < config.max_posts_per_day
     ) || [];
 
@@ -116,38 +127,38 @@ export async function POST(req: Request) {
         .select('*')
         .eq('enabled', true)
         .eq('status', 'active');
-      
+
       if (activeConfigs && activeConfigs.length > 0) {
         console.log(`[CRON] Found ${activeConfigs.length} active configs with future post times, resetting to post now`);
-        
+
         // Reset next_post_at to current time for all active configs
         const { error: resetError } = await supabaseAdmin
           .from('auto_poster_configs')
           .update({ next_post_at: currentTime })
           .eq('enabled', true)
           .eq('status', 'active');
-        
+
         if (resetError) {
           console.error('[CRON] Error resetting config post times:', resetError);
         } else {
           console.log('[CRON] Successfully reset config post times, re-querying for ready configs');
-          
+
           // Re-query for configs now that we've reset the times (use fresh timestamp)
           const freshTime = new Date().toISOString();
           console.log(`[CRON] Fresh time for re-query: ${freshTime}`);
-          
+
           const { data: updatedConfigs } = await supabaseAdmin
             .from('auto_poster_configs')
             .select('*')
             .eq('enabled', true)
             .eq('status', 'active')
             .or('next_post_at.is.null,next_post_at.lt.' + freshTime);
-          
+
           // Update readyConfigs with the newly available ones
-          const updatedReadyConfigs = updatedConfigs?.filter(config => 
+          const updatedReadyConfigs = updatedConfigs?.filter(config =>
             config.posts_today < config.max_posts_per_day
           ) || [];
-          
+
           console.log(`[CRON] After reset: ${updatedReadyConfigs.length} configs now ready to post`);
           readyConfigs.push(...updatedReadyConfigs);
 
@@ -193,7 +204,7 @@ export async function POST(req: Request) {
         // Get current subreddit rotation index
         const currentIndex = config.current_subreddit_index || 0;
         const targetSubreddit = BUSINESS_SUBREDDITS[currentIndex % BUSINESS_SUBREDDITS.length];
-        
+
         console.log(`[CRON] Using subreddit: r/${targetSubreddit} (index ${currentIndex})`);
 
         // Get next available Reddit account directly from database (bypass HTTP layer)
@@ -209,14 +220,14 @@ export async function POST(req: Request) {
         const now = new Date();
         const availableAccountsFiltered = availableAccounts?.filter(account => {
           if (account.is_available) return true;
-          
+
           if (account.last_used_at) {
             const lastUsed = new Date(account.last_used_at);
             const cooldownMinutes = account.cooldown_minutes || 30;
             const cooldownExpiry = new Date(lastUsed.getTime() + cooldownMinutes * 60 * 1000);
             return now >= cooldownExpiry;
           }
-          
+
           return false;
         }) || [];
 
@@ -233,9 +244,9 @@ export async function POST(req: Request) {
 
         // Call the main proxy endpoint to handle everything
         const query = websiteConfig.target_keywords?.join(' ') || websiteConfig.customer_segments?.join(' ') || 'business';
-        
+
         console.log(`[CRON] Calling proxy endpoint for r/${targetSubreddit} with query: ${query}`);
-        
+
         try {
           const proxyResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://redditoutreach.com'}/api/reddit/proxy`, {
             method: 'POST',
@@ -258,17 +269,17 @@ export async function POST(req: Request) {
           }
 
           const proxyData = await proxyResponse.json();
-          console.log(`[CRON] Proxy response:`, { 
-            success: proxyData.success, 
+          console.log(`[CRON] Proxy response:`, {
+            success: proxyData.success,
             posted: proxyData.posted,
             relevant: proxyData.relevant,
-            total: proxyData.total 
+            total: proxyData.total
           });
 
           if (proxyData.success && proxyData.posted) {
             console.log(`[CRON] Successfully posted via proxy for config ${config.id}`);
             totalPosts++;
-            
+
             // Update config's next post time
             await supabaseAdmin
               .from('auto_poster_configs')
@@ -279,7 +290,7 @@ export async function POST(req: Request) {
           } else {
             console.log(`[CRON] Proxy completed but no post made for config ${config.id}`);
           }
-          
+
           continue; // Move to next config
         } catch (error) {
           console.error(`[CRON] Proxy call failed for r/${targetSubreddit}:`, error);
@@ -337,8 +348,8 @@ export async function POST(req: Request) {
 
 // Health check endpoint
 export async function GET(req: Request) {
-  return NextResponse.json({ 
-    status: 'healthy', 
-    timestamp: new Date().toISOString() 
+  return NextResponse.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString()
   });
 }

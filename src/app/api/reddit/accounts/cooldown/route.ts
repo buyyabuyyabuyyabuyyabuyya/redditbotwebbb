@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { createClient } from '@supabase/supabase-js';
+import { formatToPacificTime } from '../../../../../lib/timeUtils';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,7 +29,7 @@ export async function GET(req: Request) {
       }
 
       const now = new Date();
-      
+
       // Use current_cooldown_until if available, otherwise calculate from last_used_at
       let cooldownEnd: Date;
       if (account.current_cooldown_until) {
@@ -40,10 +41,10 @@ export async function GET(req: Request) {
       } else {
         return NextResponse.json({ available: account.is_available });
       }
-      
+
       const isAvailable = now >= cooldownEnd && account.is_available;
-      
-      return NextResponse.json({ 
+
+      return NextResponse.json({
         available: isAvailable,
         cooldownEndsAt: cooldownEnd.toISOString(),
         minutesRemaining: Math.max(0, Math.ceil((cooldownEnd.getTime() - now.getTime()) / (60 * 1000)))
@@ -72,10 +73,10 @@ export async function GET(req: Request) {
           const cooldownMinutes = account.cooldown_minutes || 30;
           cooldownEnd = new Date(lastUsed.getTime() + cooldownMinutes * 60 * 1000);
         }
-        
+
         if (cooldownEnd) {
           const isAvailable = now >= cooldownEnd && account.is_available;
-          
+
           if (isAvailable) {
             availableAccounts.push(account);
           } else {
@@ -90,7 +91,7 @@ export async function GET(req: Request) {
         }
       }
 
-      return NextResponse.json({ 
+      return NextResponse.json({
         accounts: availableAccounts,
         available: availableAccounts,
         onCooldown: onCooldownAccounts
@@ -119,10 +120,10 @@ export async function GET(req: Request) {
           const cooldownMinutes = account.cooldown_minutes || 30;
           cooldownEnd = new Date(lastUsed.getTime() + cooldownMinutes * 60 * 1000);
         }
-        
+
         if (cooldownEnd) {
           const isAvailable = now >= cooldownEnd && account.is_available;
-          
+
           if (isAvailable) {
             availableAccounts.push({
               ...account,
@@ -145,10 +146,31 @@ export async function GET(req: Request) {
         }
       }
 
-      return NextResponse.json({ 
+      return NextResponse.json({
         available: availableAccounts,
         onCooldown: onCooldownAccounts
       });
+    }
+
+    if (action === 'cleanup') {
+      console.log('🧹 [COOLDOWN_API] Running auto-cleanup for expired cooldowns');
+
+      const now = new Date().toISOString();
+      const { data, error } = await supabaseAdmin
+        .from('reddit_accounts')
+        .update({
+          is_available: true,
+          current_cooldown_until: null
+        })
+        .eq('is_available', false)
+        .lte('current_cooldown_until', now);
+
+      if (error) {
+        console.error('Error during cooldown cleanup:', error);
+        return NextResponse.json({ error: 'Cleanup failed' }, { status: 500 });
+      }
+
+      return NextResponse.json({ success: true, message: 'Expired cooldowns cleared' });
     }
 
     return NextResponse.json({ error: 'Invalid action parameter' }, { status: 400 });
@@ -202,7 +224,8 @@ export async function POST(req: Request) {
       success: true,
       accountId,
       cooldownMinutes: cooldownTime,
-      availableAt: availableAt.toISOString()
+      availableAt: availableAt.toISOString(),
+      availableAtPT: formatToPacificTime(availableAt)
     });
 
   } catch (error) {
