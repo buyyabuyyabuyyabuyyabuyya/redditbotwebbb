@@ -49,6 +49,10 @@ export async function POST(req: Request) {
       keywords = []
     } = await req.json();
 
+    // Proactively truncate post content to stay under TPM limits
+    // User requested 3,500 character limit as a safeguard
+    const truncatedPostContent = (postContent || '').substring(0, 3500);
+
     // Validate the required fields
     if (!postTitle || !postContent) {
       return NextResponse.json(
@@ -80,7 +84,7 @@ You are an expert at writing engaging Reddit comments that add value to discussi
 
 Post Title: ${postTitle}
 
-Post Content: ${postContent}
+Post Content: ${truncatedPostContent}
 
 Subreddit: r/${subreddit || 'unknown'}
 
@@ -197,9 +201,20 @@ REMINDER: Return ONLY the raw JSON. No markdown, no code blocks, no explanations
               apiKeyManager.releaseApiKey(apiKey, userId);
             }
 
-            // If this isn't the last attempt, continue to next iteration
+            // If this is a 429, try to extract wait time from error
+            let waitTime = 2000; // Default retry delay
+            if (errorText.includes('Please try again in')) {
+              const match = errorText.match(/Please try again in ([\d.]+)s/);
+              if (match && match[1]) {
+                waitTime = (parseFloat(match[1]) + 0.5) * 1000;
+                console.log(`[GEMINI_REPLY] Rate limited. Pausing for specified ${waitTime / 1000}s...`);
+              }
+            }
+
+            // If this isn't the last attempt, wait and continue to next iteration
             if (attempts < maxAttempts) {
-              console.log(`Trying with a different API key...`);
+              console.log(`Waiting ${waitTime / 1000}s before trying different API key...`);
+              await new Promise(resolve => setTimeout(resolve, waitTime));
               continue;
             }
           }

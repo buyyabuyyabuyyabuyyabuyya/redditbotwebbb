@@ -364,6 +364,9 @@ async function processDiscussions(
   console.log(`[REDDIT_PROXY] Using Reddit account: ${redditAccount.username} (Available since ${formatToPacificTime(redditAccount.current_cooldown_until || redditAccount.last_used_at)})`);
 
   // Step 5: Process discussions with Gemini AI and post replies
+  // Add a small 2s pause here to let TPM limits cool down after the scoring batch
+  await new Promise(resolve => setTimeout(resolve, 2000));
+
   let posted = false;
   let postResult = null;
 

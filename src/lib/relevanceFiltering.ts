@@ -63,8 +63,19 @@ export async function filterRelevantDiscussions(
           continue; // Skip this discussion entirely
         }
 
-        // Wait a bit before trying next API key
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Wait a bit before trying next API key - increase to 3s to avoid TPM limits
+        let waitTime = 3000;
+
+        // Try to extract a specific wait time from Groq error if available
+        if (error.message?.includes('Please try again in')) {
+          const match = error.message.match(/Please try again in ([\d.]+)s/);
+          if (match && match[1]) {
+            waitTime = (parseFloat(match[1]) + 0.5) * 1000; // Add extra 0.5s buffer
+            console.log(`[GEMINI_FILTERING] Groq requested wait: ${match[1]}s. Pausing for ${waitTime / 1000}s...`);
+          }
+        }
+
+        await new Promise(resolve => setTimeout(resolve, waitTime));
       }
     }
 
@@ -110,7 +121,10 @@ async function getGeminiRelevanceScore(
 
         console.log(`[GEMINI_SCORING] Acquired API key for discussion ${discussion.id} (attempt ${retryCount + 1})`);
 
-        const content = `${discussion.title}\n\n${discussion.content || ''}`;
+        // Proactively truncate content to stay under 6,000 TPM limit
+        // User requested 3,500 character limit as a safeguard
+        const truncatedContent = (discussion.content || '').substring(0, 3500);
+        const content = `${discussion.title}\n\n${truncatedContent}${discussion.content?.length > 3500 ? '... [Truncated for Token Management]' : ''}`;
         const keywords = websiteConfig.target_keywords || websiteConfig.keywords || [];
 
         // Comprehensive Gemini scoring with full context
