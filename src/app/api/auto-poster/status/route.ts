@@ -22,6 +22,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Get auto-poster config with website config details
+    // BACKWARD COMPATIBILITY: Query by both product_id (legacy) and website_config_id (new)
+    console.log(`[STATUS_CHECK] Querying for websiteConfigId: ${websiteConfigId}`);
+
     const { data: autoposterConfig, error: autoposterError } = await supabaseAdmin
       .from('auto_poster_configs')
       .select(`
@@ -29,8 +32,16 @@ export async function GET(request: NextRequest) {
         reddit_accounts(username, status)
       `)
       .eq('user_id', userId)
-      .eq('product_id', websiteConfigId)
-      .single();
+      .or(`product_id.eq.${websiteConfigId},website_config_id.eq.${websiteConfigId}`)
+      .maybeSingle();
+
+    console.log('[STATUS_CHECK] Query result:', {
+      found: !!autoposterConfig,
+      product_id: autoposterConfig?.product_id,
+      website_config_id: autoposterConfig?.website_config_id,
+      enabled: autoposterConfig?.enabled,
+      status: autoposterConfig?.status
+    });
 
     if (autoposterError && autoposterError.code !== 'PGRST116') {
       console.error('Error fetching auto-poster config:', autoposterError);

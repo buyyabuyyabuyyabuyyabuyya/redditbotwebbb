@@ -186,17 +186,18 @@ export async function POST(req: Request) {
     // Process each config
     for (const config of readyConfigs || []) {
       try {
-        console.log(`[CRON] Processing config ${config.id} for product ${config.product_id}`);
+        const configId = config.website_config_id || config.product_id;
+        console.log(`[CRON] Processing config ${config.id} for website config ${configId}`);
 
         // Get website config details
         const { data: websiteConfig } = await supabaseAdmin
           .from('website_configs')
           .select('*')
-          .eq('id', config.product_id)
+          .eq('id', configId)
           .single();
 
         if (!websiteConfig) {
-          console.error(`[CRON] Website config not found for ${config.product_id}`);
+          console.error(`[CRON] Website config not found for ${configId}`);
           totalErrors++;
           continue;
         }

@@ -216,16 +216,21 @@ export class ApiKeyManager {
 
       // Check if it's a rate limit error
       if (this.isRateLimitError(error)) {
-        // Set rate limit reset time (e.g., 1 hour from now)
-        const resetTime = new Date();
-        resetTime.setHours(resetTime.getHours() + 1);
-        updates.rate_limit_reset = resetTime.toISOString();
+        // Distinguish between TPM (tokens per minute) and daily quota errors
+        const isTpmError = this.isTPMRateLimitError(error);
 
-        console.log(`[${userId}] API key rate limited until: ${resetTime.toISOString()}`);
-
-        // COMMENTED OUT: Keep being_used as true during rate limit period
-        // NOTE: No longer needed with single key usage
-        // It will be released when rate limit expires
+        if (isTpmError) {
+          // TPM errors are temporary - DO NOT lock the key
+          // The calling code should truncate content and retry immediately
+          console.log(`[${userId}] TPM rate limit hit - no lockout, caller should truncate and retry`);
+          // Do NOT set rate_limit_reset for TPM errors
+        } else {
+          // Daily quota exhaustion - lock for 1 hour
+          const resetTime = new Date();
+          resetTime.setHours(resetTime.getHours() + 1);
+          updates.rate_limit_reset = resetTime.toISOString();
+          console.log(`[${userId}] Daily quota exhausted - API key locked until: ${resetTime.toISOString()}`);
+        }
       } else if (this.isInvalidKeyError(error)) {
         // Deactivate invalid keys permanently
         updates.is_active = false;
@@ -325,6 +330,39 @@ export class ApiKeyManager {
       errorMessage.includes('api key expired') ||
       errorMessage.includes('expired')
     );
+  }
+
+  /**
+   * Check if an error is specifically a TPM (Tokens Per Minute) rate limit
+   * TPM errors should NOT lock the key - just truncate and retry
+   */
+  private isTPMRateLimitError(error: any): boolean {
+    const errorMessage = error.message || '';
+    // Groq TPM errors have this format: "...on tokens per minute (TPM): Limit 6000, Used 5835, Requested 998..."
+    return errorMessage.includes('tokens per minute (TPM)');
+  }
+
+  /**
+   * Parse token information from Groq TPM error message
+   * Returns: { limit, used, requested } or null if not a TPM error
+   */
+  parseTPMError(error: any): { limit: number; used: number; requested: number } | null {
+    const errorMessage = error.message || '';
+
+    // Example: "...Limit 6000, Used 5835, Requested 998..."
+    const limitMatch = errorMessage.match(/Limit\s+(\d+)/);
+    const usedMatch = errorMessage.match(/Used\s+(\d+)/);
+    const requestedMatch = errorMessage.match(/Requested\s+(\d+)/);
+
+    if (limitMatch && usedMatch && requestedMatch) {
+      return {
+        limit: parseInt(limitMatch[1]),
+        used: parseInt(usedMatch[1]),
+        requested: parseInt(requestedMatch[1])
+      };
+    }
+
+    return null;
   }
 
   /**

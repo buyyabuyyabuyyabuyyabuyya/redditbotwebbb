@@ -64,7 +64,8 @@ export async function POST(request: NextRequest) {
       .from('auto_poster_configs')
       .upsert({
         user_id: userId,
-        product_id: config.id, // Use website config ID as product ID
+        website_config_id: config.id, // Use website config UUID
+        product_id: null, // Deprecate legacy product_id column
         account_id: account.id,
         enabled: true,
         interval_minutes: 30,
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest) {
         posts_today: 0,
         last_reset_date: new Date().toISOString().split('T')[0]
       }, {
-        onConflict: 'user_id,product_id,account_id'
+        onConflict: 'user_id,website_config_id,account_id'
       });
 
     if (autoposterError) {
@@ -87,7 +88,7 @@ export async function POST(request: NextRequest) {
       .from('auto_poster_configs')
       .select('*')
       .eq('user_id', userId)
-      .eq('product_id', config.id)
+      .eq('website_config_id', config.id)
       .eq('account_id', account.id)
       .single();
 

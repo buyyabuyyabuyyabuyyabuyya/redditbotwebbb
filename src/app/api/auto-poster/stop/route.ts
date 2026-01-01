@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.text();
     console.log('[STOP] Raw request body:', body);
-    
+
     let websiteConfigId;
     if (body.trim()) {
       try {
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     // Update the config to disable auto-posting
     const { error: updateError } = await supabaseAdmin
       .from('website_configs')
-      .update({ 
+      .update({
         auto_poster_enabled: false,
         updated_at: new Date().toISOString()
       })
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
         next_post_at: null
       })
       .eq('user_id', userId)
-      .eq('product_id', websiteConfigId);
+      .or(`website_config_id.eq.${websiteConfigId},product_id.eq.${websiteConfigId}`);
 
     if (statusError) {
       console.error('Error updating auto-poster status:', statusError);
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
       .from('auto_poster_configs')
       .select('upstash_schedule_id')
       .eq('user_id', userId)
-      .eq('product_id', websiteConfigId)
+      .or(`website_config_id.eq.${websiteConfigId},product_id.eq.${websiteConfigId}`)
       .single();
 
     // Auto-delete Upstash cron job
@@ -95,8 +95,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       message: 'Auto-poster stopped successfully'
     });
 

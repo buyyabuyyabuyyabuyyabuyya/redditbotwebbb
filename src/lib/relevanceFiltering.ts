@@ -43,19 +43,48 @@ export async function filterRelevantDiscussions(
 
   console.log(`[GEMINI_FILTERING] Starting comprehensive Gemini scoring for ${unpostedDiscussions.length} discussions`);
 
+
   for (const discussion of unpostedDiscussions) {
     let scores: RelevanceScores;
 
-    // Use Gemini AI for comprehensive relevance scoring - retry with different API keys if needed
+    // Use Gemini AI for comprehensive relevance scoring - retry with truncation if TPM limit hit
     let attempts = 0;
-    const maxAttempts = 5; // Try up to 5 different API keys
+    const maxAttempts = 5;
+    let currentCharLimit = 3500; // Start with our default limit
 
     while (attempts < maxAttempts) {
       try {
-        scores = await getGeminiRelevanceScore(discussion, websiteConfig);
+        scores = await getGeminiRelevanceScore(discussion, websiteConfig, currentCharLimit);
         break; // Success, exit retry loop
       } catch (error: any) {
         attempts++;
+
+        // Check if this is a TPM error that we can fix by truncating
+        const isTPMError = error.message?.includes('tokens per minute (TPM)');
+
+        if (isTPMError && currentCharLimit > 500) {
+          // Parse the error to understand how many tokens we need to save
+          const tpmMatch = error.message.match(/Requested\s+(\d+)/);
+          const usedMatch = error.message.match(/Used\s+(\d+)/);
+          const limitMatch = error.message.match(/Limit\s+(\d+)/);
+
+          if (tpmMatch && usedMatch && limitMatch) {
+            const requested = parseInt(tpmMatch[1]);
+            const used = parseInt(usedMatch[1]);
+            const limit = parseInt(limitMatch[1]);
+            const available = limit - used;
+
+            // Calculate a new safe character limit (rough estimate: 1 token ≈ 4 characters)
+            const safeTokens = Math.floor(available * 0.8); // 80% of available for safety
+            currentCharLimit = Math.max(500, Math.floor(safeTokens * 4));
+
+            console.log(`[GEMINI_FILTERING] TPM limit hit for ${discussion.id}. Requested: ${requested}, Available: ${available}. Reducing char limit from 3500 to ${currentCharLimit}`);
+
+            // DON'T wait - retry immediately with truncated content
+            continue;
+          }
+        }
+
         console.log(`[GEMINI_FILTERING] Attempt ${attempts} failed for discussion ${discussion.id}, trying different API key...`);
 
         if (attempts >= maxAttempts) {
@@ -99,7 +128,8 @@ export async function filterRelevantDiscussions(
 
 async function getGeminiRelevanceScore(
   discussion: RedditDiscussion,
-  websiteConfig: WebsiteConfig
+  websiteConfig: WebsiteConfig,
+  characterLimit: number = 3500
 ): Promise<RelevanceScores> {
   try {
     // Import the API key manager and make direct Gemini API call
@@ -122,9 +152,9 @@ async function getGeminiRelevanceScore(
         console.log(`[GEMINI_SCORING] Acquired API key for discussion ${discussion.id} (attempt ${retryCount + 1})`);
 
         // Proactively truncate content to stay under 6,000 TPM limit
-        // User requested 3,500 character limit as a safeguard
-        const truncatedContent = (discussion.content || '').substring(0, 3500);
-        const content = `${discussion.title}\n\n${truncatedContent}${discussion.content?.length > 3500 ? '... [Truncated for Token Management]' : ''}`;
+        // Use the dynamic characterLimit passed from the caller
+        const truncatedContent = (discussion.content || '').substring(0, characterLimit);
+        const content = `${discussion.title}\n\n${truncatedContent}${discussion.content?.length > characterLimit ? '... [Truncated for Token Management]' : ''}`;
         const keywords = websiteConfig.target_keywords || websiteConfig.keywords || [];
 
         // Comprehensive Gemini scoring with full context
