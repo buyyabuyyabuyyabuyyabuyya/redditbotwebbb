@@ -22,24 +22,34 @@ export async function GET(req: Request) {
     switch (action) {
       case 'stats':
         // Get posting statistics
+        // Get posting statistics filtered by user
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const { data: todayPosts } = await supabase
+        const { count: todayCount } = await supabase
           .from('posted_reddit_discussions')
-          .select('id')
+          .select('id, website_configs!inner(user_id)', { count: 'exact', head: true })
+          .eq('website_configs.user_id', userId)
           .gte('created_at', today.toISOString());
 
-        const { data: totalPosts } = await supabase
+        const { count: totalCount } = await supabase
           .from('posted_reddit_discussions')
-          .select('id, created_at')
+          .select('id, website_configs!inner(user_id)', { count: 'exact', head: true })
+          .eq('website_configs.user_id', userId);
+
+        // Get last post time
+        const { data: lastPost } = await supabase
+          .from('posted_reddit_discussions')
+          .select('created_at, website_configs!inner(user_id)')
+          .eq('website_configs.user_id', userId)
           .order('created_at', { ascending: false })
-          .limit(1);
+          .limit(1)
+          .single();
 
         return NextResponse.json({
-          postsToday: todayPosts?.length || 0,
-          totalPosts: totalPosts?.length || 0,
-          lastPostTime: totalPosts?.[0]?.created_at || null
+          postsToday: todayCount || 0,
+          totalPosts: totalCount || 0,
+          lastPostTime: lastPost?.created_at || null
         });
 
       case 'list':

@@ -26,11 +26,11 @@ interface WebsiteConfigManagerProps {
   initialConfig?: Partial<WebsiteConfig>;
 }
 
-export default function WebsiteConfigManager({ 
-  productId, 
-  onConfigSaved, 
+export default function WebsiteConfigManager({
+  productId,
+  onConfigSaved,
   onConfigsChange,
-  initialConfig 
+  initialConfig
 }: WebsiteConfigManagerProps) {
   const { user } = useUser();
   const [config, setConfig] = useState<Partial<WebsiteConfig>>({
@@ -65,13 +65,13 @@ export default function WebsiteConfigManager({
     try {
       const params = new URLSearchParams();
       if (productId) params.append('productId', productId);
-      
+
       const response = await fetch(`/api/website-config?${params}`);
       const data = await response.json();
-      
+
       if (data.configs) {
         setExistingConfigs(data.configs);
-        
+
         // If we have an existing config for this product, load it
         if (data.configs.length > 0 && !initialConfig) {
           setConfig(data.configs[0]);
@@ -106,7 +106,7 @@ export default function WebsiteConfigManager({
       });
 
       const data = await response.json();
-      
+
       if (data.config) {
         setConfig(data.config);
         onConfigSaved?.();
@@ -125,7 +125,7 @@ export default function WebsiteConfigManager({
 
   const addToArray = (arrayName: keyof WebsiteConfig, value: string, setter: (val: string) => void) => {
     if (!value.trim()) return;
-    
+
     const currentArray = (config[arrayName] as string[]) || [];
     if (!currentArray.includes(value.trim())) {
       setConfig(prev => ({
@@ -365,8 +365,10 @@ export default function WebsiteConfigManager({
           <span>More Strict</span>
         </div>
       </div>
+      {
 
-      {/* Auto Poster Toggle */}
+        /*        
+      
       <div className="flex items-center justify-between">
         <div>
           <label className="block text-sm font-medium text-gray-300">
@@ -385,10 +387,51 @@ export default function WebsiteConfigManager({
           />
           <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
         </label>
-      </div>
+      </div> */}
 
-      {/* Save Button */}
-      <div className="flex justify-end">
+      {/* Save & Delete Buttons */}
+      <div className="flex justify-end gap-3">
+        {config.id && (
+          <button
+            onClick={async () => {
+              if (confirm('Are you sure you want to delete this configuration? This action cannot be undone.')) {
+                setSaving(true);
+                try {
+                  const response = await fetch(`/api/website-config?configId=${config.id}`, {
+                    method: 'DELETE',
+                  });
+                  const data = await response.json();
+                  if (data.success) {
+                    await loadExistingConfigs();
+                    // Reset to empty state or first available
+                    onConfigsChange?.();
+                    setConfig({
+                      website_url: '',
+                      website_description: '',
+                      customer_segments: [],
+                      target_keywords: [],
+                      negative_keywords: [],
+                      business_context_terms: [],
+                      relevance_threshold: 70,
+                      auto_poster_enabled: false
+                    });
+                  } else {
+                    alert('Error deleting configuration: ' + (data.error || 'Unknown error'));
+                  }
+                } catch (error) {
+                  console.error('Error deleting config:', error);
+                  alert('Error deleting configuration');
+                } finally {
+                  setSaving(false);
+                }
+              }
+            }}
+            disabled={saving}
+            className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed"
+          >
+            Delete
+          </button>
+        )}
         <button
           onClick={handleSave}
           disabled={saving || !config.website_url || !config.website_description}

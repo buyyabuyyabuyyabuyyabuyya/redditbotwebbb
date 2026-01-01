@@ -131,7 +131,8 @@ export async function POST(req: Request) {
     const scheduleData = await scheduleResponse.json();
     console.log('[UPSTASH] Schedule created successfully:', scheduleData);
 
-    // TEMPORARY: Trigger immediately for testing
+    // TEMPORARY: Trigger immediately for testing - COMMENTED OUT
+    /*
     console.log('[UPSTASH] Triggering immediate run for testing...');
     const publishUrl = `https://qstash.upstash.io/v2/publish/${targetUrl}`;
 
@@ -145,6 +146,7 @@ export async function POST(req: Request) {
       body: requestBody
     });
     console.log('[UPSTASH] Immediate test run triggered');
+    */
 
     // Store the Upstash schedule ID in our config
     const updateResult = await supabaseAdmin

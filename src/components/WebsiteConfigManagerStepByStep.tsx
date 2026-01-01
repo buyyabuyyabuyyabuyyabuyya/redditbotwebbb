@@ -579,7 +579,7 @@ export default function WebsiteConfigManagerStepByStep({
         </div>
       </div>
 
-      {/* Auto Poster Toggle */}
+      {/* Auto Poster Toggle - Commented out as requested
       <div className="flex items-center justify-between">
         <div>
           <label className="block text-sm font-medium text-gray-300">
@@ -599,6 +599,8 @@ export default function WebsiteConfigManagerStepByStep({
           <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
         </label>
       </div>
+      */}
+      {/* Force auto_poster_enabled to false if it's not already (though UI is hidden now) */}
 
       <div className="flex gap-3">
         <button
@@ -635,8 +637,8 @@ export default function WebsiteConfigManagerStepByStep({
             <div
               key={step}
               className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${step <= currentStep
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-gray-600 text-gray-300'
+                ? 'bg-purple-600 text-white'
+                : 'bg-gray-600 text-gray-300'
                 }`}
             >
               {step}

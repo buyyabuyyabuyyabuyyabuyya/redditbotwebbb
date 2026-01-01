@@ -94,9 +94,7 @@ export class ApiKeyManager {
       const randomIndex = Math.floor(Math.random() * availableKeys.length);
       const apiKey = availableKeys[randomIndex] as ApiKey;
 
-      // COMMENTED OUT: Mark the key as being used (single key usage)
-      // NOTE: This entire block is commented out since we're using one API key for all requests
-      /*
+      // Mark the key as being used (single key usage)
       const { data: updateData, error: updateError } = await supabaseAdmin
         .from('api_keys')
         .update({
@@ -122,9 +120,9 @@ export class ApiKeyManager {
       }
 
       console.log(`[${userId}] Successfully marked API key as being_used = true`);
-      */
 
-      // Update usage stats without locking the key
+      /*
+      // Update usage stats without locking the key - REPLACED BY ABOVE
       await supabaseAdmin
         .from('api_keys')
         .update({
@@ -133,6 +131,7 @@ export class ApiKeyManager {
           updated_at: new Date().toISOString()
         })
         .eq('id', apiKey.id);
+      */
 
       const keyPrefix = apiKey.key.substring(0, 6);
       const keySuffix = apiKey.key.substring(apiKey.key.length - 4);
@@ -151,17 +150,11 @@ export class ApiKeyManager {
    * @param userId - User ID for tracking
    */
   async releaseApiKey(apiKey: string, userId: string): Promise<void> {
-    // COMMENTED OUT: Release API key logic (single key usage)
-    // NOTE: This entire function is essentially a no-op now since we're using one key
-    /*
+    // Release API key logic (single key usage)
     try {
-      // Hold the key for a grace period (15 s) *synchronously* so that rapid
-      // successive requests do not grab the exact same key immediately. This is
-      // preferred over setTimeout in a serverless context where the execution
-      // environment may be frozen as soon as the handler returns.
-      // Increased to 15 seconds to avoid Gemini API 429 rate limit errors
-      console.log(`[${userId}] Waiting 15 seconds before releasing API key`);
-      await new Promise((resolve) => setTimeout(resolve, 15000));
+      // No 15s delay as requested by user
+      console.log(`[${userId}] Waiting 3 seconds before releasing API key`);
+      await new Promise((resolve) => setTimeout(resolve, 3000));
 
       const { error } = await supabaseAdmin
         .from('api_keys')
@@ -179,9 +172,6 @@ export class ApiKeyManager {
     } catch (error) {
       console.error(`[${userId}] Error scheduling releaseApiKey:`, error);
     }
-    */
-    // No-op: Single key usage means no need to release
-    console.log(`[${userId}] releaseApiKey called (no-op for single key usage)`);
   }
 
   /**

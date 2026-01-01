@@ -24,6 +24,11 @@ DB_scheme.txt
 
 *.txt
 
+
+thingstodo.txt
+
+
+
 .log
 .logs
 logs/

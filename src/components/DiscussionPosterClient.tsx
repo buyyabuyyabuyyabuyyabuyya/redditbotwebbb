@@ -241,35 +241,36 @@ export default function DiscussionPosterClient() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+
+    <div className="min-h-screen bg-gray-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Discussion Poster</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className="text-3xl font-bold text-white">Discussion Poster</h1>
+          <p className="mt-2 text-gray-400">
             Find and engage with relevant Reddit discussions for your business
           </p>
         </div>
 
         {/* Account Status Bar */}
         {accountStatus && (
-          <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+          <div className="bg-gray-800 rounded-lg shadow-sm p-4 mb-6 border border-gray-700">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <div className="flex items-center">
                   <div className={`w-3 h-3 rounded-full mr-2 ${accountStatus.accounts?.length > 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                  <span className="text-sm font-medium">
+                  <span className="text-sm font-medium text-gray-200">
                     {accountStatus.accounts?.length || 0} Reddit accounts available
                   </span>
                 </div>
                 {accountStatus.estimatedWaitMinutes && (
-                  <span className="text-sm text-yellow-600">
+                  <span className="text-sm text-yellow-500">
                     Next available in {accountStatus.estimatedWaitMinutes}m
                   </span>
                 )}
               </div>
               <button
                 onClick={loadAccountStatus}
-                className="text-sm text-blue-600 hover:text-blue-800"
+                className="text-sm text-blue-400 hover:text-blue-300"
               >
                 Refresh
               </button>
@@ -278,8 +279,8 @@ export default function DiscussionPosterClient() {
         )}
 
         {/* Tab Navigation */}
-        <div className="bg-white rounded-lg shadow-sm mb-6">
-          <div className="border-b border-gray-200">
+        <div className="bg-gray-800 rounded-lg shadow-sm mb-6 border border-gray-700">
+          <div className="border-b border-gray-700">
             <nav className="-mb-px flex space-x-8 px-6">
               {[
                 { id: 'autoposter', label: 'Auto-Poster', icon: '🤖' },
@@ -293,8 +294,8 @@ export default function DiscussionPosterClient() {
                     if (tab.id === 'history') loadPostingHistory(selectedConfigId);
                   }}
                   className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-blue-500 text-blue-400'
+                    : 'border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-600'
                     }`}
                 >
                   <span className="mr-2">{tab.icon}</span>
@@ -311,24 +312,24 @@ export default function DiscussionPosterClient() {
               <div className="space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
                       Website Configuration
                     </label>
                     <select
                       value={selectedConfigId}
                       onChange={(e) => setSelectedConfigId(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-white"
                     >
                       <option value="">Select a website configuration...</option>
                       {websiteConfigs.map((config) => (
                         <option key={config.id} value={config.id}>
-                          {config.url} - {config.description?.substring(0, 40) || 'No description'}...
+                          {config.website_url || config.url} - {config.website_description?.substring(0, 40) || config.description?.substring(0, 40) || 'No description'}...
                         </option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
                       Custom Search Query (Optional)
                     </label>
                     <input
@@ -336,7 +337,7 @@ export default function DiscussionPosterClient() {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Leave empty to use auto-generated queries"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-white placeholder-gray-400"
                     />
                   </div>
                 </div>
@@ -344,7 +345,7 @@ export default function DiscussionPosterClient() {
                 <button
                   onClick={handleSearch}
                   disabled={isSearching || !selectedConfigId}
-                  className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed"
                 >
                   {isSearching ? 'Searching...' : 'Search Relevant Discussions'}
                 </button>
@@ -353,10 +354,10 @@ export default function DiscussionPosterClient() {
                 {discussions.length > 0 && (
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <h3 className="text-lg font-medium text-gray-900">
+                      <h3 className="text-lg font-medium text-white">
                         Found {discussions.length} Relevant Discussions (Gemini AI Filtered)
                       </h3>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-gray-400">
                         Sorted by relevance score
                       </div>
                     </div>
@@ -389,30 +390,30 @@ export default function DiscussionPosterClient() {
             {/* History Tab */}
             {activeTab === 'history' && (
               <div className="space-y-4">
-                <h3 className="text-lg font-medium text-gray-900">Posting History</h3>
+                <h3 className="text-lg font-medium text-white">Posting History</h3>
                 {postingHistory.length === 0 ? (
-                  <p className="text-gray-500">No posting history yet.</p>
+                  <p className="text-gray-400">No posting history yet.</p>
                 ) : (
                   <div className="space-y-3">
                     {postingHistory.map((post) => (
-                      <div key={post.id} className="bg-gray-50 rounded-lg p-4">
+                      <div key={post.id} className="bg-gray-700 rounded-lg p-4 border border-gray-600">
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
-                            <h4 className="font-medium text-gray-900">{post.post_title}</h4>
-                            <p className="text-sm text-gray-600 mt-1">r/{post.subreddit}</p>
-                            <p className="text-sm text-gray-500 mt-2">{post.comment_posted}</p>
+                            <h4 className="font-medium text-white">{post.post_title}</h4>
+                            <p className="text-sm text-gray-300 mt-1">r/{post.subreddit}</p>
+                            <p className="text-sm text-gray-400 mt-2">{post.comment_posted}</p>
                             {post.comment_url && (
                               <a
                                 href={post.comment_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-sm text-blue-600 hover:text-blue-800 mt-2 block"
+                                className="text-sm text-blue-400 hover:text-blue-300 mt-2 block"
                               >
                                 View Comment on Reddit ↗
                               </a>
                             )}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-400">
                             {new Date(post.created_at).toLocaleDateString()}
                           </div>
                         </div>
@@ -466,31 +467,31 @@ function DiscussionCard({ discussion, onPostComment, websiteConfig }: Discussion
   };
 
   const getRelevanceColor = (score: number) => {
-    if (score >= 80) return 'text-green-600 bg-green-50';
-    if (score >= 60) return 'text-yellow-600 bg-yellow-50';
-    return 'text-red-600 bg-red-50';
+    if (score >= 80) return 'text-green-400 bg-green-900/30';
+    if (score >= 60) return 'text-yellow-400 bg-yellow-900/30';
+    return 'text-red-400 bg-red-900/30';
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4">
+    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
       <div className="flex justify-between items-start mb-3">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
-            <h4 className="font-medium text-gray-900">{discussion.title}</h4>
+            <h4 className="font-medium text-white">{discussion.title}</h4>
             {discussion.relevance_scores && (
               <div className="flex items-center gap-2">
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRelevanceColor(discussion.relevance_scores.final_score)}`}>
                   🤖 {discussion.relevance_scores.final_score}% Relevant
                 </span>
                 {discussion.is_posted && (
-                  <span className="px-2 py-1 rounded-full text-xs font-medium text-gray-600 bg-gray-100">
+                  <span className="px-2 py-1 rounded-full text-xs font-medium text-gray-300 bg-gray-700">
                     ✅ Posted
                   </span>
                 )}
               </div>
             )}
           </div>
-          <div className="flex items-center space-x-4 text-sm text-gray-500">
+          <div className="flex items-center space-x-4 text-sm text-gray-400">
             <span>r/{discussion.subreddit}</span>
             <span>by u/{discussion.author}</span>
             <span>{discussion.score} upvotes</span>
@@ -498,7 +499,7 @@ function DiscussionCard({ discussion, onPostComment, websiteConfig }: Discussion
             <span>{formatTimeAgo(discussion.created_utc)}</span>
           </div>
           {discussion.relevance_scores && (
-            <div className="mt-2 text-xs text-gray-600">
+            <div className="mt-2 text-xs text-gray-500">
               <div className="flex gap-4">
                 <span>Intent: {discussion.relevance_scores.intent_score}%</span>
                 <span>Context: {discussion.relevance_scores.context_match_score}%</span>
@@ -512,7 +513,7 @@ function DiscussionCard({ discussion, onPostComment, websiteConfig }: Discussion
           href={discussion.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-600 hover:text-blue-800 text-sm"
+          className="text-blue-400 hover:text-blue-300 text-sm"
         >
           View on Reddit →
         </a>
@@ -520,13 +521,13 @@ function DiscussionCard({ discussion, onPostComment, websiteConfig }: Discussion
 
       {discussion.content && (
         <div className="mb-3">
-          <p className="text-gray-700 text-sm">
+          <p className="text-gray-300 text-sm">
             {isExpanded ? discussion.content : `${discussion.content?.substring(0, 200) || 'No content'}...`}
           </p>
           {(discussion.content?.length || 0) > 200 && (
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="text-blue-600 hover:text-blue-800 text-sm mt-1"
+              className="text-blue-400 hover:text-blue-300 text-sm mt-1"
             >
               {isExpanded ? 'Show less' : 'Show more'}
             </button>
@@ -538,7 +539,7 @@ function DiscussionCard({ discussion, onPostComment, websiteConfig }: Discussion
         <div className="flex space-x-2">
           <button
             onClick={handleGenerateComment}
-            className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+            className="px-3 py-1 text-sm bg-gray-700 text-gray-300 rounded hover:bg-gray-600 border border-gray-600"
           >
             Generate Comment
           </button>
@@ -549,13 +550,13 @@ function DiscussionCard({ discussion, onPostComment, websiteConfig }: Discussion
           onChange={(e) => setComment(e.target.value)}
           placeholder="Write your comment here..."
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm text-white placeholder-gray-400"
         />
 
         <button
           onClick={() => onPostComment(discussion, comment)}
           disabled={!comment.trim()}
-          className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
+          className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed text-sm"
         >
           Post Comment
         </button>
