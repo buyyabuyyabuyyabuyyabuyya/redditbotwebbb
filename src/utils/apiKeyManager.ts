@@ -30,7 +30,7 @@ interface ApiKey {
 export class ApiKeyManager {
   private static instance: ApiKeyManager;
   private lastRequestTime: number = 0;
-  private minRequestInterval: number = 2000; // 2 secondsl between requests
+  private minRequestInterval: number = 5000; // 5 seconds between requests
 
   static getInstance(): ApiKeyManager {
     if (!ApiKeyManager.instance) {

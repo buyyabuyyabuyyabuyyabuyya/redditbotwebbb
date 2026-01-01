@@ -401,7 +401,7 @@ async function processDiscussions(
         const { error: insertError } = await supabaseAdmin
           .from('posted_reddit_discussions')
           .insert({
-            website_config_id: configId,
+            website_config_id: websiteConfig.id, // Use the correct Website Config UUID, not the Auto-Poster Config ID
             reddit_post_id: discussion.id,
             reddit_account_id: redditAccount.id,
             subreddit: discussion.subreddit,
