@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { createClient } from '@supabase/supabase-js';
+import { formatToPacificTime } from '../../../../../lib/timeUtils';
 
 export async function GET(req: Request) {
   try {
@@ -13,7 +14,7 @@ export async function GET(req: Request) {
     const action = url.searchParams.get('action') || 'list';
     const accountId = url.searchParams.get('accountId');
 
-    console.log(`🔍 [REDDIT_ACCOUNTS] API called with action: ${action}, accountId: ${accountId}, internal: ${isInternalCall}`);
+    console.log(`🔍 [REDDIT_ACCOUNTS] [${formatToPacificTime(new Date())}] API called with action: ${action}, accountId: ${accountId}, internal: ${isInternalCall}`);
 
     let userId: string | null = null;
 
@@ -147,7 +148,7 @@ export async function GET(req: Request) {
           }
         }
 
-        console.log(`✅ [REDDIT_ACCOUNTS] Account ${checkAccount.username} availability: ${available} (${reason})`);
+        console.log(`✅ [REDDIT_ACCOUNTS] [${formatToPacificTime(new Date())}] Account ${checkAccount.username} availability: ${available} (${reason})`);
 
         return NextResponse.json({
           available,

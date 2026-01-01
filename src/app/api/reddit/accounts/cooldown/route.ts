@@ -166,7 +166,7 @@ export async function POST(req: Request) {
     const action = searchParams.get('action');
 
     if (action === 'cleanup') {
-      console.log('🧹 [COOLDOWN_API] Running auto-cleanup for expired cooldowns');
+      console.log(`🧹 [COOLDOWN_API] [${formatToPacificTime(new Date())}] Running auto-cleanup for expired cooldowns`);
 
       const now = new Date().toISOString();
       const { data, error } = await supabaseAdmin

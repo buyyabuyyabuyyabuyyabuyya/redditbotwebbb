@@ -398,27 +398,21 @@ async function processDiscussions(
         const { error: insertError } = await supabaseAdmin
           .from('posted_reddit_discussions')
           .insert({
-            website_config_id: configId, // Changed from user_id
+            website_config_id: configId,
             reddit_post_id: discussion.id,
             reddit_account_id: redditAccount.id,
             subreddit: discussion.subreddit,
             post_title: discussion.title,
-            post_url: discussion.url,
-            comment_id: result.commentId, // Added from result
-            comment_url: result.commentUrl, // Added from result
-            comment_text: result.generatedReply, // Changed from reply_content
-            relevance_score: scores.finalScore,
-            intent_score: scores.intentScore, // Added breakdown
-            context_match_score: scores.contextMatchScore, // Added breakdown
-            quality_score: scores.qualityScore, // Added breakdown
-            ai_confidence: scores.finalScore / 100, // Added based on schema numeric type
-            reddit_account_username: redditAccount.username // Added
+            comment_id: result.commentId,
+            comment_url: result.commentUrl,
+            comment_text: result.generatedReply,
+            relevance_score: Math.round(scores.finalScore)
           });
 
         if (insertError) {
-          console.error(`[REDDIT_PROXY] Database error recording discussion ${discussion.id}:`, insertError);
+          console.error(`[REDDIT_PROXY] [${formatToPacificTime(new Date())}] Database error recording discussion ${discussion.id}:`, insertError);
         } else {
-          console.log(`[REDDIT_PROXY] Successfully recorded posted discussion ${discussion.id} in database`);
+          console.log(`[REDDIT_PROXY] [${formatToPacificTime(new Date())}] Successfully recorded posted discussion ${discussion.id} in database`);
         }
 
         // Update config post count and rotate subreddit
