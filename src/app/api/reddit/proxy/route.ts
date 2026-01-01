@@ -4,6 +4,7 @@ import { getRedditDiscussions, scrapeRedditHTML } from '../../../../lib/redditSe
 import { filterRelevantDiscussions } from '../../../../lib/relevanceFiltering';
 import { redditReplyService } from '../../../../lib/redditReplyService';
 import { RedditPaginationManagerServer } from '../../../../lib/redditPaginationServer';
+import { formatToPacificTime } from '../../../../lib/timeUtils';
 
 
 const userAgents = [
@@ -321,21 +322,46 @@ async function processDiscussions(
     .eq('is_validated', true)
     .eq('is_discussion_poster', true)
     .eq('status', 'active')
-    .eq('is_available', true)
-    .order('last_used_at', { ascending: true, nullsFirst: true })
-    .limit(1);
+    .order('last_used_at', { ascending: true, nullsFirst: true });
 
-  const redditAccount = availableAccounts?.[0];
+  // Filter accounts that are actually available (not in cooldown)
+  const now = new Date();
+  const availableAccountsFiltered = availableAccounts?.filter((account: any) => {
+    if (account.is_available) return true;
+
+    // Check if cooldown has expired despite is_available being false
+    if (account.current_cooldown_until) {
+      return now >= new Date(account.current_cooldown_until);
+    }
+
+    // Fallback to last_used_at + cooldown_minutes
+    if (account.last_used_at) {
+      const lastUsed = new Date(account.last_used_at);
+      const cooldownMinutes = account.cooldown_minutes || 30;
+      const cooldownExpiry = new Date(lastUsed.getTime() + cooldownMinutes * 60 * 1000);
+      return now >= cooldownExpiry;
+    }
+
+    return false;
+  }) || [];
+
+  const redditAccount = availableAccountsFiltered[0];
 
   if (!redditAccount) {
-    console.error(`[REDDIT_PROXY] No Reddit accounts available for posting`);
+    console.error(`[REDDIT_PROXY] No Reddit accounts available for posting (Checked ${availableAccounts?.length || 0} accounts)`);
     return NextResponse.json({
       success: false,
-      error: 'No Reddit accounts available'
+      error: 'No Reddit accounts available',
+      accountStatuses: availableAccounts?.map((a: any) => ({
+        username: a.username,
+        is_available: a.is_available,
+        cooldown_until: a.current_cooldown_until,
+        last_used: formatToPacificTime(a.last_used_at)
+      }))
     }, { status: 503 });
   }
 
-  console.log(`[REDDIT_PROXY] Using Reddit account: ${redditAccount.username}`);
+  console.log(`[REDDIT_PROXY] Using Reddit account: ${redditAccount.username} (Available since ${formatToPacificTime(redditAccount.current_cooldown_until || redditAccount.last_used_at)})`);
 
   // Step 5: Process discussions with Gemini AI and post replies
   let posted = false;

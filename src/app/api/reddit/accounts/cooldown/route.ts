@@ -152,6 +152,19 @@ export async function GET(req: Request) {
       });
     }
 
+    return NextResponse.json({ error: 'Invalid action parameter' }, { status: 400 });
+
+  } catch (error) {
+    console.error('Cooldown API error:', error);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const action = searchParams.get('action');
+
     if (action === 'cleanup') {
       console.log('🧹 [COOLDOWN_API] Running auto-cleanup for expired cooldowns');
 
@@ -173,17 +186,15 @@ export async function GET(req: Request) {
       return NextResponse.json({ success: true, message: 'Expired cooldowns cleared' });
     }
 
-    return NextResponse.json({ error: 'Invalid action parameter' }, { status: 400 });
+    // Parse body for regular cooldown updates
+    let body;
+    try {
+      body = await req.json();
+    } catch (e) {
+      body = {};
+    }
 
-  } catch (error) {
-    console.error('Cooldown API error:', error);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
-  }
-}
-
-export async function POST(req: Request) {
-  try {
-    const { accountId, cooldownMinutes } = await req.json();
+    const { accountId, cooldownMinutes } = body;
 
     if (!accountId) {
       return NextResponse.json({ error: 'Account ID required' }, { status: 400 });
