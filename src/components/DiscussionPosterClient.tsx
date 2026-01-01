@@ -85,9 +85,14 @@ export default function DiscussionPosterClient() {
     }
   };
 
-  const loadPostingHistory = async () => {
+  const loadPostingHistory = async (configId?: string) => {
     try {
-      const response = await fetch('/api/posted-discussions?action=list&limit=50');
+      const url = new URL('/api/posted-discussions', window.location.origin);
+      url.searchParams.append('action', 'list');
+      url.searchParams.append('limit', '50');
+      if (configId) url.searchParams.append('website_config_id', configId);
+
+      const response = await fetch(url.toString());
       if (response.ok) {
         const data = await response.json();
         setPostingHistory(data.posts || []);
@@ -285,7 +290,7 @@ export default function DiscussionPosterClient() {
                   key={tab.id}
                   onClick={() => {
                     setActiveTab(tab.id as any);
-                    if (tab.id === 'history') loadPostingHistory();
+                    if (tab.id === 'history') loadPostingHistory(selectedConfigId);
                   }}
                   className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === tab.id
                     ? 'border-blue-500 text-blue-600'

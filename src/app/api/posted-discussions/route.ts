@@ -24,7 +24,7 @@ export async function GET(req: Request) {
         // Get posting statistics
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        
+
         const { data: todayPosts } = await supabase
           .from('posted_reddit_discussions')
           .select('id')
@@ -47,9 +47,27 @@ export async function GET(req: Request) {
         const limit = parseInt(searchParams.get('limit') || '50');
         const offset = parseInt(searchParams.get('offset') || '0');
 
+        // First, verify access to the specific config OR get all allowed configs
+        if (websiteConfigId) {
+          const { data: config } = await supabase
+            .from('website_configs')
+            .select('id')
+            .eq('id', websiteConfigId)
+            .eq('user_id', userId)
+            .single();
+
+          if (!config) {
+            return NextResponse.json({ error: 'Website configuration not found or unauthorized' }, { status: 404 });
+          }
+        }
+
         let query = supabase
           .from('posted_reddit_discussions')
-          .select('*')
+          .select(`
+            *,
+            website_configs!inner(user_id)
+          `)
+          .eq('website_configs.user_id', userId)
           .order('created_at', { ascending: false })
           .range(offset, offset + limit - 1);
 
@@ -64,7 +82,13 @@ export async function GET(req: Request) {
           return NextResponse.json({ error: 'Database error' }, { status: 500 });
         }
 
-        return NextResponse.json({ posts: posts || [] });
+        // Clean up internal join data before returning
+        const cleanedPosts = (posts || []).map(p => {
+          const { website_configs, ...rest } = p as any;
+          return rest;
+        });
+
+        return NextResponse.json({ posts: cleanedPosts });
 
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
@@ -85,19 +109,31 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { 
-      website_config_id, 
-      reddit_post_id, 
-      subreddit, 
-      post_title, 
+    const {
+      website_config_id,
+      reddit_post_id,
+      subreddit,
+      post_title,
       comment_posted,
-      relevance_score 
+      relevance_score
     } = body;
 
     if (!website_config_id || !reddit_post_id || !subreddit) {
-      return NextResponse.json({ 
-        error: 'Missing required fields: website_config_id, reddit_post_id, subreddit' 
+      return NextResponse.json({
+        error: 'Missing required fields: website_config_id, reddit_post_id, subreddit'
       }, { status: 400 });
+    }
+
+    // Verify ownership of the website config
+    const { data: config } = await supabase
+      .from('website_configs')
+      .select('id')
+      .eq('id', website_config_id)
+      .eq('user_id', userId)
+      .single();
+
+    if (!config) {
+      return NextResponse.json({ error: 'Website configuration not found or unauthorized' }, { status: 404 });
     }
 
     // Check if this discussion was already posted to for this website config
@@ -109,8 +145,8 @@ export async function POST(req: Request) {
       .single();
 
     if (existing) {
-      return NextResponse.json({ 
-        error: 'Discussion already posted to for this website configuration' 
+      return NextResponse.json({
+        error: 'Discussion already posted to for this website configuration'
       }, { status: 409 });
     }
 
@@ -122,7 +158,7 @@ export async function POST(req: Request) {
         reddit_post_id,
         subreddit,
         post_title: post_title || '',
-        comment_posted: comment_posted || '',
+        comment_text: comment_posted || '', // Fixed column name
         relevance_score: relevance_score || null,
         created_at: new Date().toISOString()
       })
@@ -155,7 +191,18 @@ export async function DELETE(req: Request) {
     const websiteConfigId = searchParams.get('website_config_id');
 
     if (id) {
-      // Delete specific posted discussion
+      // Delete specific posted discussion - must verify ownership via join
+      const { data: post } = await supabase
+        .from('posted_reddit_discussions')
+        .select('id, website_configs!inner(user_id)')
+        .eq('id', id)
+        .eq('website_configs.user_id', userId)
+        .single();
+
+      if (!post) {
+        return NextResponse.json({ error: 'Post not found or unauthorized' }, { status: 404 });
+      }
+
       const { error } = await supabase
         .from('posted_reddit_discussions')
         .delete()
@@ -168,6 +215,18 @@ export async function DELETE(req: Request) {
 
       return NextResponse.json({ success: true });
     } else if (websiteConfigId) {
+      // First verify ownership of the config
+      const { data: config } = await supabase
+        .from('website_configs')
+        .select('id')
+        .eq('id', websiteConfigId)
+        .eq('user_id', userId)
+        .single();
+
+      if (!config) {
+        return NextResponse.json({ error: 'Website configuration not found or unauthorized' }, { status: 404 });
+      }
+
       // Delete all posted discussions for a website config
       const { error } = await supabase
         .from('posted_reddit_discussions')

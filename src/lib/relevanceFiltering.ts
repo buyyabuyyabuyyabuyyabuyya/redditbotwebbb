@@ -6,6 +6,7 @@ export interface RelevanceScores {
   qualityScore: number;
   finalScore: number;
   filteringReason?: string;
+  engagementScore: number;
 }
 
 export interface WebsiteConfig {
@@ -215,7 +216,8 @@ Respond with ONLY a JSON object in this exact format (no markdown, no extra text
               contextMatchScore: scores.contextMatchScore || 0,
               qualityScore: scores.qualityScore || 0,
               finalScore: scores.finalScore || 0,
-              filteringReason: scores.reasoning || undefined
+              filteringReason: scores.reasoning || undefined,
+              engagementScore: scores.engagementScore || 0
             };
           }
         }

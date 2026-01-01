@@ -19,17 +19,21 @@ pnpm-debug.log*
 
 DB_scheme.txt
 
+*.sqlite
+*.sql
 
-
+*.txt
 
 .log
 .logs
 logs/
 log/
-#logs-website.txt
-#logs-website/
-
+logs-website.txt
+logs-website/
+#
 log.txt
+
+log2133.md
 
 # Runtime data
 pids

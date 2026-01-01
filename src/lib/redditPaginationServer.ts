@@ -179,10 +179,16 @@ export class RedditPaginationManagerServer {
    */
   async checkAlreadyPosted(postIds: string[]): Promise<string[]> {
     try {
-      const { data, error } = await this.supabase
+      let query = this.supabase
         .from('posted_reddit_discussions')
         .select('reddit_post_id')
         .in('reddit_post_id', postIds);
+
+      if (this.configId) {
+        query = query.eq('website_config_id', this.configId);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('[PAGINATION_SERVER] Error checking posted discussions:', error);

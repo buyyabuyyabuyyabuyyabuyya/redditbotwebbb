@@ -47,19 +47,19 @@ export async function POST(req: Request) {
     const { data: postedDiscussions } = await supabaseAdmin
       .from('posted_reddit_discussions')
       .select('reddit_post_id')
-      .eq('user_id', userId);
-    
+      .eq('website_config_id', configId); // Fixed filter (no user_id column)
+
     const postedIds = postedDiscussions?.map(p => p.reddit_post_id) || [];
 
     // Fetch discussions from multiple subreddits
     const allRelevantDiscussions = [];
-    
+
     for (const subreddit of subreddits.slice(0, 3)) { // Limit to 3 subreddits for UI
       try {
         console.log(`[DISCUSSIONS_API] Fetching from r/${subreddit}`);
-        
+
         const discussions = await getRedditDiscussions('', subreddit, 10);
-        
+
         if (discussions.items && discussions.items.length > 0) {
           // Apply Gemini AI relevance filtering
           const relevantDiscussions = await filterRelevantDiscussions(
