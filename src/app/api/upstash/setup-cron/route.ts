@@ -57,12 +57,12 @@ export async function POST(req: Request) {
     );
 
     // Get the config to check if it exists
-    console.log('[UPSTASH] Looking for config with:', { userId: effectiveUserId, productId, accountId });
+    console.log('[UPSTASH] Looking for config with:', { userId: effectiveUserId, websiteConfigId: productId, accountId });
     const { data: config, error: configError } = await supabaseAdmin
       .from('auto_poster_configs')
       .select('id')
       .eq('user_id', effectiveUserId)
-      .eq('product_id', productId)
+      .eq('website_config_id', productId) // productId param actually contains the website config UUID
       .eq('account_id', accountId)
       .single();
 
