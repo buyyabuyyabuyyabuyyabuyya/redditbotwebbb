@@ -683,9 +683,9 @@ export default function WebsiteConfigManagerStepByStep({
                       <span className="bg-red-100 text-red-800 px-2 py-1 rounded">
                         {existingConfig.negative_keywords?.length || 0} negative keywords
                       </span>
-                      <span className={`px-2 py-1 rounded ${existingConfig.auto_poster_enabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                      {/*<span className={`px-2 py-1 rounded ${existingConfig.auto_poster_enabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
                         Auto-poster: {existingConfig.auto_poster_enabled ? 'ON' : 'OFF'}
-                      </span>
+                      </span>*/}
                     </div>
                   </div>
                   <div className="flex gap-2 ml-4">
