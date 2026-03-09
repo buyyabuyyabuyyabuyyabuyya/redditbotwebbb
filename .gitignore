@@ -34,6 +34,7 @@ thingstodo.txt
 
 
 
+*.txt
 
 .log
 .logs
@@ -82,3 +83,31 @@ build/
 
 # Reddit Chrome Extension (keep private)
 reddit-chrome-extension/
+
+
+
+ # Local notes / plans / logs
+  /Plan.txt
+  /plannew.txt
+  /Universal_Relevance_AutoPoster_Plan.txt
+  /Beno one full workflow code.txt
+  /new Beno workflow.txt
+  /Car_Rental_ER_Diagram.txt
+  /Car_Rental_ER_Diagram_Visual.txt
+  /alreadysent.txt
+  /autopostlogs.txt
+  /log.txt
+  /logs.txt
+  /logs_website.txt
+  /redditlink.txt
+  /rules.txt
+  /temp_lines.txt
+  /thingstodo.txt
+  /thingstodo.tx
+
+  # Local binaries
+  /stripe.exe
+
+  # Scratch / backup files
+  *.new
+  /src/app/api/bot/route.txt
