@@ -111,3 +111,52 @@ reddit-chrome-extension/
   # Scratch / backup files
   *.new
   /src/app/api/bot/route.txt
+
+
+
+  
+  # Local notes / plans / logs
+  /Plan.txt
+  /plannew.txt
+  /Universal_Relevance_AutoPoster_Plan.txt
+  /Beno one full workflow code.txt
+  /new Beno workflow.txt
+  /Car_Rental_ER_Diagram.txt
+  /Car_Rental_ER_Diagram_Visual.txt
+  /alreadysent.txt
+  /autopostlogs.txt
+  /log.txt
+  /logs.txt
+  /logs_website.txt
+  /redditlink.txt
+  /rules.txt
+  /temp_lines.txt
+  /thingstodo.txt
+  /thingstodo.tx
+
+  # Local binaries
+  /stripe.exe
+
+  # Scratch / backup files
+  *.new
+  /src/app/api/bot/route.txt
+  /src/app/api/reddit/scan/route.txt
+  /src/app/api/reddit/scan-post/old_working_version_of_scan-post.txt
+  /src/app/api/reddit/scan-start/old_working_version_of_scan-start.txt
+  /src/app/api/reddit/send-message/Old_working_version.txt
+
+  # One-off SQL files that are not real migrations
+  /database_migration_auto_poster_status.sql
+  /src/app/api/gemini/migration.sql
+  /src/app/api/reddit/credential-error-migration.sql
+
+  # Keep real Supabase migrations tracked
+  !/supabase/migrations/*.sql
+
+  # Local Supabase state
+  /supabase/.temp/
+  /supabase/.branches/
+
+  # Local tool folders
+  /.agent/
+  /.kiro/
