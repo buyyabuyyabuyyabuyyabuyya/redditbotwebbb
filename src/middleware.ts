@@ -1,10 +1,9 @@
 import { authMiddleware } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 
 export default authMiddleware({
-  // Public routes that don't require authentication
+  signInUrl: '/sign-in',
   publicRoutes: [
     '/',
     '/pricing',
@@ -14,7 +13,6 @@ export default authMiddleware({
   ],
   ignoredRoutes: ['/api/webhooks/stripe'],
   async afterAuth(auth, req) {
-    // If the user is authenticated with Clerk, verify in Supabase as well
     if (auth.userId) {
       const res = NextResponse.next();
       const supabase = createServerClient(
@@ -26,43 +24,18 @@ export default authMiddleware({
               return req.cookies.get(name)?.value;
             },
             set(name, value, options) {
-              req.cookies.set({
-                name,
-                value,
-                ...options,
-              });
-              res.cookies.set({
-                name,
-                value,
-                ...options,
-              });
+              req.cookies.set({ name, value, ...options });
+              res.cookies.set({ name, value, ...options });
             },
             remove(name, options) {
-              req.cookies.set({
-                name,
-                value: '',
-                ...options,
-              });
-              res.cookies.set({
-                name,
-                value: '',
-                ...options,
-              });
+              req.cookies.set({ name, value: '', ...options });
+              res.cookies.set({ name, value: '', ...options });
             },
           },
         }
       );
 
-      // Get the Supabase user as required by the rules
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      // Create or update the user in Supabase if they don't exist yet
-      if (!user) {
-        // Here we could add logic to create the user in Supabase if needed
-      }
-
+      await supabase.auth.getUser();
       return res;
     }
 

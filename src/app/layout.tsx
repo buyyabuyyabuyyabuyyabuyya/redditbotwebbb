@@ -10,8 +10,11 @@ import StructuredData from '@/components/StructuredData';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || 'https://redditoutreach.com'
+  ),
   manifest: '/manifest.json',
-  title: 'RedditOutreach - Automate Your Reddit Outreach',
+  title: 'RedditOutreach - Automate Your Reddit Comment Outreach',
   description:
     'Automate your Reddit comment outreach with AI-ranked discussion discovery, reusable templates, and server-managed auto-posters.',
   keywords: [
@@ -37,7 +40,7 @@ export const metadata = {
     type: 'website',
     locale: 'en_US',
     url: 'https://redditoutreach.com',
-    title: 'RedditOutreach - Automate Your Reddit Outreach',
+    title: 'RedditOutreach - Automate Your Reddit Comment Outreach',
     description:
       'Automate your Reddit comment outreach with AI-ranked discussion discovery, reusable templates, and server-managed auto-posters.',
     siteName: 'RedditOutreach',
@@ -52,9 +55,9 @@ export const metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'RedditOutreach - Automate Your Reddit Outreach',
+    title: 'RedditOutreach - Automate Your Reddit Comment Outreach',
     description:
-      'Automate your Reddit outreach with our powerful bot platform.',
+      'Automate your Reddit comment outreach with AI-ranked discussion discovery and auto-posters.',
     images: ['/icon-512x512.png'],
   },
 };
@@ -69,7 +72,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider afterSignInUrl="/dashboard" afterSignUpUrl="/dashboard">
+    <ClerkProvider
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      afterSignInUrl="/dashboard"
+      afterSignUpUrl="/dashboard"
+    >
       <html lang="en">
         <head>
           <link rel="icon" href="/favicon.ico" sizes="256x256" />

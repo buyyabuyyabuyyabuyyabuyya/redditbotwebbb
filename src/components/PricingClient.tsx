@@ -3,6 +3,7 @@
 import { SignUpButton } from '@clerk/nextjs';
 import { useAuth } from '@clerk/nextjs';
 import { useState } from 'react';
+import { useAuthRedirectUrl } from '../hooks/useAuthRedirectUrl';
 
 interface Plan {
   name: string;
@@ -21,9 +22,13 @@ interface PricingClientProps {
   userSubscriptionStatus?: string;
 }
 
-export default function PricingClient({ plans, userSubscriptionStatus }: PricingClientProps) {
+export default function PricingClient({
+  plans,
+  userSubscriptionStatus,
+}: PricingClientProps) {
   const { userId } = useAuth();
   const [loading, setLoading] = useState<string | null>(null);
+  const redirectUrl = useAuthRedirectUrl();
 
   const handleSubscribe = async (plan: 'pro' | 'advanced') => {
     if (!userId) {
@@ -46,38 +51,39 @@ export default function PricingClient({ plans, userSubscriptionStatus }: Pricing
 
       if (!response.ok) {
         const errorData = await response.json();
-        
-        // Handle duplicate subscription conflict
+
         if (response.status === 409 && errorData.redirectToPortal) {
           alert(errorData.error || 'You already have an active subscription.');
-          // Redirect to billing portal
           window.location.href = '/settings?tab=billing';
           return;
         }
-        
+
         throw new Error(errorData.error || 'Failed to create checkout session');
       }
 
       const data = await response.json();
-      
-      // Handle cases where user should be redirected to portal instead
+
       if (data.redirectToPortal) {
-        alert(data.message || 'Redirecting to billing portal to manage your subscription.');
+        alert(
+          data.message ||
+            'Redirecting to billing portal to manage your subscription.'
+        );
         window.location.href = '/settings?tab=billing';
         return;
       }
-      
+
       if (data.upgraded) {
         alert('Your subscription has been updated successfully!');
         window.location.reload();
         return;
       }
-      
+
       if (data.url) {
         window.location.href = data.url;
       } else if (data.sessionId) {
-        // Use Stripe.js to redirect to checkout
-        const stripe = (window as any).Stripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+        const stripe = (window as any).Stripe(
+          process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+        );
         stripe.redirectToCheckout({ sessionId: data.sessionId });
       } else {
         throw new Error('No checkout URL or session ID returned');
@@ -109,9 +115,7 @@ export default function PricingClient({ plans, userSubscriptionStatus }: Pricing
             )}
             <div className="flex items-center justify-between gap-x-4">
               <h3
-                className={`text-lg font-semibold leading-8 ${
-                  plan.popular ? 'text-purple-300' : 'text-white'
-                }`}
+                className={`text-lg font-semibold leading-8 ${plan.popular ? 'text-purple-300' : 'text-white'}`}
               >
                 {plan.name}
               </h3>
@@ -121,20 +125,25 @@ export default function PricingClient({ plans, userSubscriptionStatus }: Pricing
             </p>
             <div className="mt-6">
               {plan.discount && plan.originalPrice && (
-                <p className="flex items-baseline gap-x-2 mb-2">
+                <p className="mb-2 flex items-baseline gap-x-2">
                   <span className="text-lg font-semibold text-gray-400 line-through">
                     {plan.originalPrice}
                   </span>
-                  <span className="text-sm text-red-400 font-medium">
-                    🔥 Save {Math.round((parseFloat(plan.originalPrice.replace('$', '')) - parseFloat(plan.price.replace('$', ''))) / parseFloat(plan.originalPrice.replace('$', '')) * 100)}%
+                  <span className="text-sm font-medium text-red-400">
+                    🔥 Save{' '}
+                    {Math.round(
+                      ((parseFloat(plan.originalPrice.replace('$', '')) -
+                        parseFloat(plan.price.replace('$', ''))) /
+                        parseFloat(plan.originalPrice.replace('$', ''))) *
+                        100
+                    )}
+                    %
                   </span>
                 </p>
               )}
               <p className="flex items-baseline gap-x-1">
                 <span
-                  className={`text-4xl font-bold tracking-tight ${
-                    plan.popular ? 'text-purple-300' : 'text-white'
-                  }`}
+                  className={`text-4xl font-bold tracking-tight ${plan.popular ? 'text-purple-300' : 'text-white'}`}
                 >
                   {plan.price}
                 </span>
@@ -145,12 +154,15 @@ export default function PricingClient({ plans, userSubscriptionStatus }: Pricing
                 )}
               </p>
               {plan.discount && plan.discountExpiry && (
-                <p className="mt-2 text-sm text-red-400 font-medium">
+                <p className="mt-2 text-sm font-medium text-red-400">
                   Limited Time: Discount expires {plan.discountExpiry}
                 </p>
               )}
             </div>
-            <ul role="list" className="mt-8 space-y-3 text-sm leading-6 text-gray-300">
+            <ul
+              role="list"
+              className="mt-8 space-y-3 text-sm leading-6 text-gray-300"
+            >
               {plan.features.map((feature) => (
                 <li key={feature} className="flex gap-x-3">
                   <svg
@@ -169,7 +181,7 @@ export default function PricingClient({ plans, userSubscriptionStatus }: Pricing
                 </li>
               ))}
             </ul>
-            
+
             {plan.name === 'Free' && userSubscriptionStatus === 'free' ? (
               <button
                 type="button"
@@ -182,7 +194,7 @@ export default function PricingClient({ plans, userSubscriptionStatus }: Pricing
               <button
                 onClick={() => handleSubscribe('pro')}
                 disabled={loading === 'pro'}
-                className="mt-10 block w-full rounded-md bg-purple-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline-purple-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600 disabled:opacity-50"
+                className="mt-10 block w-full rounded-md bg-purple-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600 disabled:opacity-50"
               >
                 {loading === 'pro' ? 'Loading...' : plan.cta}
               </button>
@@ -190,18 +202,21 @@ export default function PricingClient({ plans, userSubscriptionStatus }: Pricing
               <button
                 onClick={() => handleSubscribe('advanced')}
                 disabled={loading === 'advanced'}
-                className="mt-10 block w-full rounded-md bg-purple-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline-purple-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600 disabled:opacity-50"
+                className="mt-10 block w-full rounded-md bg-purple-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600 disabled:opacity-50"
               >
                 {loading === 'advanced' ? 'Loading...' : plan.cta}
               </button>
             ) : (
-              <SignUpButton mode="modal" afterSignUpUrl="/dashboard">
-                <button className="mt-10 block w-full rounded-md bg-purple-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline-purple-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600">
+              <SignUpButton
+                mode="modal"
+                afterSignUpUrl="/dashboard"
+                redirectUrl={redirectUrl}
+              >
+                <button className="mt-10 block w-full rounded-md bg-purple-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600">
                   {plan.cta}
                 </button>
               </SignUpButton>
             )}
-            
           </div>
         ))}
       </div>

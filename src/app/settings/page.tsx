@@ -10,7 +10,7 @@ export default async function Settings() {
   const { userId } = await auth();
 
   if (!userId) {
-    redirect('/sign-in');
+    redirect('/sign-in?redirect_url=%2Fsettings');
   }
 
   const supabaseAdmin = createClient(

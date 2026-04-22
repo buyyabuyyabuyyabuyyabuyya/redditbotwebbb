@@ -7,7 +7,7 @@ export default async function TutorialPage() {
   const { userId } = await auth();
 
   if (!userId) {
-    redirect('/sign-in');
+    redirect('/sign-in?redirect_url=%2Ftutorial');
   }
 
   return (

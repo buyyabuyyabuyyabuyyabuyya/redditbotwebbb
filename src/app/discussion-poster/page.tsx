@@ -6,7 +6,7 @@ export default async function DiscussionPosterPage() {
   const { userId } = await auth();
 
   if (!userId) {
-    redirect('/sign-in');
+    redirect('/sign-in?redirect_url=%2Fdiscussion-poster');
   }
 
   return <DiscussionPosterClient />;

@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
-import { SignUpButton } from '@clerk/nextjs';
 import PricingClient from '../../components/PricingClient';
 
 const createSupabaseServerClient = () => {
@@ -30,18 +29,16 @@ const createSupabaseServerClient = () => {
 export default async function Pricing() {
   const { userId } = await auth();
 
-  if (!userId) {
-    redirect('/sign-in');
+  let user: { subscription_status?: string } | null = null;
+  if (userId) {
+    const supabase = createSupabaseServerClient();
+    const { data } = await supabase
+      .from('users')
+      .select('subscription_status')
+      .eq('id', userId)
+      .single();
+    user = data;
   }
-
-  const supabase = createSupabaseServerClient();
-
-  // Fetch user's current subscription status
-  const { data: user } = await supabase
-    .from('users')
-    .select('subscription_status')
-    .eq('id', userId)
-    .single();
 
   const PLANS = [
     {
@@ -98,9 +95,9 @@ export default async function Pricing() {
   ];
 
   return (
-    <div className="bg-gray-900 text-white py-24 sm:py-32">
+    <div className="bg-gray-900 py-24 text-white sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl sm:text-center">
+        <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
             Simple, transparent pricing
           </h2>
@@ -116,21 +113,20 @@ export default async function Pricing() {
           />
         </div>
 
-        {/* Legal Links */}
         <div className="mt-16 text-center">
-          <p className="text-sm text-gray-400 mb-4">
+          <p className="mb-4 text-sm text-gray-400">
             By subscribing, you agree to our terms and privacy policy.
           </p>
           <div className="flex justify-center space-x-6">
             <Link
               href="/terms"
-              className="text-sm text-gray-400 hover:text-white transition-colors underline"
+              className="text-sm text-gray-400 underline transition-colors hover:text-white"
             >
               Terms of Service
             </Link>
             <Link
               href="/privacy"
-              className="text-sm text-gray-400 hover:text-white transition-colors underline"
+              className="text-sm text-gray-400 underline transition-colors hover:text-white"
             >
               Privacy Policy
             </Link>
