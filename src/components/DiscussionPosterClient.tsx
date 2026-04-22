@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useUser } from '@clerk/nextjs';
 import AutoPosterManager from './AutoPosterManager';
 import WebsiteConfigManagerStepByStep from './WebsiteConfigManagerStepByStep';
@@ -22,11 +22,9 @@ interface RedditDiscussion {
     context_match_score: number;
     quality_score: number;
     engagement_score: number;
-    filtering_reason?: string;
   };
   is_posted?: boolean;
 }
-
 
 interface AccountStatus {
   accounts: any[];
@@ -39,107 +37,82 @@ interface PostingHistory {
   subreddit: string;
   comment_posted: string;
   created_at: string;
-  comment_url?: string;
-  website_config_id?: string;
+  comment_url?: string | null;
 }
 
 export default function DiscussionPosterClient() {
   const { user, isLoaded } = useUser();
-  const [activeTab, setActiveTab] = useState<'search' | 'autoposter' | 'config' | 'history'>('autoposter');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<
+    'search' | 'autoposter' | 'config' | 'history'
+  >('search');
   const [selectedConfigId, setSelectedConfigId] = useState('');
-  const [discussions, setDiscussions] = useState<RedditDiscussion[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [websiteConfigs, setWebsiteConfigs] = useState<WebsiteConfig[]>([]);
-  const [accountStatus, setAccountStatus] = useState<AccountStatus | null>(null);
+  const [accountStatus, setAccountStatus] = useState<AccountStatus | null>(
+    null
+  );
+  const [discussions, setDiscussions] = useState<RedditDiscussion[]>([]);
   const [postingHistory, setPostingHistory] = useState<PostingHistory[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  useEffect(() => {
-    if (isLoaded && user) {
-      loadWebsiteConfigs();
-      loadAccountStatus();
-    }
-  }, [isLoaded, user]);
+  const selectedConfig = useMemo(
+    () =>
+      websiteConfigs.find((config) => config.id === selectedConfigId) || null,
+    [selectedConfigId, websiteConfigs]
+  );
 
   const loadWebsiteConfigs = async () => {
-    try {
-      const response = await fetch('/api/website-config');
-      if (response.ok) {
-        const data = await response.json();
-        setWebsiteConfigs(data.configs || []);
+    const response = await fetch('/api/website-config');
+    const data = await response.json();
+    if (response.ok) {
+      setWebsiteConfigs(data.configs || []);
+      if (!selectedConfigId && data.configs?.length) {
+        setSelectedConfigId(data.configs[0].id);
       }
-    } catch (error) {
-      console.error('Error loading website configs:', error);
     }
   };
 
   const loadAccountStatus = async () => {
-    try {
-      const response = await fetch('/api/reddit/accounts/available?action=status');
-      if (response.ok) {
-        const data = await response.json();
-        setAccountStatus(data);
-      }
-    } catch (error) {
-      console.error('Error loading account status:', error);
-    }
+    const response = await fetch(
+      '/api/reddit/accounts/available?action=status'
+    );
+    const data = await response.json();
+    if (response.ok) setAccountStatus(data);
   };
 
   const loadPostingHistory = async (configId?: string) => {
-    try {
-      const url = new URL('/api/posted-discussions', window.location.origin);
-      url.searchParams.append('action', 'list');
-      url.searchParams.append('limit', '50');
-      if (configId) url.searchParams.append('website_config_id', configId);
+    const url = new URL('/api/posted-discussions', window.location.origin);
+    url.searchParams.set('action', 'list');
+    url.searchParams.set('limit', '50');
+    if (configId) url.searchParams.set('website_config_id', configId);
 
-      const response = await fetch(url.toString());
-      if (response.ok) {
-        const data = await response.json();
-        setPostingHistory(data.posts || []);
-      }
-    } catch (error) {
-      console.error('Error loading posting history:', error);
+    const response = await fetch(url.toString());
+    const data = await response.json();
+    if (response.ok) setPostingHistory(data.posts || []);
+  };
+
+  useEffect(() => {
+    if (!isLoaded || !user) return;
+    void Promise.all([loadWebsiteConfigs(), loadAccountStatus()]);
+  }, [isLoaded, user]);
+
+  useEffect(() => {
+    if (activeTab === 'history') {
+      void loadPostingHistory(selectedConfigId || undefined);
     }
-  };
+  }, [activeTab, selectedConfigId]);
 
-  const generateRedditSearchQueries = (description: string, customerSegments: string) => {
-    // Simple query generation based on description
-    const keywords = description.split(' ').slice(0, 3).join(' ');
-    return [keywords];
-  };
-
-  const searchMultipleSubredditsWithPagination = async (
-    query: string,
-    userId: string,
-    subreddits: string[] | undefined,
-    limit: number,
-    config: WebsiteConfig,
-    usePagination: boolean
-  ): Promise<RedditDiscussion[]> => {
-    try {
-      // Use the new Gemini-powered relevant discussions endpoint
-      const response = await fetch('/api/discussions/relevant', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId,
-          configId: config.id,
-          preview: true
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        return data.discussions || [];
+  useEffect(() => {
+    const refreshHistory = () => {
+      if (activeTab === 'history') {
+        void loadPostingHistory(selectedConfigId || undefined);
       }
-      return [];
-    } catch (error) {
-      console.error('Error searching discussions:', error);
-      return [];
-    }
-  };
+    };
+
+    window.addEventListener('posted-discussions:updated', refreshHistory);
+    return () =>
+      window.removeEventListener('posted-discussions:updated', refreshHistory);
+  }, [activeTab, selectedConfigId]);
 
   const handleSearch = async () => {
     if (!user?.id || !selectedConfigId) {
@@ -147,129 +120,132 @@ export default function DiscussionPosterClient() {
       return;
     }
 
-    const selectedConfig = websiteConfigs.find(config => config.id === selectedConfigId);
-    if (!selectedConfig) {
-      alert('Selected website configuration not found');
-      return;
-    }
-
     setIsSearching(true);
     try {
-      let queries: string[];
-
-      if (searchQuery.trim()) {
-        queries = [searchQuery.trim()];
-      } else {
-        // Generate queries based on website config
-        queries = generateRedditSearchQueries(
-          selectedConfig.description,
-          selectedConfig.customer_segments.join(' ')
-        );
+      const response = await fetch('/api/discussions/relevant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          configId: selectedConfigId,
+          preview: true,
+          query: searchQuery.trim() || undefined,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to search discussions');
       }
-
-      const results = await searchMultipleSubredditsWithPagination(
-        queries[0],
-        user.id,
-        undefined, // Use default subreddits
-        10,
-        selectedConfig,
-        true // Use pagination
-      );
-
-      setDiscussions(results);
-    } catch (error) {
-      console.error('Error searching discussions:', error);
-      alert('Error searching discussions. Please try again.');
+      setDiscussions(data.discussions || []);
+    } catch (error: any) {
+      alert(error?.message || 'Error searching discussions');
     } finally {
       setIsSearching(false);
     }
   };
 
-  const handlePostComment = async (discussion: RedditDiscussion, comment: string) => {
+  const handlePostComment = async (
+    discussion: RedditDiscussion,
+    comment: string
+  ) => {
+    if (!selectedConfigId) {
+      alert('Please select a website configuration first');
+      return;
+    }
+
     try {
       const response = await fetch('/api/reddit/post-comment', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           postId: discussion.id,
           subreddit: discussion.subreddit,
-          comment: comment,
-          accountId: 'auto', // Let the system choose the best available account
-          userId: user?.id
-        })
+          comment,
+          accountId: 'auto',
+          userId: user?.id,
+          websiteConfigId: selectedConfigId,
+          postTitle: discussion.title,
+          relevanceScore: discussion.relevance_scores?.final_score,
+        }),
       });
 
       const result = await response.json();
-
-      if (response.ok && result.success) {
-        alert('Comment posted successfully!');
-
-        // Record the posted discussion
-        await fetch('/api/posted-discussions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            website_config_id: selectedConfigId,
-            reddit_post_id: discussion.id,
-            subreddit: discussion.subreddit,
-            post_title: discussion.title,
-            comment_posted: comment
-          })
-        });
-
-        // Refresh discussions to remove posted ones
-        handleSearch();
-      } else {
-        alert(`Failed to post comment: ${result.error || 'Unknown error'}`);
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to post comment');
       }
-    } catch (error) {
-      console.error('Error posting comment:', error);
-      alert('Error posting comment. Please try again.');
+
+      setDiscussions((current) =>
+        current.map((item) =>
+          item.id === discussion.id ? { ...item, is_posted: true } : item
+        )
+      );
+      window.dispatchEvent(new CustomEvent('posted-discussions:updated'));
+      if (activeTab === 'history') {
+        void loadPostingHistory(selectedConfigId);
+      }
+      alert('Comment posted successfully!');
+    } catch (error: any) {
+      alert(error?.message || 'Error posting comment. Please try again.');
     }
   };
 
   if (!isLoaded) {
-    return <div className="flex justify-center items-center h-64">Loading...</div>;
+    return (
+      <div className="flex h-64 items-center justify-center text-gray-400">
+        Loading…
+      </div>
+    );
   }
 
   if (!user) {
-    return <div className="text-center p-8">Please sign in to access the discussion poster.</div>;
+    return (
+      <div className="p-8 text-center text-gray-300">
+        Please sign in to access the comment workspace.
+      </div>
+    );
   }
 
-  return (
+  const tabs = [
+    { id: 'search', label: 'Find Discussions', icon: '🔎' },
+    { id: 'autoposter', label: 'Auto-Poster', icon: '🤖' },
+    { id: 'config', label: 'Website Configs', icon: '⚙️' },
+    { id: 'history', label: 'Posted Comments', icon: '📝' },
+  ] as const;
 
+  return (
     <div className="min-h-screen bg-gray-900 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">Discussion Poster</h1>
-          <p className="mt-2 text-gray-400">
-            Find and engage with relevant Reddit discussions for your business
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-8 rounded-2xl border border-gray-700 bg-gray-800/70 p-6 shadow-lg">
+          <h1 className="text-3xl font-bold text-white">
+            Comment Outreach Workspace
+          </h1>
+          <p className="mt-2 max-w-3xl text-gray-300">
+            Discover relevant Reddit discussions, draft useful comments, and run
+            comment-only auto-posters from one workflow.
           </p>
         </div>
 
-        {/* Account Status Bar */}
         {accountStatus && (
-          <div className="bg-gray-800 rounded-lg shadow-sm p-4 mb-6 border border-gray-700">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
+          <div className="mb-6 rounded-xl border border-gray-700 bg-gray-800 p-4 shadow-sm">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-center gap-4">
                 <div className="flex items-center">
-                  <div className={`w-3 h-3 rounded-full mr-2 ${accountStatus.accounts?.length > 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                  <div
+                    className={`mr-2 h-3 w-3 rounded-full ${accountStatus.accounts?.length > 0 ? 'bg-green-500' : 'bg-red-500'}`}
+                  />
                   <span className="text-sm font-medium text-gray-200">
-                    {accountStatus.accounts?.length || 0} Reddit accounts available
+                    {accountStatus.accounts?.length || 0} Reddit account
+                    {accountStatus.accounts?.length === 1 ? '' : 's'} available
                   </span>
                 </div>
-                {accountStatus.estimatedWaitMinutes && (
-                  <span className="text-sm text-yellow-500">
+                {accountStatus.estimatedWaitMinutes ? (
+                  <span className="text-sm text-yellow-400">
                     Next available in {accountStatus.estimatedWaitMinutes}m
                   </span>
-                )}
+                ) : null}
               </div>
               <button
-                onClick={loadAccountStatus}
+                onClick={() => void loadAccountStatus()}
                 className="text-sm text-blue-400 hover:text-blue-300"
               >
                 Refresh
@@ -278,66 +254,62 @@ export default function DiscussionPosterClient() {
           </div>
         )}
 
-        {/* Tab Navigation */}
-        <div className="bg-gray-800 rounded-lg shadow-sm mb-6 border border-gray-700">
-          <div className="border-b border-gray-700">
-            <nav className="-mb-px flex space-x-8 px-6">
-              {[
-                { id: 'autoposter', label: 'Auto-Poster', icon: '🤖' },
-                { id: 'config', label: 'Website Config', icon: '⚙️' },
-                { id: 'history', label: 'History', icon: '📝' }
-              ].map((tab) => (
+        <div className="rounded-2xl border border-gray-700 bg-gray-800 shadow-sm">
+          <div className="border-b border-gray-700 px-6">
+            <nav className="-mb-px flex flex-wrap gap-6">
+              {tabs.map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => {
-                    setActiveTab(tab.id as any);
-                    if (tab.id === 'history') loadPostingHistory(selectedConfigId);
-                  }}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === tab.id
-                    ? 'border-blue-500 text-blue-400'
-                    : 'border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-600'
-                    }`}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`border-b-2 px-1 py-4 text-sm font-medium ${activeTab === tab.id ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-400 hover:border-gray-600 hover:text-gray-200'}`}
                 >
                   <span className="mr-2">{tab.icon}</span>
                   {tab.label}
                 </button>
-              ))
-              }
+              ))}
             </nav>
           </div>
 
           <div className="p-6">
-            {/* Search & Post Tab */}
             {activeTab === 'search' && (
               <div className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid gap-6 lg:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <label className="mb-2 block text-sm font-medium text-gray-300">
                       Website Configuration
                     </label>
                     <select
                       value={selectedConfigId}
                       onChange={(e) => setSelectedConfigId(e.target.value)}
-                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-white"
+                      className="w-full rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                     >
-                      <option value="">Select a website configuration...</option>
+                      <option value="">
+                        Select a website configuration...
+                      </option>
                       {websiteConfigs.map((config) => (
                         <option key={config.id} value={config.id}>
-                          {config.website_url || config.url} - {config.website_description?.substring(0, 40) || config.description?.substring(0, 40) || 'No description'}...
+                          {(config.website_url || config.url) ??
+                            'Untitled config'}{' '}
+                          -{' '}
+                          {(
+                            config.website_description ||
+                            config.description ||
+                            'No description'
+                          ).slice(0, 50)}
                         </option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Custom Search Query (Optional)
+                    <label className="mb-2 block text-sm font-medium text-gray-300">
+                      Optional Search Hint
                     </label>
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Leave empty to use auto-generated queries"
-                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-white placeholder-gray-400"
+                      placeholder="Leave empty to use config-based relevance search"
+                      className="w-full rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                     />
                   </div>
                 </div>
@@ -345,20 +317,19 @@ export default function DiscussionPosterClient() {
                 <button
                   onClick={handleSearch}
                   disabled={isSearching || !selectedConfigId}
-                  className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed"
+                  className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-600"
                 >
-                  {isSearching ? 'Searching...' : 'Search Relevant Discussions'}
+                  {isSearching ? 'Searching…' : 'Find Relevant Discussions'}
                 </button>
 
-                {/* Search Results */}
-                {discussions.length > 0 && (
+                {discussions.length > 0 ? (
                   <div className="space-y-4">
-                    <div className="flex justify-between items-center">
+                    <div className="flex items-center justify-between">
                       <h3 className="text-lg font-medium text-white">
-                        Found {discussions.length} Relevant Discussions (Gemini AI Filtered)
+                        Found {discussions.length} relevant discussions
                       </h3>
                       <div className="text-sm text-gray-400">
-                        Sorted by relevance score
+                        Sorted by AI relevance
                       </div>
                     </div>
                     {discussions.map((discussion) => (
@@ -366,55 +337,95 @@ export default function DiscussionPosterClient() {
                         key={discussion.id}
                         discussion={discussion}
                         onPostComment={handlePostComment}
-                        websiteConfig={websiteConfigs.find(c => c.id === selectedConfigId)}
+                        websiteConfig={selectedConfig}
                       />
                     ))}
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-dashed border-gray-600 p-6 text-sm text-gray-400">
+                    Search results will appear here after you run a relevance
+                    search.
                   </div>
                 )}
               </div>
             )}
 
-            {/* Auto-Poster Tab */}
             {activeTab === 'autoposter' && (
               <AutoPosterManager
                 websiteConfigs={websiteConfigs}
-                onRefreshConfigs={loadWebsiteConfigs}
+                onRefreshConfigs={() => void loadWebsiteConfigs()}
               />
             )}
 
-            {/* Website Config Tab */}
             {activeTab === 'config' && (
-              <WebsiteConfigManagerStepByStep onConfigsChange={loadWebsiteConfigs} />
+              <WebsiteConfigManagerStepByStep
+                onConfigsChange={() => {
+                  void loadWebsiteConfigs();
+                  void loadPostingHistory(selectedConfigId || undefined);
+                }}
+              />
             )}
 
-            {/* History Tab */}
             {activeTab === 'history' && (
               <div className="space-y-4">
-                <h3 className="text-lg font-medium text-white">Posting History</h3>
+                <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                  <div>
+                    <h3 className="text-lg font-medium text-white">
+                      Posted Comment History
+                    </h3>
+                    <p className="text-sm text-gray-400">
+                      Review the comments your workspace has already posted.
+                    </p>
+                  </div>
+                  <select
+                    value={selectedConfigId}
+                    onChange={(e) => setSelectedConfigId(e.target.value)}
+                    className="w-full rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white md:max-w-md"
+                  >
+                    <option value="">All website configurations</option>
+                    {websiteConfigs.map((config) => (
+                      <option key={config.id} value={config.id}>
+                        {config.website_url || config.url}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 {postingHistory.length === 0 ? (
-                  <p className="text-gray-400">No posting history yet.</p>
+                  <div className="rounded-xl border border-dashed border-gray-600 p-6 text-sm text-gray-400">
+                    No posted comments yet.
+                  </div>
                 ) : (
                   <div className="space-y-3">
                     {postingHistory.map((post) => (
-                      <div key={post.id} className="bg-gray-700 rounded-lg p-4 border border-gray-600">
-                        <div className="flex justify-between items-start">
+                      <div
+                        key={post.id}
+                        className="rounded-lg border border-gray-700 bg-gray-900/60 p-4"
+                      >
+                        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                           <div className="flex-1">
-                            <h4 className="font-medium text-white">{post.post_title}</h4>
-                            <p className="text-sm text-gray-300 mt-1">r/{post.subreddit}</p>
-                            <p className="text-sm text-gray-400 mt-2">{post.comment_posted}</p>
-                            {post.comment_url && (
+                            <h4 className="font-medium text-white">
+                              {post.post_title}
+                            </h4>
+                            <p className="mt-1 text-sm text-gray-400">
+                              r/{post.subreddit}
+                            </p>
+                            <p className="mt-2 text-sm text-gray-300">
+                              {post.comment_posted}
+                            </p>
+                            {post.comment_url ? (
                               <a
                                 href={post.comment_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-sm text-blue-400 hover:text-blue-300 mt-2 block"
+                                className="mt-2 inline-block text-sm text-blue-400 hover:text-blue-300"
                               >
                                 View Comment on Reddit ↗
                               </a>
-                            )}
+                            ) : null}
                           </div>
                           <div className="text-sm text-gray-400">
-                            {new Date(post.created_at).toLocaleDateString()}
+                            {new Date(post.created_at).toLocaleString()}
                           </div>
                         </div>
                       </div>
@@ -430,135 +441,125 @@ export default function DiscussionPosterClient() {
   );
 }
 
-// Discussion Card Component
-interface DiscussionCardProps {
+function DiscussionCard({
+  discussion,
+  onPostComment,
+  websiteConfig,
+}: {
   discussion: RedditDiscussion;
   onPostComment: (discussion: RedditDiscussion, comment: string) => void;
-  websiteConfig?: WebsiteConfig;
-}
-
-function DiscussionCard({ discussion, onPostComment, websiteConfig }: DiscussionCardProps) {
+  websiteConfig: WebsiteConfig | null;
+}) {
   const [comment, setComment] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
 
   const generateSuggestedComment = () => {
     if (!websiteConfig) return '';
-
+    const websiteUrl = websiteConfig.website_url || websiteConfig.url;
+    const websiteDescription =
+      websiteConfig.website_description || websiteConfig.description;
     const templates = [
-      `I've been working on something that might help with this. ${websiteConfig.description} - you can check it out at ${websiteConfig.url}. Would love to get your thoughts!`,
-      `This is exactly the kind of problem we're trying to solve. We built ${websiteConfig.url} to help with ${websiteConfig.description.toLowerCase()}. Happy to share more details if you're interested!`,
-      `Great discussion! We actually created a solution for this at ${websiteConfig.url}. ${websiteConfig.description} Feel free to check it out and let me know what you think.`
+      `This sounds familiar. I've been building ${websiteUrl} to help with exactly this kind of workflow. ${websiteDescription}`,
+      `You may find ${websiteUrl} helpful here. We're focused on ${websiteDescription.toLowerCase()}. Curious if this approach would fit your use case?`,
+      `Interesting thread. I'm working on ${websiteUrl}, which is built around ${websiteDescription.toLowerCase()}. Happy to share how we're thinking about this.`,
     ];
-
     return templates[Math.floor(Math.random() * templates.length)];
   };
 
-  const handleGenerateComment = () => {
-    setComment(generateSuggestedComment());
-  };
-
   const formatTimeAgo = (timestamp: number) => {
-    const now = Date.now() / 1000;
-    const diff = now - timestamp;
-
+    const diff = Date.now() / 1000 - timestamp;
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
     return `${Math.floor(diff / 86400)}d ago`;
   };
 
-  const getRelevanceColor = (score: number) => {
-    if (score >= 80) return 'text-green-400 bg-green-900/30';
-    if (score >= 60) return 'text-yellow-400 bg-yellow-900/30';
-    return 'text-red-400 bg-red-900/30';
-  };
+  const relevanceScore = discussion.relevance_scores?.final_score ?? 0;
+  const relevanceColor =
+    relevanceScore >= 80
+      ? 'text-green-400 bg-green-900/30'
+      : relevanceScore >= 60
+        ? 'text-yellow-400 bg-yellow-900/30'
+        : 'text-red-400 bg-red-900/30';
 
   return (
-    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-      <div className="flex justify-between items-start mb-3">
+    <div className="rounded-lg border border-gray-700 bg-gray-900/60 p-4">
+      <div className="mb-3 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
+          <div className="mb-2 flex flex-wrap items-center gap-2">
             <h4 className="font-medium text-white">{discussion.title}</h4>
-            {discussion.relevance_scores && (
-              <div className="flex items-center gap-2">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRelevanceColor(discussion.relevance_scores.final_score)}`}>
-                  🤖 {discussion.relevance_scores.final_score}% Relevant
-                </span>
-                {discussion.is_posted && (
-                  <span className="px-2 py-1 rounded-full text-xs font-medium text-gray-300 bg-gray-700">
-                    ✅ Posted
-                  </span>
-                )}
-              </div>
-            )}
+            {discussion.relevance_scores ? (
+              <span
+                className={`rounded-full px-2 py-1 text-xs font-medium ${relevanceColor}`}
+              >
+                🤖 {relevanceScore}% relevant
+              </span>
+            ) : null}
+            {discussion.is_posted ? (
+              <span className="rounded-full bg-gray-700 px-2 py-1 text-xs font-medium text-gray-300">
+                ✅ Posted
+              </span>
+            ) : null}
           </div>
-          <div className="flex items-center space-x-4 text-sm text-gray-400">
+          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400">
             <span>r/{discussion.subreddit}</span>
             <span>by u/{discussion.author}</span>
             <span>{discussion.score} upvotes</span>
             <span>{discussion.num_comments} comments</span>
             <span>{formatTimeAgo(discussion.created_utc)}</span>
           </div>
-          {discussion.relevance_scores && (
-            <div className="mt-2 text-xs text-gray-500">
-              <div className="flex gap-4">
-                <span>Intent: {discussion.relevance_scores.intent_score}%</span>
-                <span>Context: {discussion.relevance_scores.context_match_score}%</span>
-                <span>Quality: {discussion.relevance_scores.quality_score}%</span>
-                <span>Engagement: {discussion.relevance_scores.engagement_score}%</span>
-              </div>
-            </div>
-          )}
         </div>
         <a
           href={discussion.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-400 hover:text-blue-300 text-sm"
+          className="text-sm text-blue-400 hover:text-blue-300"
         >
           View on Reddit →
         </a>
       </div>
 
-      {discussion.content && (
-        <div className="mb-3">
-          <p className="text-gray-300 text-sm">
-            {isExpanded ? discussion.content : `${discussion.content?.substring(0, 200) || 'No content'}...`}
-          </p>
-          {(discussion.content?.length || 0) > 200 && (
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="text-blue-400 hover:text-blue-300 text-sm mt-1"
-            >
-              {isExpanded ? 'Show less' : 'Show more'}
-            </button>
-          )}
-        </div>
-      )}
+      <div className="mb-3 text-sm text-gray-300">
+        {isExpanded
+          ? discussion.content || 'No additional post content.'
+          : `${(discussion.content || '').slice(0, 220)}${(discussion.content || '').length > 220 ? '…' : ''}`}
+        {(discussion.content || '').length > 220 ? (
+          <button
+            onClick={() => setIsExpanded((value) => !value)}
+            className="ml-2 text-blue-400 hover:text-blue-300"
+          >
+            {isExpanded ? 'Show less' : 'Read more'}
+          </button>
+        ) : null}
+      </div>
 
       <div className="space-y-3">
-        <div className="flex space-x-2">
+        <div className="flex gap-2">
           <button
-            onClick={handleGenerateComment}
-            className="px-3 py-1 text-sm bg-gray-700 text-gray-300 rounded hover:bg-gray-600 border border-gray-600"
+            onClick={() => setComment(generateSuggestedComment())}
+            className="rounded-md bg-gray-700 px-3 py-2 text-sm text-white hover:bg-gray-600"
           >
             Generate Comment
           </button>
+          <button
+            onClick={() => setComment('')}
+            className="rounded-md border border-gray-600 px-3 py-2 text-sm text-gray-300 hover:bg-gray-800"
+          >
+            Clear
+          </button>
         </div>
-
         <textarea
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          placeholder="Write your comment here..."
-          rows={3}
-          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm text-white placeholder-gray-400"
+          rows={4}
+          placeholder="Draft a helpful, non-spammy comment here..."
+          className="w-full rounded-md border border-gray-600 bg-gray-800 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
         />
-
         <button
           onClick={() => onPostComment(discussion, comment)}
-          disabled={!comment.trim()}
-          className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed text-sm"
+          disabled={!comment.trim() || discussion.is_posted}
+          className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-700 disabled:text-gray-400"
         >
-          Post Comment
+          {discussion.is_posted ? 'Already Posted' : 'Post Comment'}
         </button>
       </div>
     </div>

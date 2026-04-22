@@ -47,12 +47,12 @@ export default async function Pricing() {
     {
       name: 'Free',
       price: '$0',
-      description: 'Perfect for getting started',
+      description: 'Perfect for testing comment outreach',
       features: [
         '1 Reddit account',
-        '15 message limit',
-        '1 template',
-        '1 scan config',
+        '15 comment actions / month',
+        '1 comment template',
+        '1 website config',
         'Basic analytics',
       ],
       cta:
@@ -64,12 +64,12 @@ export default async function Pricing() {
       originalPrice: '$12.99',
       discount: true,
       discountExpiry: 'November 15th',
-      description: 'For serious outreach',
+      description: 'For consistent comment campaigns',
       features: [
         '3 Reddit accounts',
-        '200 messages/month',
-        '3 templates',
-        '3 scan configs',
+        '200 comment actions / month',
+        '3 comment templates',
+        '3 website configs',
         'Advanced analytics',
         'Priority support',
       ],
@@ -82,12 +82,12 @@ export default async function Pricing() {
       originalPrice: '$18.99',
       discount: true,
       discountExpiry: 'November 15th',
-      description: 'Unlimited capabilities',
+      description: 'Unlimited comment automation',
       features: [
         'Unlimited accounts',
-        'Unlimited messages',
-        'Unlimited templates',
-        'Unlimited scan configs',
+        'Unlimited comment actions',
+        'Unlimited comment templates',
+        'Unlimited website configs',
         '24/7 premium support',
       ],
       cta:
@@ -110,26 +110,26 @@ export default async function Pricing() {
           </p>
         </div>
         <div className="mt-16 sm:mt-20">
-          <PricingClient 
-            plans={PLANS} 
+          <PricingClient
+            plans={PLANS}
             userSubscriptionStatus={user?.subscription_status}
           />
         </div>
-        
+
         {/* Legal Links */}
         <div className="mt-16 text-center">
           <p className="text-sm text-gray-400 mb-4">
             By subscribing, you agree to our terms and privacy policy.
           </p>
           <div className="flex justify-center space-x-6">
-            <Link 
-              href="/terms" 
+            <Link
+              href="/terms"
               className="text-sm text-gray-400 hover:text-white transition-colors underline"
             >
               Terms of Service
             </Link>
-            <Link 
-              href="/privacy" 
+            <Link
+              href="/privacy"
               className="text-sm text-gray-400 hover:text-white transition-colors underline"
             >
               Privacy Policy

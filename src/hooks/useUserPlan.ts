@@ -21,12 +21,11 @@ export function useUserPlan() {
 
     async function fetchUserPlan() {
       try {
-        // Use the API endpoint instead of direct Supabase queries
-        const token = await user?.getToken?.();
+        const token = await (user as any)?.getToken?.();
         const response = await fetch('/api/user/stats', {
           headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            'x-user-id': user.id,
+            'x-user-id': user?.id || '',
           },
         });
 
@@ -35,9 +34,8 @@ export function useUserPlan() {
         }
 
         const data = await response.json();
-
         setPlan(data.subscription_status);
-        setMessageCount(data.message_count);
+        setMessageCount(data.comment_count ?? data.message_count ?? 0);
         setRemaining(data.remaining);
         setLimit(data.limit);
       } catch (error) {
@@ -48,37 +46,31 @@ export function useUserPlan() {
     }
 
     async function setupRealtimeSubscription() {
-      if (!user) return;
+      const supabase = createClientSupabaseClient();
+      if (channelRef.current) return;
 
-      try {
-        const supabase = createClientSupabaseClient();
-        if (channelRef.current) return; // prevent duplicate subscribe
-        // Setup realtime subscription to sent_messages table
-        channelRef.current = supabase
-          .channel('message-count-changes')
-          .on(
-            'postgres_changes',
-            {
-              event: '*',
-              schema: 'public',
-              table: 'sent_messages',
-              filter: `user_id=eq.${user.id}`,
-            },
-            () => {
-              // When any change happens to sent_messages, refresh the count
-              fetchUserPlan();
-            }
-          )
-          .subscribe();
-      } catch (error) {
-        console.error('Error setting up realtime subscription:', error);
-      }
+      if (!user?.id) return;
+
+      channelRef.current = supabase
+        .channel(`user-stats-${user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'users',
+            filter: `id=eq.${user.id}`,
+          },
+          () => {
+            void fetchUserPlan();
+          }
+        )
+        .subscribe();
     }
 
-    fetchUserPlan();
-    setupRealtimeSubscription();
+    void fetchUserPlan();
+    void setupRealtimeSubscription();
 
-    // Cleanup subscription when component unmounts
     return () => {
       if (channelRef.current) {
         const supabase = createClientSupabaseClient();
@@ -88,7 +80,6 @@ export function useUserPlan() {
     };
   }, [user]);
 
-  // Consider any plan that is not explicitly 'free' or 'trialing' as a paid plan
   const isProUser = plan !== 'free' && plan !== 'trialing' && plan !== null;
 
   return {

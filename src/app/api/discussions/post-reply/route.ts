@@ -64,12 +64,22 @@ export async function POST(req: Request) {
     }
 
     // Check plan limits before proceeding
-    if (userData.subscription_status === 'pro' && userData.message_count >= 200) {
-      throw new Error('Pro plan message limit reached (200 messages/month). Please upgrade to Advanced for unlimited messages.');
+    if (
+      userData.subscription_status === 'pro' &&
+      userData.message_count >= 200
+    ) {
+      throw new Error(
+        'Pro plan comment-action limit reached (200/month). Please upgrade to Advanced for unlimited usage.'
+      );
     }
 
-    if (userData.subscription_status === 'free' && userData.message_count >= 15) {
-      throw new Error('Free plan message limit reached (15 messages/month). Please upgrade to Pro or Advanced for more messages.');
+    if (
+      userData.subscription_status === 'free' &&
+      userData.message_count >= 15
+    ) {
+      throw new Error(
+        'Free plan comment-action limit reached (15/month). Please upgrade to Pro or Advanced for more usage.'
+      );
     }
 
     // Get discussion details
@@ -106,7 +116,9 @@ export async function POST(req: Request) {
       .single();
 
     if (accountError || !redditAccount) {
-      throw new Error('Reddit account not found or not authorized for discussion posting');
+      throw new Error(
+        'Reddit account not found or not authorized for discussion posting'
+      );
     }
 
     // Create Reddit client
@@ -127,7 +139,9 @@ export async function POST(req: Request) {
         commentId = comment.id;
         console.log('Comment ID:', commentId);
       } catch (replyError) {
-        throw new Error(`Failed to post reply: ${replyError instanceof Error ? replyError.message : 'Unknown error'}`);
+        throw new Error(
+          `Failed to post reply: ${replyError instanceof Error ? replyError.message : 'Unknown error'}`
+        );
       }
 
       // Update discussion status to 'replied'
@@ -137,7 +151,10 @@ export async function POST(req: Request) {
         .eq('id', discussion_id);
 
       if (updateDiscussionError) {
-        console.error('Error updating discussion status:', updateDiscussionError);
+        console.error(
+          'Error updating discussion status:',
+          updateDiscussionError
+        );
       }
 
       // Create discussion reply record
@@ -149,7 +166,7 @@ export async function POST(req: Request) {
           reply_content,
           reddit_comment_id: commentId,
           status: 'posted',
-          posted_at: new Date().toISOString()
+          posted_at: new Date().toISOString(),
         });
 
       if (replyError) {
@@ -171,34 +188,35 @@ export async function POST(req: Request) {
       const response = {
         success: true,
         comment_id: commentId,
-        message: 'Reply posted successfully to Reddit discussion'
+        message: 'Reply posted successfully to Reddit discussion',
       };
 
       return NextResponse.json(response);
-
     } catch (redditError) {
       console.error('Reddit API error:', redditError);
 
       // Update discussion reply status to 'failed'
-      await supabase
-        .from('discussion_replies')
-        .insert({
-          discussion_id,
-          reddit_account_id: account_id,
-          reply_content,
-          status: 'failed',
-          error_message: redditError instanceof Error ? redditError.message : 'Unknown Reddit API error'
-        });
+      await supabase.from('discussion_replies').insert({
+        discussion_id,
+        reddit_account_id: account_id,
+        reply_content,
+        status: 'failed',
+        error_message:
+          redditError instanceof Error
+            ? redditError.message
+            : 'Unknown Reddit API error',
+      });
 
-      throw new Error(`Failed to post reply to Reddit: ${redditError instanceof Error ? redditError.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to post reply to Reddit: ${redditError instanceof Error ? redditError.message : 'Unknown error'}`
+      );
     }
-
   } catch (error) {
     console.error('Post reply error:', error);
 
     const response = {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
     };
 
     return NextResponse.json(response, { status: 500 });
@@ -210,6 +228,6 @@ export async function GET() {
   return NextResponse.json({
     status: 'ok',
     message: 'Discussion reply posting service is running',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
-} 
+}

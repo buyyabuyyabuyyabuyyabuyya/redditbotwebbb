@@ -20,44 +20,7 @@ export async function GET(req: Request) {
     const websiteConfigId = searchParams.get('website_config_id');
 
     switch (action) {
-      case 'stats':
-        // Get posting statistics
-        // Get posting statistics filtered by user
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        const { count: todayCount } = await supabase
-          .from('posted_reddit_discussions')
-          .select('id, website_configs!inner(user_id)', { count: 'exact', head: true })
-          .eq('website_configs.user_id', userId)
-          .gte('created_at', today.toISOString());
-
-        const { count: totalCount } = await supabase
-          .from('posted_reddit_discussions')
-          .select('id, website_configs!inner(user_id)', { count: 'exact', head: true })
-          .eq('website_configs.user_id', userId);
-
-        // Get last post time
-        const { data: lastPost } = await supabase
-          .from('posted_reddit_discussions')
-          .select('created_at, website_configs!inner(user_id)')
-          .eq('website_configs.user_id', userId)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
-
-        return NextResponse.json({
-          postsToday: todayCount || 0,
-          totalPosts: totalCount || 0,
-          lastPostTime: lastPost?.created_at || null
-        });
-
-      case 'list':
-        // Get list of posted discussions
-        const limit = parseInt(searchParams.get('limit') || '50');
-        const offset = parseInt(searchParams.get('offset') || '0');
-
-        // First, verify access to the specific config OR get all allowed configs
+      case 'stats': {
         if (websiteConfigId) {
           const { data: config } = await supabase
             .from('website_configs')
@@ -67,16 +30,88 @@ export async function GET(req: Request) {
             .single();
 
           if (!config) {
-            return NextResponse.json({ error: 'Website configuration not found or unauthorized' }, { status: 404 });
+            return NextResponse.json(
+              { error: 'Website configuration not found or unauthorized' },
+              { status: 404 }
+            );
+          }
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        let todayQuery = supabase
+          .from('posted_reddit_discussions')
+          .select('id, website_configs!inner(user_id)', {
+            count: 'exact',
+            head: true,
+          })
+          .eq('website_configs.user_id', userId)
+          .gte('created_at', today.toISOString());
+
+        let totalQuery = supabase
+          .from('posted_reddit_discussions')
+          .select('id, website_configs!inner(user_id)', {
+            count: 'exact',
+            head: true,
+          })
+          .eq('website_configs.user_id', userId);
+
+        let lastPostQuery = supabase
+          .from('posted_reddit_discussions')
+          .select('created_at, comment_url, website_configs!inner(user_id)')
+          .eq('website_configs.user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (websiteConfigId) {
+          todayQuery = todayQuery.eq('website_config_id', websiteConfigId);
+          totalQuery = totalQuery.eq('website_config_id', websiteConfigId);
+          lastPostQuery = lastPostQuery.eq(
+            'website_config_id',
+            websiteConfigId
+          );
+        }
+
+        const [
+          { count: todayCount },
+          { count: totalCount },
+          { data: lastPostRows },
+        ] = await Promise.all([todayQuery, totalQuery, lastPostQuery]);
+
+        const lastPost = lastPostRows?.[0] || null;
+
+        return NextResponse.json({
+          postsToday: todayCount || 0,
+          totalPosts: totalCount || 0,
+          lastPostTime: lastPost?.created_at || null,
+          lastCommentUrl: lastPost?.comment_url || null,
+        });
+      }
+
+      case 'list': {
+        const limit = parseInt(searchParams.get('limit') || '50');
+        const offset = parseInt(searchParams.get('offset') || '0');
+
+        if (websiteConfigId) {
+          const { data: config } = await supabase
+            .from('website_configs')
+            .select('id')
+            .eq('id', websiteConfigId)
+            .eq('user_id', userId)
+            .single();
+
+          if (!config) {
+            return NextResponse.json(
+              { error: 'Website configuration not found or unauthorized' },
+              { status: 404 }
+            );
           }
         }
 
         let query = supabase
           .from('posted_reddit_discussions')
-          .select(`
-            *,
-            website_configs!inner(user_id)
-          `)
+          .select('*, website_configs!inner(user_id)')
           .eq('website_configs.user_id', userId)
           .order('created_at', { ascending: false })
           .range(offset, offset + limit - 1);
@@ -88,22 +123,26 @@ export async function GET(req: Request) {
         const { data: posts, error } = await query;
 
         if (error) {
-          console.error('Error fetching posted discussions:', error);
-          return NextResponse.json({ error: 'Database error' }, { status: 500 });
+          return NextResponse.json(
+            { error: 'Database error' },
+            { status: 500 }
+          );
         }
 
-        // Clean up internal join data before returning
-        const cleanedPosts = (posts || []).map(p => {
-          const { website_configs, ...rest } = p as any;
-          return rest;
+        const cleanedPosts = (posts || []).map((post: any) => {
+          const { website_configs, ...rest } = post;
+          return {
+            ...rest,
+            comment_posted: rest.comment_text,
+          };
         });
 
         return NextResponse.json({ posts: cleanedPosts });
+      }
 
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
-
   } catch (error) {
     console.error('Posted discussions API error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
@@ -125,16 +164,21 @@ export async function POST(req: Request) {
       subreddit,
       post_title,
       comment_posted,
-      relevance_score
+      comment_url,
+      comment_id,
+      relevance_score,
     } = body;
 
     if (!website_config_id || !reddit_post_id || !subreddit) {
-      return NextResponse.json({
-        error: 'Missing required fields: website_config_id, reddit_post_id, subreddit'
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error:
+            'Missing required fields: website_config_id, reddit_post_id, subreddit',
+        },
+        { status: 400 }
+      );
     }
 
-    // Verify ownership of the website config
     const { data: config } = await supabase
       .from('website_configs')
       .select('id')
@@ -143,10 +187,12 @@ export async function POST(req: Request) {
       .single();
 
     if (!config) {
-      return NextResponse.json({ error: 'Website configuration not found or unauthorized' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Website configuration not found or unauthorized' },
+        { status: 404 }
+      );
     }
 
-    // Check if this discussion was already posted to for this website config
     const { data: existing } = await supabase
       .from('posted_reddit_discussions')
       .select('id')
@@ -155,12 +201,14 @@ export async function POST(req: Request) {
       .single();
 
     if (existing) {
-      return NextResponse.json({
-        error: 'Discussion already posted to for this website configuration'
-      }, { status: 409 });
+      return NextResponse.json(
+        {
+          error: 'Discussion already posted to for this website configuration',
+        },
+        { status: 409 }
+      );
     }
 
-    // Insert new posted discussion record
     const { data, error } = await supabase
       .from('posted_reddit_discussions')
       .insert({
@@ -168,20 +216,20 @@ export async function POST(req: Request) {
         reddit_post_id,
         subreddit,
         post_title: post_title || '',
-        comment_text: comment_posted || '', // Fixed column name
+        comment_text: comment_posted || '',
+        comment_url: comment_url || null,
+        comment_id: comment_id || null,
         relevance_score: relevance_score || null,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
       })
       .select()
       .single();
 
     if (error) {
-      console.error('Error inserting posted discussion:', error);
       return NextResponse.json({ error: 'Database error' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, id: data.id });
-
   } catch (error) {
     console.error('Posted discussions API error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
@@ -201,7 +249,6 @@ export async function DELETE(req: Request) {
     const websiteConfigId = searchParams.get('website_config_id');
 
     if (id) {
-      // Delete specific posted discussion - must verify ownership via join
       const { data: post } = await supabase
         .from('posted_reddit_discussions')
         .select('id, website_configs!inner(user_id)')
@@ -210,7 +257,10 @@ export async function DELETE(req: Request) {
         .single();
 
       if (!post) {
-        return NextResponse.json({ error: 'Post not found or unauthorized' }, { status: 404 });
+        return NextResponse.json(
+          { error: 'Post not found or unauthorized' },
+          { status: 404 }
+        );
       }
 
       const { error } = await supabase
@@ -219,13 +269,13 @@ export async function DELETE(req: Request) {
         .eq('id', id);
 
       if (error) {
-        console.error('Error deleting posted discussion:', error);
         return NextResponse.json({ error: 'Database error' }, { status: 500 });
       }
 
       return NextResponse.json({ success: true });
-    } else if (websiteConfigId) {
-      // First verify ownership of the config
+    }
+
+    if (websiteConfigId) {
       const { data: config } = await supabase
         .from('website_configs')
         .select('id')
@@ -234,25 +284,28 @@ export async function DELETE(req: Request) {
         .single();
 
       if (!config) {
-        return NextResponse.json({ error: 'Website configuration not found or unauthorized' }, { status: 404 });
+        return NextResponse.json(
+          { error: 'Website configuration not found or unauthorized' },
+          { status: 404 }
+        );
       }
 
-      // Delete all posted discussions for a website config
       const { error } = await supabase
         .from('posted_reddit_discussions')
         .delete()
         .eq('website_config_id', websiteConfigId);
 
       if (error) {
-        console.error('Error deleting posted discussions for website config:', error);
         return NextResponse.json({ error: 'Database error' }, { status: 500 });
       }
 
       return NextResponse.json({ success: true });
-    } else {
-      return NextResponse.json({ error: 'Missing id or website_config_id parameter' }, { status: 400 });
     }
 
+    return NextResponse.json(
+      { error: 'Missing id or website_config_id parameter' },
+      { status: 400 }
+    );
   } catch (error) {
     console.error('Posted discussions API error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

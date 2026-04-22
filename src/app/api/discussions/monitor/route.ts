@@ -75,12 +75,22 @@ export async function POST(req: Request) {
     }
 
     // Check plan limits before proceeding
-    if (userData.subscription_status === 'pro' && userData.message_count >= 200) {
-      throw new Error('Pro plan message limit reached (200 messages/month). Please upgrade to Advanced for unlimited messages.');
+    if (
+      userData.subscription_status === 'pro' &&
+      userData.message_count >= 200
+    ) {
+      throw new Error(
+        'Pro plan comment-action limit reached (200/month). Please upgrade to Advanced for unlimited usage.'
+      );
     }
 
-    if (userData.subscription_status === 'free' && userData.message_count >= 15) {
-      throw new Error('Free plan message limit reached (15 messages/month). Please upgrade to Pro or Advanced for more messages.');
+    if (
+      userData.subscription_status === 'free' &&
+      userData.message_count >= 15
+    ) {
+      throw new Error(
+        'Free plan comment-action limit reached (15/month). Please upgrade to Pro or Advanced for more usage.'
+      );
     }
 
     // Get discussion posting accounts
@@ -96,14 +106,17 @@ export async function POST(req: Request) {
     }
 
     if (!discussionAccounts || discussionAccounts.length === 0) {
-      throw new Error('No discussion posting accounts found. Please add Reddit accounts for discussion posting.');
+      throw new Error(
+        'No discussion posting accounts found. Please add Reddit accounts for discussion posting.'
+      );
     }
 
     let totalDiscussionsFound = 0;
     const discussions = [];
 
     // Monitor each subreddit
-    for (const subreddit of subreddits.slice(0, 10)) { // Limit to 10 subreddits per request
+    for (const subreddit of subreddits.slice(0, 10)) {
+      // Limit to 10 subreddits per request
       try {
         console.log(`Monitoring subreddit: r/${subreddit}`);
 
@@ -116,13 +129,16 @@ export async function POST(req: Request) {
         });
 
         // Get recent posts from subreddit
-        const posts = await reddit.getSubreddit(subreddit).getNew({ limit: 50 });
+        const posts = await reddit
+          .getSubreddit(subreddit)
+          .getNew({ limit: 50 });
 
         for (const post of posts) {
           try {
             // Skip posts that are too old or already processed
             const postAge = Date.now() - post.created_utc * 1000;
-            if (postAge > 24 * 60 * 60 * 1000) { // Skip posts older than 24 hours
+            if (postAge > 24 * 60 * 60 * 1000) {
+              // Skip posts older than 24 hours
               continue;
             }
 
@@ -139,7 +155,11 @@ export async function POST(req: Request) {
             }
 
             // AI relevance scoring
-            const relevanceScore = await scorePostRelevance(post, product, keywords);
+            const relevanceScore = await scorePostRelevance(
+              post,
+              product,
+              keywords
+            );
 
             // Only process posts with relevance score >= 6
             if (relevanceScore >= 6) {
@@ -153,18 +173,23 @@ export async function POST(req: Request) {
                 relevance_score: relevanceScore,
                 status: 'pending',
                 post_url: `https://reddit.com${post.permalink}`,
-                post_created_at: new Date(post.created_utc * 1000).toISOString()
+                post_created_at: new Date(
+                  post.created_utc * 1000
+                ).toISOString(),
               };
 
               // Insert discussion into database
-              const { data: insertedDiscussion, error: insertError } = await supabase
-                .from('discussions')
-                .insert(discussion)
-                .select()
-                .single();
+              const { data: insertedDiscussion, error: insertError } =
+                await supabase
+                  .from('discussions')
+                  .insert(discussion)
+                  .select()
+                  .single();
 
               if (insertError) {
-                console.error(`Error inserting discussion: ${insertError.message}`);
+                console.error(
+                  `Error inserting discussion: ${insertError.message}`
+                );
                 continue;
               }
 
@@ -172,12 +197,17 @@ export async function POST(req: Request) {
               totalDiscussionsFound++;
 
               // Log the found discussion
-              console.log(`Found relevant discussion: ${post.title} (Score: ${relevanceScore})`);
+              console.log(
+                `Found relevant discussion: ${post.title} (Score: ${relevanceScore})`
+              );
 
               // Schedule reply generation and posting using Upstash QStash (3.20 min delay)
               try {
                 // Select a random discussion posting account for rotation
-                const randomAccount = discussionAccounts[Math.floor(Math.random() * discussionAccounts.length)];
+                const randomAccount =
+                  discussionAccounts[
+                    Math.floor(Math.random() * discussionAccounts.length)
+                  ];
 
                 // Generate AI reply content
                 const aiReplyPrompt = `You are an expert at providing helpful, non-promotional responses to Reddit discussions.
@@ -201,64 +231,79 @@ TASK: Generate a helpful, genuine response that provides value to this discussio
 
 Return only the response text, no additional formatting:`;
 
-                const aiReplyResponse = await callGroqForText(aiReplyPrompt, { userId: 'system' });
+                const aiReplyResponse = await callGroqForText(aiReplyPrompt, {
+                  userId: 'system',
+                });
 
-                if (aiReplyResponse && aiReplyResponse.text && !aiReplyResponse.error) {
+                if (
+                  aiReplyResponse &&
+                  aiReplyResponse.text &&
+                  !aiReplyResponse.error
+                ) {
                   const replyContent = aiReplyResponse.text.trim();
 
                   // Schedule the reply posting with 3.20 minute delay using Upstash QStash
-                  const { scheduleQStashMessage } = await import('../../../../utils/qstash');
+                  const { scheduleQStashMessage } = await import(
+                    '../../../../utils/qstash'
+                  );
 
                   await scheduleQStashMessage({
                     destination: '/api/discussions/post-reply',
                     body: {
                       discussion_id: insertedDiscussion.id,
                       account_id: randomAccount.id,
-                      reply_content: replyContent
+                      reply_content: replyContent,
                     },
                     delaySeconds: 3.2 * 60, // 3.20 minutes (same as your existing system)
-                    retries: 2
+                    retries: 2,
                   });
 
-                  console.log(`Scheduled reply posting for discussion ${insertedDiscussion.id} with 3.20 min delay`);
+                  console.log(
+                    `Scheduled reply posting for discussion ${insertedDiscussion.id} with 3.20 min delay`
+                  );
                 } else {
                   console.error('Failed to generate AI reply content');
                 }
               } catch (qstashError) {
-                console.error('Error scheduling reply via QStash:', qstashError);
+                console.error(
+                  'Error scheduling reply via QStash:',
+                  qstashError
+                );
                 // Continue processing other discussions even if QStash fails
               }
             }
-
           } catch (postError) {
             console.error(`Error processing post ${post.id}:`, postError);
             continue;
           }
         }
-
       } catch (subredditError) {
-        console.error(`Error monitoring subreddit r/${subreddit}:`, subredditError);
+        console.error(
+          `Error monitoring subreddit r/${subreddit}:`,
+          subredditError
+        );
         continue;
       }
     }
 
-    console.log(`Monitoring complete. Found ${totalDiscussionsFound} relevant discussions`);
+    console.log(
+      `Monitoring complete. Found ${totalDiscussionsFound} relevant discussions`
+    );
 
     const response = {
       success: true,
       discussions_found: totalDiscussionsFound,
       discussions: discussions,
-      message: `Successfully monitored ${subreddits.length} subreddits and found ${totalDiscussionsFound} relevant discussions`
+      message: `Successfully monitored ${subreddits.length} subreddits and found ${totalDiscussionsFound} relevant discussions`,
     };
 
     return NextResponse.json(response);
-
   } catch (error) {
     console.error('Discussion monitoring error:', error);
 
     const response = {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
     };
 
     return NextResponse.json(response, { status: 500 });
@@ -266,7 +311,11 @@ Return only the response text, no additional formatting:`;
 }
 
 // AI-powered relevance scoring
-async function scorePostRelevance(post: any, product: any, keywords: string[]): Promise<number> {
+async function scorePostRelevance(
+  post: any,
+  product: any,
+  keywords: string[]
+): Promise<number> {
   try {
     const aiPrompt = `You are an expert at determining the relevance of Reddit posts to specific products/services.
 
@@ -313,7 +362,6 @@ Return only a number between 1-10:`;
     }
 
     return score;
-
   } catch (error) {
     console.error('Error scoring post relevance:', error);
     return 3; // Default low score on error
@@ -325,6 +373,6 @@ export async function GET() {
   return NextResponse.json({
     status: 'ok',
     message: 'Discussion monitoring service is running',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 }

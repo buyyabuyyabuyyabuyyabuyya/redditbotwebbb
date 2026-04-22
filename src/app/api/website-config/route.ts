@@ -5,10 +5,8 @@ import { createClient } from '@supabase/supabase-js';
 export async function GET(req: Request) {
   try {
     const { userId } = auth();
-
-    if (!userId) {
+    if (!userId)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
 
     const { searchParams } = new URL(req.url);
     const productId = searchParams.get('productId');
@@ -22,20 +20,17 @@ export async function GET(req: Request) {
       .from('website_configs')
       .select('*')
       .eq('user_id', userId);
+    if (productId) query = query.eq('product_id', productId);
 
-    if (productId) {
-      query = query.eq('product_id', productId);
-    }
-
-    const { data: configs, error } = await query.order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching website configs:', error);
-      return NextResponse.json({ error: 'Failed to fetch website configs' }, { status: 500 });
-    }
-
+    const { data: configs, error } = await query.order('created_at', {
+      ascending: false,
+    });
+    if (error)
+      return NextResponse.json(
+        { error: 'Failed to fetch website configs' },
+        { status: 500 }
+      );
     return NextResponse.json({ configs: configs || [] });
-
   } catch (error) {
     console.error('Website config API error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
@@ -45,10 +40,8 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const { userId } = auth();
-
-    if (!userId) {
+    if (!userId)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
 
     const body = await req.json();
     const {
@@ -60,13 +53,14 @@ export async function POST(req: Request) {
       negativeKeywords = [],
       businessContextTerms = [],
       relevanceThreshold = 70,
-      autoPostersEnabled = false
+      autoPostersEnabled = false,
     } = body;
 
     if (!websiteUrl || !websiteDescription) {
-      return NextResponse.json({ 
-        error: 'Website URL and description are required' 
-      }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Website URL and description are required' },
+        { status: 400 }
+      );
     }
 
     const supabaseAdmin = createClient(
@@ -74,7 +68,6 @@ export async function POST(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY || ''
     );
 
-    // Check if config already exists for this product
     if (productId) {
       const { data: existingConfig } = await supabaseAdmin
         .from('website_configs')
@@ -84,7 +77,6 @@ export async function POST(req: Request) {
         .single();
 
       if (existingConfig) {
-        // Update existing config
         const { data: updatedConfig, error } = await supabaseAdmin
           .from('website_configs')
           .update({
@@ -96,27 +88,26 @@ export async function POST(req: Request) {
             business_context_terms: businessContextTerms,
             relevance_threshold: relevanceThreshold,
             auto_poster_enabled: autoPostersEnabled,
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
           })
           .eq('id', existingConfig.id)
           .select()
           .single();
 
-        if (error) {
-          console.error('Error updating website config:', error);
-          return NextResponse.json({ error: 'Failed to update website config' }, { status: 500 });
-        }
-
+        if (error)
+          return NextResponse.json(
+            { error: 'Failed to update website config' },
+            { status: 500 }
+          );
         return NextResponse.json({ config: updatedConfig });
       }
     }
 
-    // Create new config (set product_id to null if not provided or doesn't exist)
     const { data: newConfig, error } = await supabaseAdmin
       .from('website_configs')
       .insert({
         user_id: userId,
-        product_id: null, // Set to null since we don't have a products table setup
+        product_id: null,
         website_url: websiteUrl,
         website_description: websiteDescription,
         customer_segments: customerSegments,
@@ -124,18 +115,17 @@ export async function POST(req: Request) {
         negative_keywords: negativeKeywords,
         business_context_terms: businessContextTerms,
         relevance_threshold: relevanceThreshold,
-        auto_poster_enabled: autoPostersEnabled
+        auto_poster_enabled: autoPostersEnabled,
       })
       .select()
       .single();
 
-    if (error) {
-      console.error('Error creating website config:', error);
-      return NextResponse.json({ error: 'Failed to create website config' }, { status: 500 });
-    }
-
+    if (error)
+      return NextResponse.json(
+        { error: 'Failed to create website config' },
+        { status: 500 }
+      );
     return NextResponse.json({ config: newConfig });
-
   } catch (error) {
     console.error('Website config API error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
@@ -145,10 +135,8 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   try {
     const { userId } = auth();
-
-    if (!userId) {
+    if (!userId)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
 
     const body = await req.json();
     const {
@@ -160,11 +148,14 @@ export async function PUT(req: Request) {
       negativeKeywords = [],
       businessContextTerms = [],
       relevanceThreshold = 70,
-      autoPostersEnabled = false
+      autoPostersEnabled = false,
     } = body;
 
     if (!configId) {
-      return NextResponse.json({ error: 'Config ID is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Config ID is required' },
+        { status: 400 }
+      );
     }
 
     const supabaseAdmin = createClient(
@@ -183,20 +174,19 @@ export async function PUT(req: Request) {
         business_context_terms: businessContextTerms,
         relevance_threshold: relevanceThreshold,
         auto_poster_enabled: autoPostersEnabled,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .eq('id', configId)
       .eq('user_id', userId)
       .select()
       .single();
 
-    if (error) {
-      console.error('Error updating website config:', error);
-      return NextResponse.json({ error: 'Failed to update website config' }, { status: 500 });
-    }
-
+    if (error)
+      return NextResponse.json(
+        { error: 'Failed to update website config' },
+        { status: 500 }
+      );
     return NextResponse.json({ config: updatedConfig });
-
   } catch (error) {
     console.error('Website config API error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
@@ -206,22 +196,69 @@ export async function PUT(req: Request) {
 export async function DELETE(req: Request) {
   try {
     const { userId } = auth();
-
-    if (!userId) {
+    if (!userId)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
 
     const { searchParams } = new URL(req.url);
     const configId = searchParams.get('configId');
-
-    if (!configId) {
-      return NextResponse.json({ error: 'Config ID is required' }, { status: 400 });
-    }
+    if (!configId)
+      return NextResponse.json(
+        { error: 'Config ID is required' },
+        { status: 400 }
+      );
 
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY || ''
     );
+
+    const { data: ownedConfig } = await supabaseAdmin
+      .from('website_configs')
+      .select('id')
+      .eq('id', configId)
+      .eq('user_id', userId)
+      .single();
+
+    if (!ownedConfig) {
+      return NextResponse.json(
+        { error: 'Website configuration not found' },
+        { status: 404 }
+      );
+    }
+
+    const { data: autoPosterConfig } = await supabaseAdmin
+      .from('auto_poster_configs')
+      .select('id, upstash_schedule_id')
+      .eq('user_id', userId)
+      .eq('website_config_id', configId)
+      .maybeSingle();
+
+    if (autoPosterConfig?.upstash_schedule_id && process.env.QSTASH_TOKEN) {
+      try {
+        await fetch(
+          `https://qstash.upstash.io/v2/schedules/${autoPosterConfig.upstash_schedule_id}`,
+          {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${process.env.QSTASH_TOKEN}` },
+          }
+        );
+      } catch (error) {
+        console.error(
+          'Failed to delete Upstash schedule during config cleanup:',
+          error
+        );
+      }
+    }
+
+    await supabaseAdmin
+      .from('auto_poster_configs')
+      .delete()
+      .eq('website_config_id', configId)
+      .eq('user_id', userId);
+    await supabaseAdmin
+      .from('posted_reddit_discussions')
+      .delete()
+      .eq('website_config_id', configId);
 
     const { error } = await supabaseAdmin
       .from('website_configs')
@@ -229,13 +266,12 @@ export async function DELETE(req: Request) {
       .eq('id', configId)
       .eq('user_id', userId);
 
-    if (error) {
-      console.error('Error deleting website config:', error);
-      return NextResponse.json({ error: 'Failed to delete website config' }, { status: 500 });
-    }
-
+    if (error)
+      return NextResponse.json(
+        { error: 'Failed to delete website config' },
+        { status: 500 }
+      );
     return NextResponse.json({ success: true });
-
   } catch (error) {
     console.error('Website config API error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

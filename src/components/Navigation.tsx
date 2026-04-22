@@ -23,17 +23,15 @@ export default function Navigation() {
 
   const navItems = [
     { name: 'Dashboard', href: '/dashboard' },
-    // COMMENTED OUT: Discussion Poster - Temporarily hidden from navigation
-    // Route still exists at /discussion-poster but not shown in nav menu
-    // { name: 'Discussion Poster', href: '/discussion-poster' },
-    { name: 'Private Messages', href: '/messages' },
+    { name: 'Discussion Poster', href: '/discussion-poster' },
     { name: 'Pricing', href: '/pricing' },
     { name: 'File Logs', href: '/file-logs' },
     { name: 'Tutorial', href: '/tutorial' },
     { name: 'Settings', href: '/settings' },
   ];
 
-  const showNavItems = pathname !== '/' && pathname !== '/sign-in' && pathname !== '/sign-up';
+  const showNavItems =
+    pathname !== '/' && pathname !== '/sign-in' && pathname !== '/sign-up';
 
   return (
     <nav className="relative z-50 bg-gray-900 shadow-lg border-b border-gray-700/50">
@@ -54,16 +52,18 @@ export default function Navigation() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`${pathname === item.href
-                      ? 'border-purple-400 text-purple-300'
-                      : 'border-transparent text-gray-300 hover:border-purple-400 hover:text-purple-300'
+                    className={`${
+                      pathname === item.href
+                        ? 'border-purple-400 text-purple-300'
+                        : 'border-transparent text-gray-300 hover:border-purple-400 hover:text-purple-300'
                     } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors duration-200`}
                   >
                     {item.name}
                   </Link>
                 ))}
               </div>
-            )}   {/* end nav items */}
+            )}{' '}
+            {/* end nav items */}
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
             {user ? (
@@ -156,4 +156,3 @@ export default function Navigation() {
     </nav>
   );
 }
-

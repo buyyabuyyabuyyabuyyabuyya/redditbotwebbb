@@ -12,8 +12,15 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata = {
   manifest: '/manifest.json',
   title: 'RedditOutreach - Automate Your Reddit Outreach',
-  description: 'Automate your Reddit outreach with our powerful bot platform. Send personalized messages, target specific subreddits, and track your results.',
-  keywords: ['reddit bot', 'reddit automation', 'reddit outreach', 'social media automation', 'reddit marketing'],
+  description:
+    'Automate your Reddit comment outreach with AI-ranked discussion discovery, reusable templates, and server-managed auto-posters.',
+  keywords: [
+    'reddit bot',
+    'reddit automation',
+    'reddit outreach',
+    'social media automation',
+    'reddit marketing',
+  ],
   authors: [{ name: 'RedditOutreach Team' }],
   creator: 'RedditOutreach',
   publisher: 'RedditOutreach',
@@ -24,16 +31,15 @@ export const metadata = {
       { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
       { url: '/icon-512x512.png', sizes: '512x512', type: 'image/png' },
     ],
-    apple: [
-      { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
-    ],
+    apple: [{ url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' }],
   },
   openGraph: {
     type: 'website',
     locale: 'en_US',
     url: 'https://redditoutreach.com',
     title: 'RedditOutreach - Automate Your Reddit Outreach',
-    description: 'Automate your Reddit outreach with our powerful bot platform. Send personalized messages, target specific subreddits, and track your results.',
+    description:
+      'Automate your Reddit comment outreach with AI-ranked discussion discovery, reusable templates, and server-managed auto-posters.',
     siteName: 'RedditOutreach',
     images: [
       {
@@ -47,7 +53,8 @@ export const metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'RedditOutreach - Automate Your Reddit Outreach',
-    description: 'Automate your Reddit outreach with our powerful bot platform.',
+    description:
+      'Automate your Reddit outreach with our powerful bot platform.',
     images: ['/icon-512x512.png'],
   },
 };
@@ -66,25 +73,35 @@ export default function RootLayout({
       <html lang="en">
         <head>
           <link rel="icon" href="/favicon.ico" sizes="256x256" />
-          <link rel="icon" href="/icon-192x192.png" sizes="192x192" type="image/png" />
-          <link rel="icon" href="/icon-512x512.png" sizes="512x512" type="image/png" />
+          <link
+            rel="icon"
+            href="/icon-192x192.png"
+            sizes="192x192"
+            type="image/png"
+          />
+          <link
+            rel="icon"
+            href="/icon-512x512.png"
+            sizes="512x512"
+            type="image/png"
+          />
           <link rel="apple-touch-icon" href="/icon-192x192.png" />
           <meta name="theme-color" content="#09090b" />
         </head>
         <body className={`${inter.className} bg-gray-950 text-white`}>
-            <StructuredData />
-            {/* Register service worker for PWA */}
-            <Script
-              id="pwa-register"
-              strategy="afterInteractive"
-              dangerouslySetInnerHTML={{
-                __html: `if ('serviceWorker' in navigator) {
+          <StructuredData />
+          {/* Register service worker for PWA */}
+          <Script
+            id="pwa-register"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `if ('serviceWorker' in navigator) {
                   window.addEventListener('load', () => {
                     navigator.serviceWorker.register('/sw.js');
                   });
                 }`,
-              }}
-            />
+            }}
+          />
           <ErrorBoundary>
             <Navigation />
             <main className="min-h-screen bg-gray-900">{children}</main>

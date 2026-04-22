@@ -648,7 +648,7 @@ export default function LogViewer({
             {log.message_template && (
               <div>
                 <span className="text-gray-400 font-medium">
-                  Message Template:
+                  Comment Template:
                 </span>
                 <pre className="mt-1 p-2 bg-gray-900/50 rounded text-xs overflow-x-auto">
                   {log.message_template}
@@ -1002,8 +1002,10 @@ export default function LogViewer({
                         </td>
                         <td className="whitespace-nowrap py-2 px-4 text-xs flex items-center space-x-2">
                           {log.action.startsWith('message_') && (
-                            <span className="text-xs text-yellow-300">Delay&nbsp;~2m</span>
-                          )} 
+                            <span className="text-xs text-yellow-300">
+                              Delay&nbsp;~2m
+                            </span>
+                          )}
                           <button
                             onClick={() => toggleExpandLog(log.id)}
                             className="px-2 py-1 text-xs rounded bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors duration-200 flex items-center"
@@ -1168,11 +1170,21 @@ export default function LogViewer({
       {/* Bot restart tip */}
       <div className="bg-blue-900/30 border-b border-blue-800 py-2 px-4">
         <div className="flex items-center text-blue-300 text-sm">
-          <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+          <svg
+            className="w-4 h-4 mr-2 flex-shrink-0"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              fillRule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+              clipRule="evenodd"
+            />
           </svg>
           <span>
-            <strong>Bot stuck or stopped unexpectedly?</strong> Go to Dashboard → Logs tab → Stop the bot → Start it again. This usually fixes scanning issues.
+            <strong>Bot stuck or stopped unexpectedly?</strong> Go to Dashboard
+            → Logs tab → Stop the bot → Start it again. This usually fixes
+            scanning issues.
           </span>
         </div>
       </div>

@@ -6,15 +6,23 @@ import { useUserPlan } from '../hooks/useUserPlan';
 // User Agent presets
 const USER_AGENT_PRESETS = {
   default: 'Reddit Bot SaaS',
-  chrome_windows: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-  chrome_mac: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-  firefox_windows: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
-  firefox_mac: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0',
-  safari_mac: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15',
-  edge_windows: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0',
-  mobile_ios: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1',
-  mobile_android: 'Mozilla/5.0 (Linux; Android 14; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
-  custom: ''
+  chrome_windows:
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  chrome_mac:
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  firefox_windows:
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
+  firefox_mac:
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0',
+  safari_mac:
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15',
+  edge_windows:
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0',
+  mobile_ios:
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1',
+  mobile_android:
+    'Mozilla/5.0 (Linux; Android 14; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+  custom: '',
 };
 
 interface AddRedditAccountProps {
@@ -39,27 +47,47 @@ export default function AddRedditAccount({
   const [username, setUsername] = useState(account?.username || '');
   const [password, setPassword] = useState(account?.password || '');
   const [clientId, setClientId] = useState((account as any)?.client_id || '');
-  const [clientSecret, setClientSecret] = useState((account as any)?.client_secret || '');
+  const [clientSecret, setClientSecret] = useState(
+    (account as any)?.client_secret || ''
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showClientSecret, setShowClientSecret] = useState(false);
   // Proxy state (paid plans only)
   const { isProUser } = useUserPlan();
-  const [proxyEnabled, setProxyEnabled] = useState<boolean>((account as any)?.proxy_enabled || false);
-  const [proxyType, setProxyType] = useState<string>((account as any)?.proxy_type || 'http');
-  const [proxyHost, setProxyHost] = useState<string>((account as any)?.proxy_host || '');
-  const [proxyPort, setProxyPort] = useState<number | ''>((account as any)?.proxy_port || '');
-  const [proxyUsername, setProxyUsername] = useState<string>((account as any)?.proxy_username || '');
+  const [proxyEnabled, setProxyEnabled] = useState<boolean>(
+    (account as any)?.proxy_enabled || false
+  );
+  const [proxyType, setProxyType] = useState<string>(
+    (account as any)?.proxy_type || 'http'
+  );
+  const [proxyHost, setProxyHost] = useState<string>(
+    (account as any)?.proxy_host || ''
+  );
+  const [proxyPort, setProxyPort] = useState<number | ''>(
+    (account as any)?.proxy_port || ''
+  );
+  const [proxyUsername, setProxyUsername] = useState<string>(
+    (account as any)?.proxy_username || ''
+  );
   const [proxyPassword, setProxyPassword] = useState<string>('');
   const [proxyTesting, setProxyTesting] = useState<boolean>(false);
   const [proxyTestResult, setProxyTestResult] = useState<string | null>(null);
 
   // User Agent state
-  const [userAgentEnabled, setUserAgentEnabled] = useState<boolean>((account as any)?.user_agent_enabled || false);
-  const [userAgentType, setUserAgentType] = useState<string>((account as any)?.user_agent_type || 'chrome_windows');
-  const [userAgentCustom, setUserAgentCustom] = useState<string>((account as any)?.user_agent_custom || '');
+  const [userAgentEnabled, setUserAgentEnabled] = useState<boolean>(
+    (account as any)?.user_agent_enabled || false
+  );
+  const [userAgentType, setUserAgentType] = useState<string>(
+    (account as any)?.user_agent_type || 'chrome_windows'
+  );
+  const [userAgentCustom, setUserAgentCustom] = useState<string>(
+    (account as any)?.user_agent_custom || ''
+  );
   const [userAgentTesting, setUserAgentTesting] = useState<boolean>(false);
-  const [userAgentTestResult, setUserAgentTestResult] = useState<string | null>(null);
+  const [userAgentTestResult, setUserAgentTestResult] = useState<string | null>(
+    null
+  );
 
   // Keep local state in sync if the account prop changes
   useEffect(() => {
@@ -108,32 +136,39 @@ export default function AddRedditAccount({
       }
 
       // If validation succeeds, use our API endpoint to save the account
-      const saveResponse = await fetch(isEdit ? `/api/reddit/account?id=${account?.id}` : '/api/reddit/account', {
-        method: isEdit ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username,
-          password,
-          clientId,
-          clientSecret,
-          // Proxy fields (only include when user is paid)
-          ...(isProUser ? {
-            proxyEnabled,
-            proxyType,
-            proxyHost,
-            proxyPort: proxyPort === '' ? null : Number(proxyPort),
-            proxyUsername,
-            // Only send proxyPassword if provided (avoid overwriting with empty)
-            ...(proxyPassword ? { proxyPassword } : {}),
-          } : {}),
-          // User Agent fields
-          userAgentEnabled,
-          userAgentType,
-          userAgentCustom,
-        }),
-      });
+      const saveResponse = await fetch(
+        isEdit
+          ? `/api/reddit/account?id=${account?.id}`
+          : '/api/reddit/account',
+        {
+          method: isEdit ? 'PUT' : 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username,
+            password,
+            clientId,
+            clientSecret,
+            // Proxy fields (only include when user is paid)
+            ...(isProUser
+              ? {
+                  proxyEnabled,
+                  proxyType,
+                  proxyHost,
+                  proxyPort: proxyPort === '' ? null : Number(proxyPort),
+                  proxyUsername,
+                  // Only send proxyPassword if provided (avoid overwriting with empty)
+                  ...(proxyPassword ? { proxyPassword } : {}),
+                }
+              : {}),
+            // User Agent fields
+            userAgentEnabled,
+            userAgentType,
+            userAgentCustom,
+          }),
+        }
+      );
 
       const saveData = await saveResponse.json();
 
@@ -156,7 +191,7 @@ export default function AddRedditAccount({
     <div className="bg-gray-800 shadow sm:rounded-lg border border-gray-700">
       <div className="px-4 py-5 sm:p-6">
         <div className="mt-2 max-w-xl text-sm text-gray-300">
-          <p>Add your Reddit account credentials to start sending messages.</p>
+          <p>Add your Reddit account credentials to start posting comments.</p>
         </div>
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           <div>
@@ -283,7 +318,13 @@ export default function AddRedditAccount({
               disabled={isLoading}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400"
             >
-              {isLoading ? (isEdit ? 'Saving...' : 'Adding...') : isEdit ? 'Save Changes' : 'Add Account'}
+              {isLoading
+                ? isEdit
+                  ? 'Saving...'
+                  : 'Adding...'
+                : isEdit
+                  ? 'Save Changes'
+                  : 'Add Account'}
             </button>
           </div>
 
@@ -291,7 +332,9 @@ export default function AddRedditAccount({
           {isProUser && (
             <div className="mt-6 border-t border-gray-700 pt-4">
               <div className="flex items-center justify-between mb-2">
-                <h4 className="text-md font-semibold text-gray-200">Proxy (per account)</h4>
+                <h4 className="text-md font-semibold text-gray-200">
+                  Proxy (per account)
+                </h4>
                 <label className="inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
@@ -303,9 +346,13 @@ export default function AddRedditAccount({
                   <span className="ml-3 text-sm text-gray-300">Enable</span>
                 </label>
               </div>
-              <div className={`${proxyEnabled ? '' : 'opacity-50 pointer-events-none'} grid grid-cols-1 sm:grid-cols-2 gap-4`}>
+              <div
+                className={`${proxyEnabled ? '' : 'opacity-50 pointer-events-none'} grid grid-cols-1 sm:grid-cols-2 gap-4`}
+              >
                 <div>
-                  <label className="block text-sm font-medium text-gray-200">Type</label>
+                  <label className="block text-sm font-medium text-gray-200">
+                    Type
+                  </label>
                   <select
                     value={proxyType}
                     onChange={(e) => setProxyType(e.target.value)}
@@ -317,7 +364,9 @@ export default function AddRedditAccount({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-200">Host</label>
+                  <label className="block text-sm font-medium text-gray-200">
+                    Host
+                  </label>
                   <input
                     type="text"
                     value={proxyHost}
@@ -327,17 +376,25 @@ export default function AddRedditAccount({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-200">Port</label>
+                  <label className="block text-sm font-medium text-gray-200">
+                    Port
+                  </label>
                   <input
                     type="number"
                     value={proxyPort}
-                    onChange={(e) => setProxyPort(e.target.value === '' ? '' : Number(e.target.value))}
+                    onChange={(e) =>
+                      setProxyPort(
+                        e.target.value === '' ? '' : Number(e.target.value)
+                      )
+                    }
                     placeholder="3128"
                     className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm placeholder-gray-400"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-200">Username (optional)</label>
+                  <label className="block text-sm font-medium text-gray-200">
+                    Username (optional)
+                  </label>
                   <input
                     type="text"
                     value={proxyUsername}
@@ -346,7 +403,9 @@ export default function AddRedditAccount({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-200">Password (optional)</label>
+                  <label className="block text-sm font-medium text-gray-200">
+                    Password (optional)
+                  </label>
                   <input
                     type="password"
                     value={proxyPassword}
@@ -372,7 +431,8 @@ export default function AddRedditAccount({
                             enabled: proxyEnabled,
                             type: proxyType as any,
                             host: proxyHost,
-                            port: proxyPort === '' ? undefined : Number(proxyPort),
+                            port:
+                              proxyPort === '' ? undefined : Number(proxyPort),
                             username: proxyUsername,
                             password: proxyPassword || undefined,
                           },
@@ -383,9 +443,13 @@ export default function AddRedditAccount({
                       });
                       const data = await resp.json();
                       if (resp.ok) {
-                        setProxyTestResult(`OK • ${data.latencyMs ?? '?'}ms${data.ip ? ` • IP ${data.ip}` : ''}`);
+                        setProxyTestResult(
+                          `OK • ${data.latencyMs ?? '?'}ms${data.ip ? ` • IP ${data.ip}` : ''}`
+                        );
                       } else {
-                        setProxyTestResult(`Failed: ${data.error || 'Unknown error'}`);
+                        setProxyTestResult(
+                          `Failed: ${data.error || 'Unknown error'}`
+                        );
                       }
                     } catch (e: any) {
                       setProxyTestResult(`Failed: ${e?.message || String(e)}`);
@@ -398,22 +462,31 @@ export default function AddRedditAccount({
                   {proxyTesting ? 'Testing…' : 'Test Proxy'}
                 </button>
                 {proxyTestResult && (
-                  <span className="text-sm text-gray-300">{proxyTestResult}</span>
+                  <span className="text-sm text-gray-300">
+                    {proxyTestResult}
+                  </span>
                 )}
               </div>
             </div>
           )}
           {!isProUser && (
             <div className="mt-6 border-t border-gray-700 pt-4">
-              <h4 className="text-md font-semibold text-gray-200">Proxy (Pro feature)</h4>
-              <p className="text-sm text-gray-400">Upgrade to Pro to route account traffic through your own HTTP/HTTPS/SOCKS5 proxy.</p>
+              <h4 className="text-md font-semibold text-gray-200">
+                Proxy (Pro feature)
+              </h4>
+              <p className="text-sm text-gray-400">
+                Upgrade to Pro to route account traffic through your own
+                HTTP/HTTPS/SOCKS5 proxy.
+              </p>
             </div>
           )}
 
           {/* User Agent configuration */}
           <div className="mt-6 border-t border-gray-700 pt-4">
             <div className="flex items-center justify-between mb-2">
-              <h4 className="text-md font-semibold text-gray-200">User Agent</h4>
+              <h4 className="text-md font-semibold text-gray-200">
+                User Agent
+              </h4>
               <label className="inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"
@@ -425,9 +498,13 @@ export default function AddRedditAccount({
                 <span className="ml-3 text-sm text-gray-300">Enable</span>
               </label>
             </div>
-            <div className={`${userAgentEnabled ? '' : 'opacity-50 pointer-events-none'} space-y-4`}>
+            <div
+              className={`${userAgentEnabled ? '' : 'opacity-50 pointer-events-none'} space-y-4`}
+            >
               <div>
-                <label className="block text-sm font-medium text-gray-200">User Agent Type</label>
+                <label className="block text-sm font-medium text-gray-200">
+                  User Agent Type
+                </label>
                 <select
                   value={userAgentType}
                   onChange={(e) => setUserAgentType(e.target.value)}
@@ -441,14 +518,18 @@ export default function AddRedditAccount({
                   <option value="safari_mac">Safari - macOS</option>
                   <option value="edge_windows">Edge - Windows</option>
                   <option value="mobile_ios">Mobile - iOS Safari</option>
-                  <option value="mobile_android">Mobile - Android Chrome</option>
+                  <option value="mobile_android">
+                    Mobile - Android Chrome
+                  </option>
                   <option value="custom">Custom</option>
                 </select>
               </div>
-              
+
               {userAgentType === 'custom' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-200">Custom User Agent</label>
+                  <label className="block text-sm font-medium text-gray-200">
+                    Custom User Agent
+                  </label>
                   <textarea
                     value={userAgentCustom}
                     onChange={(e) => setUserAgentCustom(e.target.value)}
@@ -458,16 +539,22 @@ export default function AddRedditAccount({
                   />
                 </div>
               )}
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-200 mb-2">Preview</label>
+                <label className="block text-sm font-medium text-gray-200 mb-2">
+                  Preview
+                </label>
                 <div className="bg-gray-900 border border-gray-600 rounded-md p-3">
                   <code className="text-xs text-gray-300 break-all">
-                    {userAgentType === 'custom' ? userAgentCustom || 'Enter custom User Agent above...' : USER_AGENT_PRESETS[userAgentType as keyof typeof USER_AGENT_PRESETS]}
+                    {userAgentType === 'custom'
+                      ? userAgentCustom || 'Enter custom User Agent above...'
+                      : USER_AGENT_PRESETS[
+                          userAgentType as keyof typeof USER_AGENT_PRESETS
+                        ]}
                   </code>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-3">
                 <button
                   type="button"
@@ -476,24 +563,37 @@ export default function AddRedditAccount({
                     setUserAgentTesting(true);
                     setUserAgentTestResult(null);
                     try {
-                      const testUserAgent = userAgentType === 'custom' ? userAgentCustom : USER_AGENT_PRESETS[userAgentType as keyof typeof USER_AGENT_PRESETS];
+                      const testUserAgent =
+                        userAgentType === 'custom'
+                          ? userAgentCustom
+                          : USER_AGENT_PRESETS[
+                              userAgentType as keyof typeof USER_AGENT_PRESETS
+                            ];
                       const resp = await fetch('/api/reddit/test-user-agent', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                           userAgent: testUserAgent,
-                          credentials: isEdit ? undefined : { username, password, clientId, clientSecret },
+                          credentials: isEdit
+                            ? undefined
+                            : { username, password, clientId, clientSecret },
                           accountId: (account as any)?.id,
                         }),
                       });
                       const data = await resp.json();
                       if (resp.ok) {
-                        setUserAgentTestResult(`✅ Valid - ${data.browser || 'Unknown browser'}`);
+                        setUserAgentTestResult(
+                          `✅ Valid - ${data.browser || 'Unknown browser'}`
+                        );
                       } else {
-                        setUserAgentTestResult(`❌ ${data.error || 'Test failed'}`);
+                        setUserAgentTestResult(
+                          `❌ ${data.error || 'Test failed'}`
+                        );
                       }
                     } catch (e: any) {
-                      setUserAgentTestResult(`❌ ${e?.message || 'Network error'}`);
+                      setUserAgentTestResult(
+                        `❌ ${e?.message || 'Network error'}`
+                      );
                     } finally {
                       setUserAgentTesting(false);
                     }
@@ -503,7 +603,9 @@ export default function AddRedditAccount({
                   {userAgentTesting ? 'Testing...' : 'Test User Agent'}
                 </button>
                 {userAgentTestResult && (
-                  <span className="text-sm text-gray-300">{userAgentTestResult}</span>
+                  <span className="text-sm text-gray-300">
+                    {userAgentTestResult}
+                  </span>
                 )}
               </div>
             </div>

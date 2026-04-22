@@ -30,7 +30,7 @@ export default function WebsiteConfigManagerStepByStep({
   productId,
   onConfigSaved,
   onConfigsChange,
-  initialConfig
+  initialConfig,
 }: WebsiteConfigManagerProps) {
   const { user } = useUser();
   const [currentStep, setCurrentStep] = useState(1);
@@ -43,7 +43,7 @@ export default function WebsiteConfigManagerStepByStep({
     business_context_terms: [],
     relevance_threshold: 70,
     auto_poster_enabled: false,
-    ...initialConfig
+    ...initialConfig,
   });
 
   const [loading, setLoading] = useState(false);
@@ -54,6 +54,48 @@ export default function WebsiteConfigManagerStepByStep({
   const [newTargetKeyword, setNewTargetKeyword] = useState('');
   const [newNegativeKeyword, setNewNegativeKeyword] = useState('');
   const [newBusinessTerm, setNewBusinessTerm] = useState('');
+
+  const handleDeleteConfig = async (configId: string) => {
+    if (
+      !confirm('Delete this website configuration and its auto-poster history?')
+    )
+      return;
+
+    try {
+      const response = await fetch(`/api/website-config?configId=${configId}`, {
+        method: 'DELETE',
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete website configuration');
+      }
+
+      if (config.id === configId) {
+        setConfig({
+          website_url: '',
+          website_description: '',
+          customer_segments: [],
+          target_keywords: [],
+          negative_keywords: [],
+          business_context_terms: [],
+          relevance_threshold: 70,
+          auto_poster_enabled: false,
+        });
+        setCurrentStep(1);
+      }
+
+      await loadExistingConfigs();
+      onConfigsChange?.();
+      window.dispatchEvent(new CustomEvent('posted-discussions:updated'));
+    } catch (error) {
+      console.error('Error deleting website configuration:', error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : 'Failed to delete website configuration'
+      );
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -97,19 +139,20 @@ export default function WebsiteConfigManagerStepByStep({
       const response = await fetch('/api/website-analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: config.website_url })
+        body: JSON.stringify({ url: config.website_url }),
       });
 
       const data = await response.json();
 
       if (data.success) {
-        setConfig(prev => ({
+        setConfig((prev) => ({
           ...prev,
           website_description: data.description || prev.website_description,
           customer_segments: data.customerSegments || prev.customer_segments,
           target_keywords: data.targetKeywords || prev.target_keywords,
           negative_keywords: data.negativeKeywords || prev.negative_keywords,
-          business_context_terms: data.businessTerms || prev.business_context_terms
+          business_context_terms:
+            data.businessTerms || prev.business_context_terms,
         }));
 
         // Auto-advance to next step
@@ -137,11 +180,14 @@ export default function WebsiteConfigManagerStepByStep({
 
       // Generate a UUID if not provided
       const generateUUID = () => {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-          const r = Math.random() * 16 | 0;
-          const v = c == 'x' ? r : (r & 0x3 | 0x8);
-          return v.toString(16);
-        });
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(
+          /[xy]/g,
+          function (c) {
+            const r = (Math.random() * 16) | 0;
+            const v = c == 'x' ? r : (r & 0x3) | 0x8;
+            return v.toString(16);
+          }
+        );
       };
 
       const finalProductId = productId || generateUUID();
@@ -156,13 +202,13 @@ export default function WebsiteConfigManagerStepByStep({
         negativeKeywords: config.negative_keywords || [],
         businessContextTerms: config.business_context_terms || [],
         relevanceThreshold: config.relevance_threshold || 70,
-        autoPostersEnabled: config.auto_poster_enabled || false
+        autoPostersEnabled: config.auto_poster_enabled || false,
       };
 
       const response = await fetch('/api/website-config', {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
       });
 
       const data = await response.json();
@@ -188,25 +234,27 @@ export default function WebsiteConfigManagerStepByStep({
 
     const currentArray = (config[arrayName] as string[]) || [];
     if (!currentArray.includes(value.trim())) {
-      setConfig(prev => ({
+      setConfig((prev) => ({
         ...prev,
-        [arrayName]: [...currentArray, value.trim()]
+        [arrayName]: [...currentArray, value.trim()],
       }));
     }
   };
 
   const removeKeyword = (arrayName: keyof WebsiteConfig, index: number) => {
     const currentArray = (config[arrayName] as string[]) || [];
-    setConfig(prev => ({
+    setConfig((prev) => ({
       ...prev,
-      [arrayName]: currentArray.filter((_, i) => i !== index)
+      [arrayName]: currentArray.filter((_, i) => i !== index),
     }));
   };
 
   const renderStep1 = () => (
     <div className="space-y-6">
       <div className="text-center">
-        <h3 className="text-lg font-semibold text-white mb-2">Step 1: Enter Your Website</h3>
+        <h3 className="text-lg font-semibold text-white mb-2">
+          Step 1: Enter Your Website
+        </h3>
         <p className="text-gray-400">Let's start by analyzing your website</p>
       </div>
 
@@ -217,7 +265,9 @@ export default function WebsiteConfigManagerStepByStep({
         <input
           type="url"
           value={config.website_url || ''}
-          onChange={(e) => setConfig(prev => ({ ...prev, website_url: e.target.value }))}
+          onChange={(e) =>
+            setConfig((prev) => ({ ...prev, website_url: e.target.value }))
+          }
           className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
           placeholder="https://example.com"
         />
@@ -245,7 +295,9 @@ export default function WebsiteConfigManagerStepByStep({
   const renderStep2 = () => (
     <div className="space-y-6">
       <div className="text-center">
-        <h3 className="text-lg font-semibold text-white mb-2">Step 2: Website Description</h3>
+        <h3 className="text-lg font-semibold text-white mb-2">
+          Step 2: Website Description
+        </h3>
         <p className="text-gray-400">Describe what your website does</p>
       </div>
 
@@ -255,7 +307,12 @@ export default function WebsiteConfigManagerStepByStep({
         </label>
         <textarea
           value={config.website_description || ''}
-          onChange={(e) => setConfig(prev => ({ ...prev, website_description: e.target.value }))}
+          onChange={(e) =>
+            setConfig((prev) => ({
+              ...prev,
+              website_description: e.target.value,
+            }))
+          }
           rows={4}
           className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
           placeholder="Describe what your website/product does and who it's for..."
@@ -280,24 +337,31 @@ export default function WebsiteConfigManagerStepByStep({
     </div>
   );
 
-  const handleAddItem = (arrayName: keyof WebsiteConfig, value: string, setValue: (val: string) => void) => {
+  const handleAddItem = (
+    arrayName: keyof WebsiteConfig,
+    value: string,
+    setValue: (val: string) => void
+  ) => {
     if (value.trim()) {
       // Split by comma and add multiple items
-      const newItems = value.split(',')
-        .map(item => item.trim())
-        .filter(item => item.length > 0);
+      const newItems = value
+        .split(',')
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0);
 
       if (newItems.length > 0) {
-        setConfig(prev => {
+        setConfig((prev) => {
           const currentArray = (prev[arrayName] as string[]) || [];
           // Filter out items that already exist
-          const uniqueNewItems = newItems.filter(item => !currentArray.includes(item));
+          const uniqueNewItems = newItems.filter(
+            (item) => !currentArray.includes(item)
+          );
 
           if (uniqueNewItems.length === 0) return prev;
 
           return {
             ...prev,
-            [arrayName]: [...currentArray, ...uniqueNewItems]
+            [arrayName]: [...currentArray, ...uniqueNewItems],
           };
         });
       }
@@ -305,7 +369,12 @@ export default function WebsiteConfigManagerStepByStep({
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent, arrayName: keyof WebsiteConfig, value: string, setValue: (val: string) => void) => {
+  const handleKeyPress = (
+    e: React.KeyboardEvent,
+    arrayName: keyof WebsiteConfig,
+    value: string,
+    setValue: (val: string) => void
+  ) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       handleAddItem(arrayName, value, setValue);
@@ -313,12 +382,15 @@ export default function WebsiteConfigManagerStepByStep({
   };
 
   const renderStep3 = () => {
-
     return (
       <div className="space-y-6">
         <div className="text-center">
-          <h3 className="text-lg font-semibold text-white mb-2">Step 3: Customer Segments & Keywords</h3>
-          <p className="text-gray-400">Define your target audience and keywords for AI scoring</p>
+          <h3 className="text-lg font-semibold text-white mb-2">
+            Step 3: Customer Segments & Keywords
+          </h3>
+          <p className="text-gray-400">
+            Define your target audience and keywords for AI scoring
+          </p>
         </div>
 
         {/* Customer Segments */}
@@ -330,23 +402,37 @@ export default function WebsiteConfigManagerStepByStep({
             <div className="group relative">
               <span className="text-gray-400 cursor-help">ℹ️</span>
               <div className="invisible group-hover:visible absolute left-6 top-0 bg-gray-900 text-white text-xs rounded p-2 w-64 z-10">
-                <strong>Scoring Impact:</strong> Posts mentioning these segments get +20 points. Used to find discussions where your target customers are active.
+                <strong>Scoring Impact:</strong> Posts mentioning these segments
+                get +20 points. Used to find discussions where your target
+                customers are active.
               </div>
             </div>
           </div>
-          <p className="text-xs text-gray-400 mb-3">Who are your ideal customers? (e.g., entrepreneurs, small business owners, marketers)</p>
+          <p className="text-xs text-gray-400 mb-3">
+            Who are your ideal customers? (e.g., entrepreneurs, small business
+            owners, marketers)
+          </p>
 
           <div className="flex gap-2 mb-3">
             <input
               type="text"
               value={newSegment}
               onChange={(e) => setNewSegment(e.target.value)}
-              onKeyPress={(e) => handleKeyPress(e, 'customer_segments', newSegment, setNewSegment)}
+              onKeyPress={(e) =>
+                handleKeyPress(
+                  e,
+                  'customer_segments',
+                  newSegment,
+                  setNewSegment
+                )
+              }
               placeholder="Add customer segment... (use commas to separate multiple)"
               className="flex-1 px-3 py-2 bg-gray-600 border border-gray-500 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
             <button
-              onClick={() => handleAddItem('customer_segments', newSegment, setNewSegment)}
+              onClick={() =>
+                handleAddItem('customer_segments', newSegment, setNewSegment)
+              }
               className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 text-sm"
             >
               Add
@@ -380,23 +466,40 @@ export default function WebsiteConfigManagerStepByStep({
             <div className="group relative">
               <span className="text-gray-400 cursor-help">ℹ️</span>
               <div className="invisible group-hover:visible absolute left-6 top-0 bg-gray-900 text-white text-xs rounded p-2 w-64 z-10">
-                <strong>Scoring Impact:</strong> Posts containing these keywords get +15 points. Primary terms that indicate relevant discussions.
+                <strong>Scoring Impact:</strong> Posts containing these keywords
+                get +15 points. Primary terms that indicate relevant
+                discussions.
               </div>
             </div>
           </div>
-          <p className="text-xs text-gray-400 mb-3">Keywords that indicate relevant discussions for your business</p>
+          <p className="text-xs text-gray-400 mb-3">
+            Keywords that indicate relevant discussions for your business
+          </p>
 
           <div className="flex gap-2 mb-3">
             <input
               type="text"
               value={newTargetKeyword}
               onChange={(e) => setNewTargetKeyword(e.target.value)}
-              onKeyPress={(e) => handleKeyPress(e, 'target_keywords', newTargetKeyword, setNewTargetKeyword)}
+              onKeyPress={(e) =>
+                handleKeyPress(
+                  e,
+                  'target_keywords',
+                  newTargetKeyword,
+                  setNewTargetKeyword
+                )
+              }
               placeholder="Add target keyword... (use commas to separate multiple)"
               className="flex-1 px-3 py-2 bg-gray-600 border border-gray-500 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <button
-              onClick={() => handleAddItem('target_keywords', newTargetKeyword, setNewTargetKeyword)}
+              onClick={() =>
+                handleAddItem(
+                  'target_keywords',
+                  newTargetKeyword,
+                  setNewTargetKeyword
+                )
+              }
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
             >
               Add
@@ -430,23 +533,40 @@ export default function WebsiteConfigManagerStepByStep({
             <div className="group relative">
               <span className="text-gray-400 cursor-help">ℹ️</span>
               <div className="invisible group-hover:visible absolute left-6 top-0 bg-gray-900 text-white text-xs rounded p-2 w-64 z-10">
-                <strong>Scoring Impact:</strong> Posts with these terms get +10 points. Industry-specific terminology that adds context relevance.
+                <strong>Scoring Impact:</strong> Posts with these terms get +10
+                points. Industry-specific terminology that adds context
+                relevance.
               </div>
             </div>
           </div>
-          <p className="text-xs text-gray-400 mb-3">Industry-specific terms that provide business context</p>
+          <p className="text-xs text-gray-400 mb-3">
+            Industry-specific terms that provide business context
+          </p>
 
           <div className="flex gap-2 mb-3">
             <input
               type="text"
               value={newBusinessTerm}
               onChange={(e) => setNewBusinessTerm(e.target.value)}
-              onKeyPress={(e) => handleKeyPress(e, 'business_context_terms', newBusinessTerm, setNewBusinessTerm)}
+              onKeyPress={(e) =>
+                handleKeyPress(
+                  e,
+                  'business_context_terms',
+                  newBusinessTerm,
+                  setNewBusinessTerm
+                )
+              }
               placeholder="Add business term... (use commas to separate multiple)"
               className="flex-1 px-3 py-2 bg-gray-600 border border-gray-500 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
             />
             <button
-              onClick={() => handleAddItem('business_context_terms', newBusinessTerm, setNewBusinessTerm)}
+              onClick={() =>
+                handleAddItem(
+                  'business_context_terms',
+                  newBusinessTerm,
+                  setNewBusinessTerm
+                )
+              }
               className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm"
             >
               Add
@@ -480,23 +600,41 @@ export default function WebsiteConfigManagerStepByStep({
             <div className="group relative">
               <span className="text-gray-400 cursor-help">ℹ️</span>
               <div className="invisible group-hover:visible absolute left-6 top-0 bg-gray-900 text-white text-xs rounded p-2 w-64 z-10">
-                <strong>Scoring Impact:</strong> Posts with these keywords get -25 points and are filtered out. Use to avoid irrelevant or inappropriate content.
+                <strong>Scoring Impact:</strong> Posts with these keywords get
+                -25 points and are filtered out. Use to avoid irrelevant or
+                inappropriate content.
               </div>
             </div>
           </div>
-          <p className="text-xs text-gray-400 mb-3">Keywords that indicate posts to avoid (e.g., politics, entertainment, memes)</p>
+          <p className="text-xs text-gray-400 mb-3">
+            Keywords that indicate posts to avoid (e.g., politics,
+            entertainment, memes)
+          </p>
 
           <div className="flex gap-2 mb-3">
             <input
               type="text"
               value={newNegativeKeyword}
               onChange={(e) => setNewNegativeKeyword(e.target.value)}
-              onKeyPress={(e) => handleKeyPress(e, 'negative_keywords', newNegativeKeyword, setNewNegativeKeyword)}
+              onKeyPress={(e) =>
+                handleKeyPress(
+                  e,
+                  'negative_keywords',
+                  newNegativeKeyword,
+                  setNewNegativeKeyword
+                )
+              }
               placeholder="Add negative keyword... (use commas to separate multiple)"
               className="flex-1 px-3 py-2 bg-gray-600 border border-gray-500 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
             />
             <button
-              onClick={() => handleAddItem('negative_keywords', newNegativeKeyword, setNewNegativeKeyword)}
+              onClick={() =>
+                handleAddItem(
+                  'negative_keywords',
+                  newNegativeKeyword,
+                  setNewNegativeKeyword
+                )
+              }
               className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm"
             >
               Add
@@ -523,14 +661,29 @@ export default function WebsiteConfigManagerStepByStep({
 
         {/* Scoring Logic Explanation */}
         <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-4">
-          <h4 className="text-sm font-medium text-blue-300 mb-2">🎯 How Scoring Works</h4>
+          <h4 className="text-sm font-medium text-blue-300 mb-2">
+            🎯 How Scoring Works
+          </h4>
           <div className="text-xs text-gray-300 space-y-1">
-            <div>• <strong className="text-purple-300">Customer Segments:</strong> +20 points when mentioned</div>
-            <div>• <strong className="text-blue-300">Target Keywords:</strong> +15 points when found</div>
-            <div>• <strong className="text-green-300">Business Terms:</strong> +10 points for context relevance</div>
-            <div>• <strong className="text-red-300">Negative Keywords:</strong> -25 points and filtered out</div>
+            <div>
+              • <strong className="text-purple-300">Customer Segments:</strong>{' '}
+              +20 points when mentioned
+            </div>
+            <div>
+              • <strong className="text-blue-300">Target Keywords:</strong> +15
+              points when found
+            </div>
+            <div>
+              • <strong className="text-green-300">Business Terms:</strong> +10
+              points for context relevance
+            </div>
+            <div>
+              • <strong className="text-red-300">Negative Keywords:</strong> -25
+              points and filtered out
+            </div>
             <div className="pt-1 border-t border-blue-700">
-              <strong>Final Score:</strong> Posts above your relevance threshold get AI-generated replies
+              <strong>Final Score:</strong> Posts above your relevance threshold
+              get AI-generated replies
             </div>
           </div>
         </div>
@@ -556,7 +709,9 @@ export default function WebsiteConfigManagerStepByStep({
   const renderStep4 = () => (
     <div className="space-y-6">
       <div className="text-center">
-        <h3 className="text-lg font-semibold text-white mb-2">Step 4: Final Settings</h3>
+        <h3 className="text-lg font-semibold text-white mb-2">
+          Step 4: Final Settings
+        </h3>
         <p className="text-gray-400">Configure relevance threshold and save</p>
       </div>
 
@@ -570,7 +725,12 @@ export default function WebsiteConfigManagerStepByStep({
           min="0"
           max="100"
           value={config.relevance_threshold || 70}
-          onChange={(e) => setConfig(prev => ({ ...prev, relevance_threshold: parseInt(e.target.value) }))}
+          onChange={(e) =>
+            setConfig((prev) => ({
+              ...prev,
+              relevance_threshold: parseInt(e.target.value),
+            }))
+          }
           className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
         />
         <div className="flex justify-between text-xs text-gray-400 mt-1">
@@ -611,10 +771,16 @@ export default function WebsiteConfigManagerStepByStep({
         </button>
         <button
           onClick={handleSave}
-          disabled={saving || !config.website_url || !config.website_description}
+          disabled={
+            saving || !config.website_url || !config.website_description
+          }
           className="flex-1 px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed"
         >
-          {saving ? 'Saving...' : config.id ? 'Update Configuration' : 'Save Configuration'}
+          {saving
+            ? 'Saving...'
+            : config.id
+              ? 'Update Configuration'
+              : 'Save Configuration'}
         </button>
       </div>
     </div>
@@ -636,10 +802,11 @@ export default function WebsiteConfigManagerStepByStep({
           {[1, 2, 3, 4].map((step) => (
             <div
               key={step}
-              className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${step <= currentStep
-                ? 'bg-purple-600 text-white'
-                : 'bg-gray-600 text-gray-300'
-                }`}
+              className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
+                step <= currentStep
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-600 text-gray-300'
+              }`}
             >
               {step}
             </div>
@@ -662,14 +829,23 @@ export default function WebsiteConfigManagerStepByStep({
       {/* Existing Configurations */}
       {existingConfigs.length > 0 && (
         <div className="mt-8 pt-6 border-t border-gray-600">
-          <h4 className="text-lg font-semibold text-white mb-4">Your Website Configurations</h4>
+          <h4 className="text-lg font-semibold text-white mb-4">
+            Your Website Configurations
+          </h4>
           <div className="grid gap-4">
             {existingConfigs.map((existingConfig) => (
-              <div key={existingConfig.id} className="bg-gray-700 rounded-lg p-4">
+              <div
+                key={existingConfig.id}
+                className="bg-gray-700 rounded-lg p-4"
+              >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h5 className="font-medium text-white mb-1">{existingConfig.website_url}</h5>
-                    <p className="text-sm text-gray-300 mb-2">{existingConfig.website_description}</p>
+                    <h5 className="font-medium text-white mb-1">
+                      {existingConfig.website_url}
+                    </h5>
+                    <p className="text-sm text-gray-300 mb-2">
+                      {existingConfig.website_description}
+                    </p>
                     <div className="flex flex-wrap gap-2 text-xs">
                       <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded">
                         {existingConfig.customer_segments?.length || 0} segments
@@ -678,25 +854,33 @@ export default function WebsiteConfigManagerStepByStep({
                         {existingConfig.target_keywords?.length || 0} keywords
                       </span>
                       <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
-                        {existingConfig.business_context_terms?.length || 0} business terms
+                        {existingConfig.business_context_terms?.length || 0}{' '}
+                        business terms
                       </span>
                       <span className="bg-red-100 text-red-800 px-2 py-1 rounded">
-                        {existingConfig.negative_keywords?.length || 0} negative keywords
+                        {existingConfig.negative_keywords?.length || 0} negative
+                        keywords
                       </span>
                       {/*<span className={`px-2 py-1 rounded ${existingConfig.auto_poster_enabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
                         Auto-poster: {existingConfig.auto_poster_enabled ? 'ON' : 'OFF'}
                       </span>*/}
                     </div>
                   </div>
-                  <div className="flex gap-2 ml-4">
+                  <div className="ml-4 flex gap-2">
                     <button
                       onClick={() => {
                         setConfig(existingConfig);
                         setCurrentStep(1);
                       }}
-                      className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                      className="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
                     >
                       Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteConfig(existingConfig.id)}
+                      className="rounded bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700"
+                    >
+                      Delete
                     </button>
                     <button
                       onClick={() => {
@@ -712,7 +896,7 @@ export default function WebsiteConfigManagerStepByStep({
                         });
                         setCurrentStep(1);
                       }}
-                      className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                      className="rounded bg-green-600 px-3 py-1 text-sm text-white hover:bg-green-700"
                     >
                       New Config
                     </button>

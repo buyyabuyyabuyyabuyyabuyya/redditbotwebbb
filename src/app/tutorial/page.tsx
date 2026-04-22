@@ -16,10 +16,11 @@ export default async function TutorialPage() {
         <header>
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <h1 className="text-3xl font-bold leading-tight tracking-tight text-white bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-red-500">
-              Reddit Bot Tutorial
+              Comment Outreach Tutorial
             </h1>
             <p className="mt-2 text-lg text-gray-300">
-              Follow these steps to set up and use your Reddit outreach bot
+              Follow these steps to set up and use your Reddit comment outreach
+              workspace
             </p>
           </div>
         </header>
@@ -53,11 +54,11 @@ export default async function TutorialPage() {
                           <strong>
                             Always use a secondary Reddit account or bot account
                           </strong>{' '}
-                          for automated messaging. There is a risk that accounts
-                          using bots may be flagged or banned by Reddit. We are
-                          not liable if your Reddit account is banned or
-                          restricted. Follow Reddit's terms of service and avoid
-                          spamming users.
+                          for automated comment posting. There is a risk that
+                          accounts using bots may be flagged or banned by
+                          Reddit. We are not liable if your Reddit account is
+                          banned or restricted. Follow Reddit's terms of service
+                          and avoid leaving spammy or low-value comments.
                         </p>
                       </div>
                     </div>
@@ -155,27 +156,46 @@ export default async function TutorialPage() {
                           </ol>
                         </div>
                       </div>
-                      
+
                       {/* Account Safety Tips */}
                       <div className="bg-amber-900/20 border border-amber-500/30 rounded-lg p-4">
                         <h4 className="text-amber-400 font-semibold mb-3 flex items-center gap-2">
-                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                          <svg
+                            className="w-5 h-5"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z"
+                              clipRule="evenodd"
+                            />
                           </svg>
                           Account Safety Tips
                         </h4>
                         <ul className="text-sm text-gray-300 space-y-2">
                           <li className="flex items-start gap-2">
                             <span className="text-amber-400 mt-1">•</span>
-                            <span><strong>Use established accounts:</strong> couple months old, positive karma, verified email</span>
+                            <span>
+                              <strong>Use established accounts:</strong> couple
+                              months old, positive karma, verified email
+                            </span>
                           </li>
                           <li className="flex items-start gap-2">
                             <span className="text-amber-400 mt-1">•</span>
-                            <span><strong>Content compliance:</strong> No spam or NSFW, avoid unsolicited ads</span>
+                            <span>
+                              <strong>Content compliance:</strong> No spam or
+                              NSFW, avoid unsolicited ads
+                            </span>
                           </li>
                           <li className="flex items-start gap-2">
                             <span className="text-amber-400 mt-1">•</span>
-                            <span><strong>Account quality:</strong> Only use accounts with no recent enforcement actions. New accounts are especially prone to being flagged and banned if automated</span>
+                            <span>
+                              <strong>Account quality:</strong> Only use
+                              accounts with no recent enforcement actions. New
+                              accounts are especially prone to being flagged and
+                              banned if automated
+                            </span>
                           </li>
                         </ul>
                       </div>
@@ -189,7 +209,7 @@ export default async function TutorialPage() {
                         <span className="text-white font-bold">2</span>
                       </div>
                       <h2 className="text-xl font-bold text-purple-300">
-                        Create Message Templates
+                        Create Comment Templates
                       </h2>
                     </div>
 
@@ -202,7 +222,7 @@ export default async function TutorialPage() {
                         >
                           Dashboard
                         </Link>{' '}
-                        and create a message template by clicking on the "Create
+                        and create a comment template by clicking on the "Create
                         Template" button.
                       </p>
 
@@ -213,11 +233,11 @@ export default async function TutorialPage() {
                         <ul className="list-disc list-inside mt-2 space-y-2 text-gray-300">
                           <li>
                             <strong>Template Name</strong> - A descriptive name
-                            for your message template
+                            for your comment template
                           </li>
                           <li>
-                            <strong>Message Content</strong> - The message that
-                            will be sent to Reddit users
+                            <strong>Comment Content</strong> - The reply draft
+                            that will be used in your comment workflow
                             <div className="mt-2 mb-3">
                               <p className="text-sm text-gray-400">
                                 Available variables:
@@ -234,15 +254,14 @@ export default async function TutorialPage() {
                                 Example:
                               </p>
                               <code className="block bg-black/30 p-2 rounded mt-1 text-gray-300">
-                                Hi {'{username}'},<br />
+                                Hey {'{username}'},<br />
                                 <br />I noticed your post "{'{post_title}'} in
-                                r/{'{subreddit}'} and wanted to reach out. I
-                                offer services that might help with what you're
-                                working on.
+                                r/{'{subreddit}'} and wanted to leave a helpful
+                                reply. I offer services that might help with
+                                what you're working on.
                                 <br />
                                 <br />
-                                Would you be interested in discussing this
-                                further?
+                                Would this kind of workflow help in your case?
                                 <br />
                                 <br />
                                 Best regards,
@@ -278,7 +297,7 @@ export default async function TutorialPage() {
                         <span className="text-white font-bold">3</span>
                       </div>
                       <h2 className="text-xl font-bold text-purple-300">
-                        Configure Your Subreddit Scanner
+                        Configure Your Comment Workspace
                       </h2>
                     </div>
 
@@ -291,25 +310,28 @@ export default async function TutorialPage() {
                         >
                           Dashboard
                         </Link>{' '}
-                        and set up your subreddit scanner by completing the
-                        form.
+                        and set up your website config and comment targeting
+                        rules.
                       </p>
 
                       <div className="bg-gray-700/50 rounded-md p-4 border border-purple-500/20">
                         <h3 className="font-medium text-white">
-                          Scanner Configuration:
+                          Comment Workspace Configuration:
                         </h3>
                         <ul className="list-disc list-inside mt-2 space-y-2 text-gray-300">
                           <li>
-                            <strong>Subreddit</strong> - The subreddit you want
-                            to scan (without the "r/" prefix)
+                            <strong>Website Configuration</strong> - The
+                            website/business configuration you want to use for
+                            relevance scoring
                             <p className="text-sm text-gray-400 ml-5 mt-1">
-                              Example: webdev, forhire, slavelabour
+                              Each config stores your site URL, audience, target
+                              keywords, and negative filters
                             </p>
                           </li>
                           <li>
-                            <strong>Keywords</strong> - Words or phrases to look
-                            for in posts (add as many as needed)
+                            <strong>Search/relevance inputs</strong> - The
+                            business terms, customer segments, and keyword
+                            signals used to rank discussions
                             <p className="text-sm text-gray-400 ml-5 mt-1">
                               Examples: website, app, developer, looking for,
                               hiring
@@ -324,12 +346,12 @@ export default async function TutorialPage() {
                             you added in Step 1
                           </li>
                           <li>
-                            <strong>Message Template</strong> - Select the
+                            <strong>Comment Template</strong> - Select the
                             template you created in Step 2
                           </li>
                           <li>
-                            <strong>Scan Interval</strong> - How often the bot
-                            should check for new posts (in minutes)
+                            <strong>Auto-poster interval</strong> - How often
+                            the bot should check for new posts (in minutes)
                           </li>
                         </ul>
                       </div>
@@ -343,14 +365,14 @@ export default async function TutorialPage() {
                         <span className="text-white font-bold">4</span>
                       </div>
                       <h2 className="text-xl font-bold text-purple-300">
-                        Start Your Bot
+                        Start Your Auto-Poster
                       </h2>
                     </div>
 
                     <div className="mt-4 ml-12 space-y-4">
                       <p className="text-gray-300">
-                        After configuring your scanner, click the "Start Bot"
-                        button to begin scanning and messaging.
+                        After configuring your website profile, start the
+                        auto-poster to begin scanning and posting comments.
                       </p>
 
                       <div className="bg-gray-700/50 rounded-md p-4 border border-purple-500/20">
@@ -363,12 +385,12 @@ export default async function TutorialPage() {
                             active configuration
                           </li>
                           <li>
-                            Check the dashboard for message counts and bot
-                            status
+                            Check the dashboard for posted-comment counts and
+                            auto-poster status
                           </li>
                           <li>
-                            Check the "Private Messages" section to see all
-                            messages sent
+                            Check the posted comments history to review what was
+                            published
                           </li>
                         </ul>
                       </div>
@@ -387,7 +409,7 @@ export default async function TutorialPage() {
                       Reddit's rate limits
                     </li>
                     <li>
-                      Create specific, targeted keywords to avoid messaging
+                      Create specific, targeted keywords to avoid surfacing
                       irrelevant posts
                     </li>
                     <li>
@@ -395,7 +417,7 @@ export default async function TutorialPage() {
                       improve targeting
                     </li>
                     <li>
-                      Personalize your messages with the available variables
+                      Personalize your comments with the available variables
                     </li>
                     <li>
                       Regularly check your bot logs to ensure everything is
