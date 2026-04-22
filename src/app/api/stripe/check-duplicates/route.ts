@@ -6,10 +6,26 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
 });
 
+interface SubscriptionSummary {
+  id: string;
+  status: Stripe.Subscription.Status;
+  current_period_start: string;
+  current_period_end: string;
+  plan_name: string;
+  amount: number;
+}
+
+interface CustomerSummary {
+  id: string;
+  email: string | null;
+  created: string;
+  subscriptions: SubscriptionSummary[];
+}
+
 export async function GET() {
   try {
     const { userId } = await auth();
-    
+
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -29,41 +45,49 @@ export async function GET() {
       limit: 100, // Increase limit to catch all duplicates
     });
 
-    const duplicateInfo = {
+    const duplicateInfo: {
+      hasDuplicates: boolean;
+      customerCount: number;
+      customers: CustomerSummary[];
+    } = {
       hasDuplicates: customers.data.length > 1,
       customerCount: customers.data.length,
-      customers: customers.data.map(customer => ({
+      customers: customers.data.map((customer) => ({
         id: customer.id,
         email: customer.email,
         created: new Date(customer.created * 1000).toISOString(),
-        subscriptions: [], // We'll populate this below
+        subscriptions: [],
       })),
     };
 
     // Get subscription details for each customer (ONLY ACTIVE SUBSCRIPTIONS)
-    const customersWithActiveSubscriptions = [];
-    
+    const customersWithActiveSubscriptions: CustomerSummary[] = [];
+
     for (const customer of duplicateInfo.customers) {
       const subscriptions = await stripe.subscriptions.list({
         customer: customer.id,
         status: 'active', // Only get active subscriptions
       });
-      
+
       // Only include customers that have active subscriptions
       if (subscriptions.data.length > 0) {
-        customer.subscriptions = subscriptions.data.map(sub => ({
+        customer.subscriptions = subscriptions.data.map((sub) => ({
           id: sub.id,
           status: sub.status,
-          current_period_start: new Date(sub.current_period_start * 1000).toISOString(),
-          current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
+          current_period_start: new Date(
+            sub.current_period_start * 1000
+          ).toISOString(),
+          current_period_end: new Date(
+            sub.current_period_end * 1000
+          ).toISOString(),
           plan_name: sub.items.data[0]?.price?.nickname || 'Unknown',
           amount: sub.items.data[0]?.price?.unit_amount || 0,
         }));
-        
+
         customersWithActiveSubscriptions.push(customer);
       }
     }
-    
+
     // Update duplicate info to only include customers with active subscriptions
     duplicateInfo.customers = customersWithActiveSubscriptions;
     duplicateInfo.customerCount = customersWithActiveSubscriptions.length;

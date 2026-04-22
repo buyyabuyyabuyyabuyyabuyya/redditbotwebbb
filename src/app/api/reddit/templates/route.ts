@@ -16,7 +16,7 @@ const supabaseAdmin = createClient(
   }
 );
 
-// GET handler for retrieving message templates
+// GET handler for retrieving comment templates
 export async function GET(req: Request) {
   try {
     // Verify authentication with Clerk
@@ -39,7 +39,7 @@ export async function GET(req: Request) {
         .single();
 
       if (error) {
-        console.error('Error retrieving message template:', error);
+        console.error('Error retrieving comment template:', error);
         return NextResponse.json(
           { error: `Database error: ${error.message}` },
           { status: 500 }
@@ -56,7 +56,7 @@ export async function GET(req: Request) {
       .eq('user_id', userId);
 
     if (error) {
-      console.error('Error retrieving message templates:', error);
+      console.error('Error retrieving comment templates:', error);
       return NextResponse.json(
         { error: `Database error: ${error.message}` },
         { status: 500 }
@@ -73,7 +73,7 @@ export async function GET(req: Request) {
   }
 }
 
-// POST handler for creating a new message template
+// POST handler for creating a new comment template
 export async function POST(req: Request) {
   try {
     // Verify authentication with Clerk
@@ -153,7 +153,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Now insert the message template
+    // Now insert the comment template
     const { data, error } = await supabaseAdmin
       .from('message_templates')
       .insert([
@@ -167,7 +167,7 @@ export async function POST(req: Request) {
       .select();
 
     if (error) {
-      console.error('Error saving message template:', error);
+      console.error('Error saving comment template:', error);
       return NextResponse.json(
         { error: `Database error: ${error.message}` },
         { status: 500 }

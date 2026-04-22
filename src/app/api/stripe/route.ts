@@ -25,7 +25,8 @@ export async function POST(req: Request) {
     if (action === 'create-checkout-session') {
       // Determine which price ID to use based on requested plan
       const selectedPlan = plan === 'advanced' ? 'advanced' : 'pro';
-      const priceId = selectedPlan === 'advanced' ? ADVANCED_PRICE_ID : PRO_PRICE_ID;
+      const priceId =
+        selectedPlan === 'advanced' ? ADVANCED_PRICE_ID : PRO_PRICE_ID;
 
       // Fetch user info (email + any saved stripe_customer_id)
       const { data: userRow, error: userErr } = await supabase
@@ -70,7 +71,7 @@ export async function POST(req: Request) {
         });
 
         // Filter for truly active subscriptions (Stripe's definition of "active")
-        const activeSubscriptions = subs.data.filter(sub => 
+        const activeSubscriptions = subs.data.filter((sub) =>
           ['active', 'past_due', 'unpaid', 'paused'].includes(sub.status)
         );
 
@@ -80,16 +81,18 @@ export async function POST(req: Request) {
 
           // If the subscription is already on the desired price, redirect to customer portal
           if (currentItem.price.id === priceId) {
-            return NextResponse.json({ 
-              upgraded: false, 
+            return NextResponse.json({
+              upgraded: false,
               message: 'Already on desired plan',
-              redirectToPortal: true 
+              redirectToPortal: true,
             });
           }
 
           // If they have a different active subscription, offer upgrade/downgrade
-          console.log(`Customer ${customerId} has existing subscription ${currentSub.id}, upgrading...`);
-          
+          console.log(
+            `Customer ${customerId} has existing subscription ${currentSub.id}, upgrading...`
+          );
+
           // Otherwise, update the subscription in-place (prorated)
           await stripe.subscriptions.update(currentSub.id, {
             proration_behavior: 'create_prorations',
@@ -118,25 +121,31 @@ export async function POST(req: Request) {
           const customers = await stripe.customers.search({
             query: `email:"${customerEmail}"`,
           });
-          
+
           for (const customer of customers.data) {
             const customerSubs = await stripe.subscriptions.list({
               customer: customer.id,
               status: 'all',
               limit: 5,
             });
-            
-            const activeCustomerSubs = customerSubs.data.filter(sub => 
+
+            const activeCustomerSubs = customerSubs.data.filter((sub) =>
               ['active', 'past_due', 'unpaid', 'paused'].includes(sub.status)
             );
-            
+
             if (activeCustomerSubs.length > 0) {
-              console.log(`Found existing subscription for email ${customerEmail}`);
-              return NextResponse.json({ 
-                error: 'You already have an active subscription. Please use the billing portal to manage it.',
-                redirectToPortal: true,
-                existingCustomerId: customer.id
-              }, { status: 409 }); // 409 Conflict
+              console.log(
+                `Found existing subscription for email ${customerEmail}`
+              );
+              return NextResponse.json(
+                {
+                  error:
+                    'You already have an active subscription. Please use the billing portal to manage it.',
+                  redirectToPortal: true,
+                  existingCustomerId: customer.id,
+                },
+                { status: 409 }
+              ); // 409 Conflict
             }
           }
         } catch (err) {
@@ -154,13 +163,9 @@ export async function POST(req: Request) {
           },
         ],
         mode: 'subscription',
-        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
-        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?canceled=true`,
+        success_url: `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/dashboard?success=true`,
+        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/dashboard?canceled=true`,
         client_reference_id: userId,
-        metadata: {
-          userId: userId,
-          plan: selectedPlan
-        },
         customer: customerId, // reuse existing customer if we have one
         customer_email: customerEmail, // This will prefill the email field in checkout
         ...(customerId && {
@@ -170,7 +175,7 @@ export async function POST(req: Request) {
           },
         }),
         metadata: {
-          email: customerEmail,
+          email: customerEmail || '',
           plan: selectedPlan,
           userId,
         },
@@ -183,9 +188,9 @@ export async function POST(req: Request) {
         },
       });
 
-      return NextResponse.json({ 
+      return NextResponse.json({
         sessionId: session.id,
-        url: session.url 
+        url: session.url,
       });
     }
 
