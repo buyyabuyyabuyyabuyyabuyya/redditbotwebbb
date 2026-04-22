@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useUser } from '@clerk/nextjs';
 import AutoPosterManager from './AutoPosterManager';
 import WebsiteConfigManagerStepByStep from './WebsiteConfigManagerStepByStep';
@@ -61,7 +61,7 @@ export default function DiscussionPosterClient() {
     [selectedConfigId, websiteConfigs]
   );
 
-  const loadWebsiteConfigs = async () => {
+  const loadWebsiteConfigs = useCallback(async () => {
     const response = await fetch('/api/website-config');
     const data = await response.json();
     if (response.ok) {
@@ -70,17 +70,17 @@ export default function DiscussionPosterClient() {
         setSelectedConfigId(data.configs[0].id);
       }
     }
-  };
+  }, [selectedConfigId]);
 
-  const loadAccountStatus = async () => {
+  const loadAccountStatus = useCallback(async () => {
     const response = await fetch(
       '/api/reddit/accounts/available?action=status'
     );
     const data = await response.json();
     if (response.ok) setAccountStatus(data);
-  };
+  }, []);
 
-  const loadPostingHistory = async (configId?: string) => {
+  const loadPostingHistory = useCallback(async (configId?: string) => {
     const url = new URL('/api/posted-discussions', window.location.origin);
     url.searchParams.set('action', 'list');
     url.searchParams.set('limit', '50');
@@ -89,18 +89,18 @@ export default function DiscussionPosterClient() {
     const response = await fetch(url.toString());
     const data = await response.json();
     if (response.ok) setPostingHistory(data.posts || []);
-  };
+  }, []);
 
   useEffect(() => {
     if (!isLoaded || !user) return;
     void Promise.all([loadWebsiteConfigs(), loadAccountStatus()]);
-  }, [isLoaded, user]);
+  }, [isLoaded, user, loadWebsiteConfigs, loadAccountStatus]);
 
   useEffect(() => {
     if (activeTab === 'history') {
       void loadPostingHistory(selectedConfigId || undefined);
     }
-  }, [activeTab, selectedConfigId]);
+  }, [activeTab, selectedConfigId, loadPostingHistory]);
 
   useEffect(() => {
     const refreshHistory = () => {
@@ -112,7 +112,7 @@ export default function DiscussionPosterClient() {
     window.addEventListener('posted-discussions:updated', refreshHistory);
     return () =>
       window.removeEventListener('posted-discussions:updated', refreshHistory);
-  }, [activeTab, selectedConfigId]);
+  }, [activeTab, selectedConfigId, loadPostingHistory]);
 
   const handleSearch = async () => {
     if (!user?.id || !selectedConfigId) {
@@ -322,7 +322,13 @@ export default function DiscussionPosterClient() {
                   {isSearching ? 'Searching…' : 'Find Relevant Discussions'}
                 </button>
 
-                {discussions.length > 0 ? (
+                {websiteConfigs.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-gray-600 p-6 text-sm text-gray-400">
+                    You need at least one website configuration before searching
+                    for discussions. Open the Website Configs tab and create one
+                    first.
+                  </div>
+                ) : discussions.length > 0 ? (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-medium text-white">

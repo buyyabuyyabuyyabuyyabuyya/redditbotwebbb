@@ -9,13 +9,13 @@ interface CommentCounterProps {
 
 export default function CommentCounter({ initialCount }: CommentCounterProps) {
   const [count, setCount] = useState(initialCount);
-  const { messageCount } = useUserPlan();
+  const { commentActionCount } = useUserPlan();
 
   useEffect(() => {
-    if (messageCount !== undefined && messageCount !== null) {
-      setCount(messageCount);
+    if (commentActionCount !== undefined && commentActionCount !== null) {
+      setCount(commentActionCount);
     }
-  }, [messageCount]);
+  }, [commentActionCount]);
 
   return (
     <span className="relative">

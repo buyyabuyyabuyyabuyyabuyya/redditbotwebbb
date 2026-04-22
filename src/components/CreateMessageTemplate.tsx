@@ -3,17 +3,17 @@ import { createClientSupabaseClient } from '../utils/supabase';
 import { RippleButton } from './ui/Button';
 import { InfoCircleIcon } from './ui/Icons';
 
-interface MessageTemplate {
+interface CommentTemplate {
   id: string;
   name: string;
   content: string;
   ai_prompt?: string;
 }
 
-interface CreateMessageTemplateProps {
+interface CreateCommentTemplateProps {
   userId: string;
   onSuccess: () => void;
-  existingTemplate?: MessageTemplate;
+  existingTemplate?: CommentTemplate;
 }
 
 const supabase = createClientSupabaseClient();
@@ -22,7 +22,7 @@ export default function CreateMessageTemplate({
   userId,
   onSuccess,
   existingTemplate,
-}: CreateMessageTemplateProps) {
+}: CreateCommentTemplateProps) {
   const [name, setName] = useState(existingTemplate?.name || '');
   const [content, setContent] = useState(existingTemplate?.content || '');
   const [aiPrompt, setAiPrompt] = useState(existingTemplate?.ai_prompt || '');
@@ -208,10 +208,11 @@ export default function CreateMessageTemplate({
                     because Reddit would find this spam
                   </li>
                   <li>
-                    • <strong>Don't put NSFW stuff</strong> in your comments
+                    • <strong>Don&apos;t put NSFW stuff</strong> in your
+                    comments
                   </li>
                   <li>
-                    • <strong>Don't do repetitive content</strong> - add in{' '}
+                    • <strong>Don&apos;t do repetitive content</strong> - add in{' '}
                     {'{username}'}, {'{subreddit}'}, {'{post_title}'} to make
                     each one unique
                   </li>

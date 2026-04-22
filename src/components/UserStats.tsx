@@ -26,7 +26,7 @@ export default function UserStats({
     activeAutoPosters: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
-  const { messageCount, remaining, isProUser } = useUserPlan();
+  const { commentActionCount, remaining, isProUser } = useUserPlan();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -74,7 +74,7 @@ export default function UserStats({
     void fetchStats();
   }, [userId, refreshTrigger]);
 
-  const displayCount = messageCount ?? stats.totalCommentsPosted;
+  const displayCount = commentActionCount ?? stats.totalCommentsPosted;
 
   if (isLoading) {
     return (
