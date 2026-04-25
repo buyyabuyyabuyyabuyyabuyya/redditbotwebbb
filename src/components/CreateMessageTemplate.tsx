@@ -114,7 +114,7 @@ export default function CreateMessageTemplate({
         <div className="bg-gray-800 shadow sm:rounded-lg border border-gray-700">
           <div className="px-4 py-5 sm:p-6">
             <h3 className="text-lg font-medium leading-6 text-white mb-4">
-              Template Ideas
+              Playbook Ideas
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {templateSuggestions.map((template, index) => (
@@ -133,7 +133,7 @@ export default function CreateMessageTemplate({
                     onClick={() => handlePickTemplate(template)}
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded-md transition-colors"
                   >
-                    Use This Template
+                    Use This Playbook
                   </button>
                 </div>
               ))}
@@ -147,8 +147,8 @@ export default function CreateMessageTemplate({
         <div className="px-4 py-5 sm:p-6">
           <div className="mt-2 max-w-xl text-sm text-gray-300">
             <p>
-              Create a reusable comment template for Reddit replies and
-              auto-poster drafts.
+              Create reusable instructions that shape how AI writes replies for
+              this workspace.
             </p>
           </div>
           <form onSubmit={handleSubmit} className="mt-5 space-y-4">
@@ -157,7 +157,7 @@ export default function CreateMessageTemplate({
                 htmlFor="name"
                 className="block text-sm font-medium text-gray-200"
               >
-                Template Name
+                Playbook Name
               </label>
               <div className="mt-1">
                 <input
@@ -178,7 +178,7 @@ export default function CreateMessageTemplate({
                 htmlFor="content"
                 className="block text-sm font-medium text-gray-200"
               >
-                Comment Content
+                AI Writing Instructions
               </label>
               <div className="mt-1">
                 <textarea
@@ -188,7 +188,7 @@ export default function CreateMessageTemplate({
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   className="block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm placeholder-gray-400"
-                  placeholder="Enter your comment template here. You can use variables like {username} and {subreddit}."
+                  placeholder="Describe how the AI should write. Include tone, promotion rules, banned phrases, and what makes a reply useful."
                   required
                 />
               </div>
@@ -200,7 +200,7 @@ export default function CreateMessageTemplate({
               {/* Spam Prevention Tips */}
               <div className="mt-3 p-3 bg-amber-900/20 border border-amber-800/40 rounded-md">
                 <p className="text-sm font-medium text-amber-300 mb-2">
-                  💡 Tips to avoid Reddit spam detection:
+                  💡 Reply playbook tips:
                 </p>
                 <ul className="text-xs text-amber-200 space-y-1">
                   <li>
@@ -289,7 +289,7 @@ export default function CreateMessageTemplate({
                     : 'Creating...'
                   : isEditing
                     ? 'Save Changes'
-                    : 'Create Template'}
+                    : 'Create Playbook'}
               </RippleButton>
             </div>
           </form>

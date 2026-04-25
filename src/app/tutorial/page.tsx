@@ -3,6 +3,54 @@ import { redirect } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
 import Link from 'next/link';
 
+const sections = [
+  {
+    title: '1. Add a Reddit account',
+    body: 'Connect one or more Reddit accounts that will be used for posting comments. Use established accounts and keep your behavior helpful and non-spammy.',
+    bullets: [
+      'Use accounts with healthy history and verified email',
+      'Avoid repetitive posting behavior',
+      'Review account availability before starting campaigns',
+    ],
+  },
+  {
+    title: '2. Create a reply playbook',
+    body: 'Reply playbooks tell the AI how to write. Use them to define tone, promotion level, banned phrases, and what counts as a helpful answer.',
+    bullets: [
+      'Keep replies helpful first, promotional second',
+      'Avoid dropping links in every reply',
+      'Use playbooks to steer style rather than writing one canned comment',
+    ],
+  },
+  {
+    title: '3. Build a website config',
+    body: 'Each website config stores your site description, customer segments, target keywords, negative keywords, business context, and target subreddit list.',
+    bullets: [
+      'Add only subreddits you actually want to target',
+      'Use negative keywords to exclude junk traffic',
+      'Keep the site description specific so AI scoring stays sharp',
+    ],
+  },
+  {
+    title: '4. Start the auto-poster',
+    body: 'The auto-poster rotates through the subreddits in your website config, finds relevant discussions, generates a reply using your playbook guidance, and posts one comment per cycle.',
+    bullets: [
+      'Check assigned account availability before launch',
+      'Review posts today / total posts in the dashboard',
+      'Stop campaigns from the active auto-poster panel anytime',
+    ],
+  },
+  {
+    title: '5. Review posted comments',
+    body: 'Use Posted Comments to audit what was published and confirm the AI is staying on-brand and on-topic.',
+    bullets: [
+      'Review for relevance, tone, and repetition',
+      'Watch for communities where replies underperform',
+      'Refine your subreddit list and playbooks over time',
+    ],
+  },
+];
+
 export default async function TutorialPage() {
   const { userId } = await auth();
 
@@ -11,424 +59,71 @@ export default async function TutorialPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <div className="py-10">
-        <header>
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-bold leading-tight tracking-tight text-white bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-red-500">
-              Comment Outreach Tutorial
-            </h1>
-            <p className="mt-2 text-lg text-gray-300">
-              Follow these steps to set up and use your Reddit comment outreach
-              workspace
-            </p>
+    <div className="min-h-screen bg-gray-950 text-white">
+      <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="rounded-3xl border border-gray-800 bg-black p-8 shadow-sm">
+          <p className="text-sm font-medium uppercase tracking-[0.2em] text-gray-500">
+            Getting Started
+          </p>
+          <h1 className="mt-3 text-3xl font-semibold sm:text-4xl">
+            How to run a clean comment campaign
+          </h1>
+          <p className="mt-4 max-w-3xl text-base text-gray-400">
+            This is the new version of the old tutorial. It focuses only on the
+            flows that matter now: accounts, reply playbooks, website configs,
+            subreddits, auto-posting, and posted comments.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link
+              href="/dashboard"
+              className="rounded-xl bg-white px-4 py-2 text-sm font-medium text-black"
+            >
+              Open Dashboard
+            </Link>
+            <Link
+              href="/discussion-poster"
+              className="rounded-xl border border-gray-700 px-4 py-2 text-sm font-medium text-white"
+            >
+              Open Discussion Poster
+            </Link>
           </div>
-        </header>
+        </div>
 
-        <main>
-          <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-            <div className="px-4 py-8 sm:px-0">
-              <div className="rounded-lg bg-gray-800/70 p-6 shadow-lg border border-gray-700/50 backdrop-blur-sm overflow-hidden">
-                {/* Disclaimer Alert */}
-                <div className="mb-8 rounded-md bg-red-900/50 p-4 border border-red-700">
-                  <div className="flex">
-                    <div className="flex-shrink-0">
-                      <svg
-                        className="h-5 w-5 text-red-400"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                    <div className="ml-3">
-                      <h3 className="text-sm font-medium text-red-300">
-                        Important Disclaimer
-                      </h3>
-                      <div className="mt-2 text-sm text-red-200">
-                        <p>
-                          <strong>
-                            Always use a secondary Reddit account or bot account
-                          </strong>{' '}
-                          for automated comment posting. There is a risk that
-                          accounts using bots may be flagged or banned by
-                          Reddit. We are not liable if your Reddit account is
-                          banned or restricted. Follow Reddit's terms of service
-                          and avoid leaving spammy or low-value comments.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+        <div className="mt-8 grid gap-4">
+          {sections.map((section) => (
+            <section
+              key={section.title}
+              className="rounded-2xl border border-gray-800 bg-black p-6"
+            >
+              <h2 className="text-xl font-semibold text-white">
+                {section.title}
+              </h2>
+              <p className="mt-3 text-sm leading-6 text-gray-400">
+                {section.body}
+              </p>
+              <ul className="mt-4 space-y-2 text-sm text-gray-300">
+                {section.bullets.map((bullet) => (
+                  <li key={bullet} className="flex gap-2">
+                    <span className="text-gray-500">•</span>
+                    <span>{bullet}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
 
-                {/* Steps Section */}
-                <div className="space-y-12">
-                  {/* Step 1 */}
-                  <div>
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 bg-purple-600 rounded-full p-2 mr-3">
-                        <span className="text-white font-bold">1</span>
-                      </div>
-                      <h2 className="text-xl font-bold text-purple-300">
-                        Add Your Reddit Account
-                      </h2>
-                    </div>
-
-                    <div className="mt-4 ml-12 space-y-4">
-                      <p className="text-gray-300">
-                        Navigate to the{' '}
-                        <Link
-                          href="/dashboard"
-                          className="text-purple-400 hover:text-purple-300 underline"
-                        >
-                          Dashboard
-                        </Link>{' '}
-                        and click on the "Manage Accounts" button under the
-                        Reddit Accounts section.
-                      </p>
-
-                      <div className="bg-gray-700/50 rounded-md p-4 border border-purple-500/20">
-                        <h3 className="font-medium text-white">
-                          Required Information:
-                        </h3>
-                        <ul className="list-disc list-inside mt-2 space-y-2 text-gray-300">
-                          <li>
-                            <strong>Reddit Username</strong> - Your bot account
-                            username
-                          </li>
-                          <li>
-                            <strong>Reddit Password</strong> - Your bot account
-                            password
-                          </li>
-                          <li>
-                            <strong>Client ID</strong> - Get this from{' '}
-                            <a
-                              href="https://www.reddit.com/prefs/apps"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-400 hover:text-blue-300"
-                            >
-                              Reddit's app preferences page
-                            </a>
-                          </li>
-                          <li>
-                            <strong>Client Secret</strong> - Also found on the
-                            app preferences page
-                          </li>
-                        </ul>
-                        <div className="mt-3 text-gray-300">
-                          <p>
-                            <strong>How to get Client ID and Secret:</strong>
-                          </p>
-                          <ol className="list-decimal list-inside mt-1 space-y-1 ml-2">
-                            <li>
-                              Go to{' '}
-                              <a
-                                href="https://www.reddit.com/prefs/apps"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-400 hover:text-blue-300"
-                              >
-                                https://www.reddit.com/prefs/apps
-                              </a>
-                            </li>
-                            <li>
-                              Click "Create App" or "Create Another App" button
-                            </li>
-                            <li>
-                              Fill in the name as "Reddit Outreach Bot" (or any
-                              name)
-                            </li>
-                            <li>Select "script" as the application type</li>
-                            <li>
-                              Use "http://localhost:3000/auth/callback" for the
-                              redirect URI
-                            </li>
-                            <li>Click "Create app" button</li>
-                            <li>
-                              Copy the Client ID (under your app name) and
-                              Client Secret
-                            </li>
-                          </ol>
-                        </div>
-                      </div>
-
-                      {/* Account Safety Tips */}
-                      <div className="bg-amber-900/20 border border-amber-500/30 rounded-lg p-4">
-                        <h4 className="text-amber-400 font-semibold mb-3 flex items-center gap-2">
-                          <svg
-                            className="w-5 h-5"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                          Account Safety Tips
-                        </h4>
-                        <ul className="text-sm text-gray-300 space-y-2">
-                          <li className="flex items-start gap-2">
-                            <span className="text-amber-400 mt-1">•</span>
-                            <span>
-                              <strong>Use established accounts:</strong> couple
-                              months old, positive karma, verified email
-                            </span>
-                          </li>
-                          <li className="flex items-start gap-2">
-                            <span className="text-amber-400 mt-1">•</span>
-                            <span>
-                              <strong>Content compliance:</strong> No spam or
-                              NSFW, avoid unsolicited ads
-                            </span>
-                          </li>
-                          <li className="flex items-start gap-2">
-                            <span className="text-amber-400 mt-1">•</span>
-                            <span>
-                              <strong>Account quality:</strong> Only use
-                              accounts with no recent enforcement actions. New
-                              accounts are especially prone to being flagged and
-                              banned if automated
-                            </span>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Step 2 */}
-                  <div>
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 bg-purple-600 rounded-full p-2 mr-3">
-                        <span className="text-white font-bold">2</span>
-                      </div>
-                      <h2 className="text-xl font-bold text-purple-300">
-                        Create Comment Templates
-                      </h2>
-                    </div>
-
-                    <div className="mt-4 ml-12 space-y-4">
-                      <p className="text-gray-300">
-                        Go to the{' '}
-                        <Link
-                          href="/dashboard"
-                          className="text-purple-400 hover:text-purple-300 underline"
-                        >
-                          Dashboard
-                        </Link>{' '}
-                        and create a comment template by clicking on the "Create
-                        Template" button.
-                      </p>
-
-                      <div className="bg-gray-700/50 rounded-md p-4 border border-purple-500/20">
-                        <h3 className="font-medium text-white">
-                          Template Components:
-                        </h3>
-                        <ul className="list-disc list-inside mt-2 space-y-2 text-gray-300">
-                          <li>
-                            <strong>Template Name</strong> - A descriptive name
-                            for your comment template
-                          </li>
-                          <li>
-                            <strong>Comment Content</strong> - The reply draft
-                            that will be used in your comment workflow
-                            <div className="mt-2 mb-3">
-                              <p className="text-sm text-gray-400">
-                                Available variables:
-                              </p>
-                              <code className="block bg-black/30 p-2 rounded mt-1 text-green-400">
-                                {'{username}'} - The recipient's Reddit username
-                                <br />
-                                {'{subreddit}'} - The subreddit where the post
-                                was found
-                                <br />
-                                {'{post_title}'} - The title of the post
-                              </code>
-                              <p className="mt-2 text-sm text-gray-400">
-                                Example:
-                              </p>
-                              <code className="block bg-black/30 p-2 rounded mt-1 text-gray-300">
-                                Hey {'{username}'},<br />
-                                <br />I noticed your post "{'{post_title}'} in
-                                r/{'{subreddit}'} and wanted to leave a helpful
-                                reply. I offer services that might help with
-                                what you're working on.
-                                <br />
-                                <br />
-                                Would this kind of workflow help in your case?
-                                <br />
-                                <br />
-                                Best regards,
-                                <br />
-                                YourName
-                              </code>
-                            </div>
-                          </li>
-                          <li>
-                            <strong>AI Prompt for Post Relevance Check</strong>{' '}
-                            - The prompt given to the AI to analyze Reddit posts
-                            for relevance
-                            <div className="mt-2">
-                              <p className="text-sm text-gray-400">Example:</p>
-                              <code className="block bg-black/30 p-2 rounded mt-1 text-gray-300">
-                                Analyze this Reddit post and determine if it's
-                                related to app development or website
-                                development. The user seems to be looking for a
-                                developer. Only return true if they are
-                                specifically looking for development services.
-                              </code>
-                            </div>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Step 3 */}
-                  <div>
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 bg-purple-600 rounded-full p-2 mr-3">
-                        <span className="text-white font-bold">3</span>
-                      </div>
-                      <h2 className="text-xl font-bold text-purple-300">
-                        Configure Your Comment Workspace
-                      </h2>
-                    </div>
-
-                    <div className="mt-4 ml-12 space-y-4">
-                      <p className="text-gray-300">
-                        Go to the{' '}
-                        <Link
-                          href="/dashboard"
-                          className="text-purple-400 hover:text-purple-300 underline"
-                        >
-                          Dashboard
-                        </Link>{' '}
-                        and set up your website config and comment targeting
-                        rules.
-                      </p>
-
-                      <div className="bg-gray-700/50 rounded-md p-4 border border-purple-500/20">
-                        <h3 className="font-medium text-white">
-                          Comment Workspace Configuration:
-                        </h3>
-                        <ul className="list-disc list-inside mt-2 space-y-2 text-gray-300">
-                          <li>
-                            <strong>Website Configuration</strong> - The
-                            website/business configuration you want to use for
-                            relevance scoring
-                            <p className="text-sm text-gray-400 ml-5 mt-1">
-                              Each config stores your site URL, audience, target
-                              keywords, and negative filters
-                            </p>
-                          </li>
-                          <li>
-                            <strong>Search/relevance inputs</strong> - The
-                            business terms, customer segments, and keyword
-                            signals used to rank discussions
-                            <p className="text-sm text-gray-400 ml-5 mt-1">
-                              Examples: website, app, developer, looking for,
-                              hiring
-                            </p>
-                            <p className="text-sm text-gray-400 ml-5">
-                              Add multiple keywords at once by separating them
-                              with commas
-                            </p>
-                          </li>
-                          <li>
-                            <strong>Reddit Account</strong> - Select the account
-                            you added in Step 1
-                          </li>
-                          <li>
-                            <strong>Comment Template</strong> - Select the
-                            template you created in Step 2
-                          </li>
-                          <li>
-                            <strong>Auto-poster interval</strong> - How often
-                            the bot should check for new posts (in minutes)
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Step 4 */}
-                  <div>
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 bg-purple-600 rounded-full p-2 mr-3">
-                        <span className="text-white font-bold">4</span>
-                      </div>
-                      <h2 className="text-xl font-bold text-purple-300">
-                        Start Your Auto-Poster
-                      </h2>
-                    </div>
-
-                    <div className="mt-4 ml-12 space-y-4">
-                      <p className="text-gray-300">
-                        After configuring your website profile, start the
-                        auto-poster to begin scanning and posting comments.
-                      </p>
-
-                      <div className="bg-gray-700/50 rounded-md p-4 border border-purple-500/20">
-                        <h3 className="font-medium text-white">
-                          Monitoring Your Bot:
-                        </h3>
-                        <ul className="list-disc list-inside mt-2 space-y-2 text-gray-300">
-                          <li>
-                            View logs by clicking "View Logs" next to your
-                            active configuration
-                          </li>
-                          <li>
-                            Check the dashboard for posted-comment counts and
-                            auto-poster status
-                          </li>
-                          <li>
-                            Check the posted comments history to review what was
-                            published
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Final Tips */}
-                <div className="mt-12 p-4 bg-blue-900/30 rounded-md border border-blue-700/50">
-                  <h3 className="text-lg font-medium text-blue-300">
-                    💡 Pro Tips
-                  </h3>
-                  <ul className="mt-2 space-y-2 text-gray-300 list-disc list-inside">
-                    <li>
-                      Start with longer scan intervals (30+ minutes) to avoid
-                      Reddit's rate limits
-                    </li>
-                    <li>
-                      Create specific, targeted keywords to avoid surfacing
-                      irrelevant posts
-                    </li>
-                    <li>
-                      Always use the AI relevance check to prevent spam and
-                      improve targeting
-                    </li>
-                    <li>
-                      Personalize your comments with the available variables
-                    </li>
-                    <li>
-                      Regularly check your bot logs to ensure everything is
-                      running smoothly
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </main>
+        <div className="mt-8 rounded-2xl border border-amber-800/40 bg-amber-950/30 p-6">
+          <h2 className="text-lg font-semibold text-amber-300">
+            Best-practice reminder
+          </h2>
+          <p className="mt-3 text-sm leading-6 text-amber-100/80">
+            Use this product for helpful public discussion replies, not spam.
+            The safest campaigns use narrow subreddit lists, strong negative
+            keywords, low posting frequency, and reply playbooks that bias the
+            AI toward usefulness instead of hard selling.
+          </p>
+        </div>
       </div>
     </div>
   );

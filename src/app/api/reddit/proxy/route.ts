@@ -8,6 +8,10 @@ import { filterRelevantDiscussions } from '../../../../lib/relevanceFiltering';
 import { redditReplyService } from '../../../../lib/redditReplyService';
 import { RedditPaginationManagerServer } from '../../../../lib/redditPaginationServer';
 import { formatToPacificTime } from '../../../../lib/timeUtils';
+import {
+  decodeWebsiteConfigCollections,
+  getWebsiteConfigSubreddits,
+} from '@/lib/websiteConfigCollections';
 
 const userAgents = [
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
@@ -62,12 +66,17 @@ export async function POST(req: Request): Promise<NextResponse> {
     }
 
     // Ensure websiteConfig has required properties with fallbacks
+    const decodedCollections = decodeWebsiteConfigCollections(
+      websiteConfig?.business_context_terms || []
+    );
     const safeWebsiteConfig = {
       website_url: websiteConfig?.website_url || '',
       website_description: websiteConfig?.website_description || '',
       target_keywords: websiteConfig?.target_keywords || [],
       negative_keywords: websiteConfig?.negative_keywords || [],
       customer_segments: websiteConfig?.customer_segments || [],
+      business_context_terms: decodedCollections.businessContextTerms,
+      target_subreddits: getWebsiteConfigSubreddits(websiteConfig),
       relevance_threshold: websiteConfig?.relevance_threshold || 0.7,
       ...websiteConfig,
     };
@@ -364,28 +373,20 @@ async function processDiscussions(
         .eq('id', configId)
         .single();
 
-      const BUSINESS_SUBREDDITS = [
-        'entrepreneur',
-        'startups',
-        'SaaS',
-        'business',
-        'smallbusiness',
-        'productivity',
-        'marketing',
-      ];
+      const subredditRotation = getWebsiteConfigSubreddits(websiteConfig);
       const currentIndex = currentConfig?.current_subreddit_index || 0;
-      const nextIndex = (currentIndex + 1) % BUSINESS_SUBREDDITS.length;
+      const nextIndex = (currentIndex + 1) % subredditRotation.length;
 
       await supabaseAdmin
         .from('auto_poster_configs')
         .update({
           current_subreddit_index: nextIndex,
-          last_subreddit_used: BUSINESS_SUBREDDITS[nextIndex],
+          last_subreddit_used: subredditRotation[nextIndex],
         })
         .eq('id', configId);
 
       console.log(
-        `[REDDIT_PROXY] No relevant discussions - rotated to next subreddit: ${BUSINESS_SUBREDDITS[nextIndex]}`
+        `[REDDIT_PROXY] No relevant discussions - rotated to next subreddit: ${subredditRotation[nextIndex]}`
       );
     }
 
@@ -530,17 +531,9 @@ async function processDiscussions(
             .eq('id', configId)
             .single();
 
-          const BUSINESS_SUBREDDITS = [
-            'entrepreneur',
-            'startups',
-            'SaaS',
-            'business',
-            'smallbusiness',
-            'productivity',
-            'marketing',
-          ];
+          const subredditRotation = getWebsiteConfigSubreddits(websiteConfig);
           const currentIndex = currentConfig?.current_subreddit_index || 0;
-          const nextIndex = (currentIndex + 1) % BUSINESS_SUBREDDITS.length;
+          const nextIndex = (currentIndex + 1) % subredditRotation.length;
 
           await supabaseAdmin
             .from('auto_poster_configs')
@@ -548,7 +541,7 @@ async function processDiscussions(
               posts_today: (currentConfig?.posts_today || 0) + 1,
               last_posted_at: new Date().toISOString(),
               current_subreddit_index: nextIndex,
-              last_subreddit_used: BUSINESS_SUBREDDITS[nextIndex],
+              last_subreddit_used: subredditRotation[nextIndex],
             })
             .eq('id', configId);
         }

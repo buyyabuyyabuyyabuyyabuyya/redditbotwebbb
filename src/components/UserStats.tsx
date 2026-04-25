@@ -106,12 +106,12 @@ export default function UserStats({
       color: 'text-orange-400',
     },
     {
-      title: 'Comment Templates',
+      title: 'Reply Playbooks',
       value: stats.totalTemplates,
       desc:
         stats.totalTemplates === 0
-          ? 'Create a template to start'
-          : 'Templates ready',
+          ? 'Create a playbook to start'
+          : 'Playbooks ready',
       color: 'text-emerald-400',
     },
     {

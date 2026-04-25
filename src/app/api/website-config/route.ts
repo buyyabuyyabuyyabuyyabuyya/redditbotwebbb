@@ -1,21 +1,39 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
 import { createClient } from '@supabase/supabase-js';
+import {
+  decodeWebsiteConfigCollections,
+  mergeWebsiteConfigCollections,
+} from '@/lib/websiteConfigCollections';
+
+const createAdmin = () =>
+  createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+  );
+
+const normalizeConfigForResponse = (config: any) => {
+  const decoded = decodeWebsiteConfigCollections(
+    config.business_context_terms || []
+  );
+  return {
+    ...config,
+    business_context_terms: decoded.businessContextTerms,
+    target_subreddits: decoded.targetSubreddits,
+  };
+};
 
 export async function GET(req: Request) {
   try {
     const { userId } = auth();
-    if (!userId)
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const { searchParams } = new URL(req.url);
     const productId = searchParams.get('productId');
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-    );
-
+    const supabaseAdmin = createAdmin();
     let query = supabaseAdmin
       .from('website_configs')
       .select('*')
@@ -25,12 +43,16 @@ export async function GET(req: Request) {
     const { data: configs, error } = await query.order('created_at', {
       ascending: false,
     });
-    if (error)
+    if (error) {
       return NextResponse.json(
         { error: 'Failed to fetch website configs' },
         { status: 500 }
       );
-    return NextResponse.json({ configs: configs || [] });
+    }
+
+    return NextResponse.json({
+      configs: (configs || []).map(normalizeConfigForResponse),
+    });
   } catch (error) {
     console.error('Website config API error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
@@ -40,8 +62,9 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const { userId } = auth();
-    if (!userId)
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const body = await req.json();
     const {
@@ -50,6 +73,7 @@ export async function POST(req: Request) {
       websiteDescription,
       customerSegments = [],
       targetKeywords = [],
+      targetSubreddits = [],
       negativeKeywords = [],
       businessContextTerms = [],
       relevanceThreshold = 70,
@@ -63,10 +87,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-    );
+    const supabaseAdmin = createAdmin();
 
     if (productId) {
       const { data: existingConfig } = await supabaseAdmin
@@ -85,7 +106,10 @@ export async function POST(req: Request) {
             customer_segments: customerSegments,
             target_keywords: targetKeywords,
             negative_keywords: negativeKeywords,
-            business_context_terms: businessContextTerms,
+            business_context_terms: mergeWebsiteConfigCollections(
+              businessContextTerms,
+              targetSubreddits
+            ),
             relevance_threshold: relevanceThreshold,
             auto_poster_enabled: autoPostersEnabled,
             updated_at: new Date().toISOString(),
@@ -94,12 +118,16 @@ export async function POST(req: Request) {
           .select()
           .single();
 
-        if (error)
+        if (error) {
           return NextResponse.json(
             { error: 'Failed to update website config' },
             { status: 500 }
           );
-        return NextResponse.json({ config: updatedConfig });
+        }
+
+        return NextResponse.json({
+          config: normalizeConfigForResponse(updatedConfig),
+        });
       }
     }
 
@@ -113,19 +141,24 @@ export async function POST(req: Request) {
         customer_segments: customerSegments,
         target_keywords: targetKeywords,
         negative_keywords: negativeKeywords,
-        business_context_terms: businessContextTerms,
+        business_context_terms: mergeWebsiteConfigCollections(
+          businessContextTerms,
+          targetSubreddits
+        ),
         relevance_threshold: relevanceThreshold,
         auto_poster_enabled: autoPostersEnabled,
       })
       .select()
       .single();
 
-    if (error)
+    if (error) {
       return NextResponse.json(
         { error: 'Failed to create website config' },
         { status: 500 }
       );
-    return NextResponse.json({ config: newConfig });
+    }
+
+    return NextResponse.json({ config: normalizeConfigForResponse(newConfig) });
   } catch (error) {
     console.error('Website config API error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
@@ -135,8 +168,9 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   try {
     const { userId } = auth();
-    if (!userId)
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const body = await req.json();
     const {
@@ -145,6 +179,7 @@ export async function PUT(req: Request) {
       websiteDescription,
       customerSegments = [],
       targetKeywords = [],
+      targetSubreddits = [],
       negativeKeywords = [],
       businessContextTerms = [],
       relevanceThreshold = 70,
@@ -158,11 +193,7 @@ export async function PUT(req: Request) {
       );
     }
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-    );
-
+    const supabaseAdmin = createAdmin();
     const { data: updatedConfig, error } = await supabaseAdmin
       .from('website_configs')
       .update({
@@ -171,7 +202,10 @@ export async function PUT(req: Request) {
         customer_segments: customerSegments,
         target_keywords: targetKeywords,
         negative_keywords: negativeKeywords,
-        business_context_terms: businessContextTerms,
+        business_context_terms: mergeWebsiteConfigCollections(
+          businessContextTerms,
+          targetSubreddits
+        ),
         relevance_threshold: relevanceThreshold,
         auto_poster_enabled: autoPostersEnabled,
         updated_at: new Date().toISOString(),
@@ -181,12 +215,16 @@ export async function PUT(req: Request) {
       .select()
       .single();
 
-    if (error)
+    if (error) {
       return NextResponse.json(
         { error: 'Failed to update website config' },
         { status: 500 }
       );
-    return NextResponse.json({ config: updatedConfig });
+    }
+
+    return NextResponse.json({
+      config: normalizeConfigForResponse(updatedConfig),
+    });
   } catch (error) {
     console.error('Website config API error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
@@ -196,21 +234,20 @@ export async function PUT(req: Request) {
 export async function DELETE(req: Request) {
   try {
     const { userId } = auth();
-    if (!userId)
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const { searchParams } = new URL(req.url);
     const configId = searchParams.get('configId');
-    if (!configId)
+    if (!configId) {
       return NextResponse.json(
         { error: 'Config ID is required' },
         { status: 400 }
       );
+    }
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-    );
+    const supabaseAdmin = createAdmin();
 
     const { data: ownedConfig } = await supabaseAdmin
       .from('website_configs')
@@ -265,12 +302,13 @@ export async function DELETE(req: Request) {
       .delete()
       .eq('id', configId)
       .eq('user_id', userId);
-
-    if (error)
+    if (error) {
       return NextResponse.json(
         { error: 'Failed to delete website config' },
         { status: 500 }
       );
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Website config API error:', error);

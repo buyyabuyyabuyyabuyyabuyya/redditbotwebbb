@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getRedditDiscussions } from '../../../../lib/redditService';
 import { filterRelevantDiscussions } from '../../../../lib/relevanceFiltering';
+import {
+  decodeWebsiteConfigCollections,
+  getWebsiteConfigSubreddits,
+} from '@/lib/websiteConfigCollections';
 
 // Endpoint to fetch relevant discussions for UI display
 export async function POST(req: Request) {
@@ -21,27 +25,41 @@ export async function POST(req: Request) {
     // Get user's auto-poster config
     const { data: config } = await supabaseAdmin
       .from('auto_poster_configs')
-      .select(`
+      .select(
+        `
         *,
         website_configs (
+          id,
           website_url,
           website_description,
           target_keywords,
           negative_keywords,
           customer_segments,
+          business_context_terms,
           relevance_threshold
         )
-      `)
+      `
+      )
       .eq('user_id', userId)
       .eq('id', configId || 0)
       .single();
 
     if (!config || !config.website_configs) {
-      return NextResponse.json({ error: 'Configuration not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Configuration not found' },
+        { status: 404 }
+      );
     }
 
-    const websiteConfig = config.website_configs;
-    const subreddits = config.target_subreddits || ['SaaS', 'entrepreneur', 'startups'];
+    const decoded = decodeWebsiteConfigCollections(
+      config.website_configs.business_context_terms || []
+    );
+    const websiteConfig = {
+      ...config.website_configs,
+      business_context_terms: decoded.businessContextTerms,
+      target_subreddits: decoded.targetSubreddits,
+    };
+    const subreddits = getWebsiteConfigSubreddits(websiteConfig);
 
     // Get already posted discussions to exclude
     const { data: postedDiscussions } = await supabaseAdmin
@@ -49,12 +67,13 @@ export async function POST(req: Request) {
       .select('reddit_post_id')
       .eq('website_config_id', configId); // Fixed filter (no user_id column)
 
-    const postedIds = postedDiscussions?.map(p => p.reddit_post_id) || [];
+    const postedIds = postedDiscussions?.map((p) => p.reddit_post_id) || [];
 
     // Fetch discussions from multiple subreddits
     const allRelevantDiscussions = [];
 
-    for (const subreddit of subreddits.slice(0, 3)) { // Limit to 3 subreddits for UI
+    for (const subreddit of subreddits.slice(0, 3)) {
+      // Limit to 3 subreddits for UI
       try {
         console.log(`[DISCUSSIONS_API] Fetching from r/${subreddit}`);
 
@@ -69,15 +88,20 @@ export async function POST(req: Request) {
           );
 
           // Add subreddit info and limit results
-          const subredditDiscussions = relevantDiscussions.slice(0, 5).map(item => ({
-            ...item,
-            subreddit: subreddit
-          }));
+          const subredditDiscussions = relevantDiscussions
+            .slice(0, 5)
+            .map((item) => ({
+              ...item,
+              subreddit: subreddit,
+            }));
 
           allRelevantDiscussions.push(...subredditDiscussions);
         }
       } catch (error) {
-        console.error(`[DISCUSSIONS_API] Error fetching from r/${subreddit}:`, error);
+        console.error(
+          `[DISCUSSIONS_API] Error fetching from r/${subreddit}:`,
+          error
+        );
       }
     }
 
@@ -87,10 +111,12 @@ export async function POST(req: Request) {
       .slice(0, 15); // Show top 15 most relevant
 
     // Format for UI display
-    const formattedDiscussions = sortedDiscussions.map(item => ({
+    const formattedDiscussions = sortedDiscussions.map((item) => ({
       id: item.discussion.id,
       title: item.discussion.title,
-      content: item.discussion.content?.substring(0, 300) + (item.discussion.content?.length > 300 ? '...' : ''),
+      content:
+        item.discussion.content?.substring(0, 300) +
+        (item.discussion.content?.length > 300 ? '...' : ''),
       url: item.discussion.url,
       subreddit: item.discussion.subreddit,
       score: item.discussion.score,
@@ -102,9 +128,9 @@ export async function POST(req: Request) {
         context_match_score: item.scores.contextMatchScore,
         quality_score: item.scores.qualityScore,
         engagement_score: item.scores.engagementScore,
-        filtering_reason: item.scores.filteringReason
+        filtering_reason: item.scores.filteringReason,
       },
-      is_posted: postedIds.includes(item.discussion.id)
+      is_posted: postedIds.includes(item.discussion.id),
     }));
 
     return NextResponse.json({
@@ -114,15 +140,17 @@ export async function POST(req: Request) {
       config: {
         relevance_threshold: websiteConfig.relevance_threshold,
         target_keywords: websiteConfig.target_keywords,
-        negative_keywords: websiteConfig.negative_keywords
-      }
+        negative_keywords: websiteConfig.negative_keywords,
+      },
     });
-
   } catch (error) {
     console.error('[DISCUSSIONS_API] Error:', error);
-    return NextResponse.json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
   }
 }

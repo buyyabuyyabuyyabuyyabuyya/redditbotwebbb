@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useUser } from '@clerk/nextjs';
 
 interface WebsiteConfig {
@@ -11,6 +11,7 @@ interface WebsiteConfig {
   website_description: string;
   customer_segments: string[];
   target_keywords: string[];
+  target_subreddits?: string[];
   negative_keywords: string[];
   business_context_terms: string[];
   relevance_threshold: number;
@@ -39,6 +40,7 @@ export default function WebsiteConfigManagerStepByStep({
     website_description: '',
     customer_segments: [],
     target_keywords: [],
+    target_subreddits: [],
     negative_keywords: [],
     business_context_terms: [],
     relevance_threshold: 70,
@@ -54,6 +56,7 @@ export default function WebsiteConfigManagerStepByStep({
   const [newTargetKeyword, setNewTargetKeyword] = useState('');
   const [newNegativeKeyword, setNewNegativeKeyword] = useState('');
   const [newBusinessTerm, setNewBusinessTerm] = useState('');
+  const [newSubreddit, setNewSubreddit] = useState('');
 
   const handleDeleteConfig = async (configId: string) => {
     if (
@@ -76,6 +79,7 @@ export default function WebsiteConfigManagerStepByStep({
           website_description: '',
           customer_segments: [],
           target_keywords: [],
+          target_subreddits: [],
           negative_keywords: [],
           business_context_terms: [],
           relevance_threshold: 70,
@@ -97,13 +101,7 @@ export default function WebsiteConfigManagerStepByStep({
     }
   };
 
-  useEffect(() => {
-    if (user) {
-      loadExistingConfigs();
-    }
-  }, [user, productId]);
-
-  const loadExistingConfigs = async () => {
+  const loadExistingConfigs = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -126,7 +124,13 @@ export default function WebsiteConfigManagerStepByStep({
     } finally {
       setLoading(false);
     }
-  };
+  }, [productId, initialConfig]);
+
+  useEffect(() => {
+    if (user) {
+      void loadExistingConfigs();
+    }
+  }, [user, loadExistingConfigs]);
 
   const analyzeWebsite = async () => {
     if (!config.website_url) {
@@ -199,6 +203,7 @@ export default function WebsiteConfigManagerStepByStep({
         websiteDescription: config.website_description,
         customerSegments: config.customer_segments || [],
         targetKeywords: config.target_keywords || [],
+        targetSubreddits: config.target_subreddits || [],
         negativeKeywords: config.negative_keywords || [],
         businessContextTerms: config.business_context_terms || [],
         relevanceThreshold: config.relevance_threshold || 70,
@@ -255,7 +260,9 @@ export default function WebsiteConfigManagerStepByStep({
         <h3 className="text-lg font-semibold text-white mb-2">
           Step 1: Enter Your Website
         </h3>
-        <p className="text-gray-400">Let's start by analyzing your website</p>
+        <p className="text-gray-400">
+          Let&apos;s start by analyzing your website
+        </p>
       </div>
 
       <div>
@@ -386,11 +393,77 @@ export default function WebsiteConfigManagerStepByStep({
       <div className="space-y-6">
         <div className="text-center">
           <h3 className="text-lg font-semibold text-white mb-2">
-            Step 3: Customer Segments & Keywords
+            Step 3: Audience, Keywords & Subreddits
           </h3>
           <p className="text-gray-400">
-            Define your target audience and keywords for AI scoring
+            Define your target communities and how AI should score relevance
           </p>
+        </div>
+
+        <div className="bg-gray-700 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <label className="block text-sm font-medium text-gray-300">
+              Target Subreddits
+            </label>
+            <div className="group relative">
+              <span className="text-gray-400 cursor-help">ℹ️</span>
+              <div className="invisible group-hover:visible absolute left-6 top-0 bg-gray-900 text-white text-xs rounded p-2 w-64 z-10">
+                Add the exact subreddits you want the auto-poster to scan. Use
+                subreddit names without the r/ prefix.
+              </div>
+            </div>
+          </div>
+          <p className="text-xs text-gray-400 mb-3">
+            Choose the communities this website config should monitor. Example:
+            SaaS, startups, entrepreneur.
+          </p>
+
+          <div className="flex gap-2 mb-3">
+            <input
+              type="text"
+              value={newSubreddit}
+              onChange={(e) => setNewSubreddit(e.target.value)}
+              onKeyPress={(e) =>
+                handleKeyPress(
+                  e,
+                  'target_subreddits',
+                  newSubreddit,
+                  setNewSubreddit
+                )
+              }
+              placeholder="Add subreddit... (use commas to separate multiple)"
+              className="flex-1 px-3 py-2 bg-gray-600 border border-gray-500 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
+            />
+            <button
+              onClick={() =>
+                handleAddItem(
+                  'target_subreddits',
+                  newSubreddit,
+                  setNewSubreddit
+                )
+              }
+              className="px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 text-sm"
+            >
+              Add
+            </button>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {(config.target_subreddits || []).map((subreddit, index) => (
+              <span
+                key={index}
+                className="inline-flex items-center px-3 py-1 bg-cyan-100 text-cyan-900 rounded-full text-sm"
+              >
+                r/{subreddit}
+                <button
+                  onClick={() => removeKeyword('target_subreddits', index)}
+                  className="ml-2 text-cyan-700 hover:text-cyan-900"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
         </div>
 
         {/* Customer Segments */}

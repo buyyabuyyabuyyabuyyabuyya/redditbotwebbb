@@ -228,23 +228,24 @@ export default function Dashboard() {
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-semibold text-white">
-                  Comment Templates
+                  Reply Playbooks
                 </h2>
                 <p className="text-sm text-gray-400">
-                  Reusable drafts for manual replies and campaign ideas.
+                  AI guidance rules for tone, helpfulness, and what the
+                  generator should avoid.
                 </p>
               </div>
               <button
                 onClick={() => setShowCreateTemplate(true)}
                 className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
               >
-                Create Template
+                Create Playbook
               </button>
             </div>
             <div className="space-y-3">
               {templates.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-gray-600 p-6 text-sm text-gray-400">
-                  No comment templates yet.
+                  No reply playbooks yet.
                 </div>
               ) : (
                 templates.map((template) => (
@@ -303,16 +304,16 @@ export default function Dashboard() {
               </div>
               <div className="rounded-xl border border-gray-700 bg-gray-900/60 p-4">
                 <div className="font-medium text-white">
-                  2. Review relevant discussions
+                  2. Create a reply playbook
                 </div>
                 <p className="mt-1 text-gray-400">
-                  Use the comment workspace to inspect AI-ranked Reddit posts
-                  before replying.
+                  Define tone, promotion limits, and writing rules so the AI
+                  generates replies the way you want.
                 </p>
               </div>
               <div className="rounded-xl border border-gray-700 bg-gray-900/60 p-4">
                 <div className="font-medium text-white">
-                  3. Run the auto-poster
+                  3. Start the auto-poster
                 </div>
                 <p className="mt-1 text-gray-400">
                   Launch server-driven auto-posters and monitor their status
@@ -376,7 +377,7 @@ export default function Dashboard() {
       <Modal
         open={showCreateTemplate}
         onClose={() => setShowCreateTemplate(false)}
-        title="Create Comment Template"
+        title="Create Reply Playbook"
       >
         <CreateMessageTemplate
           userId={user.id}
@@ -391,7 +392,7 @@ export default function Dashboard() {
       <Modal
         open={showEditTemplate}
         onClose={() => setShowEditTemplate(false)}
-        title="Edit Comment Template"
+        title="Edit Reply Playbook"
       >
         {templateToEdit && (
           <CreateMessageTemplate
