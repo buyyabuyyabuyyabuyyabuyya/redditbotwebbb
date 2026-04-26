@@ -63,7 +63,7 @@ export const metadata = {
 };
 
 export const viewport = {
-  themeColor: '#09090b',
+  themeColor: '#f5f5ef',
 };
 
 export default function RootLayout({
@@ -94,25 +94,20 @@ export default function RootLayout({
             type="image/png"
           />
           <link rel="apple-touch-icon" href="/icon-192x192.png" />
-          <meta name="theme-color" content="#09090b" />
+          <meta name="theme-color" content="#f5f5ef" />
         </head>
-        <body className={`${inter.className} bg-gray-950 text-white`}>
+        <body className={`${inter.className} bg-[#f5f5ef] text-zinc-950`}>
           <StructuredData />
-          {/* Register service worker for PWA */}
           <Script
             id="pwa-register"
             strategy="afterInteractive"
             dangerouslySetInnerHTML={{
-              __html: `if ('serviceWorker' in navigator) {
-                  window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('/sw.js');
-                  });
-                }`,
+              __html: `if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js'); }); }`,
             }}
           />
           <ErrorBoundary>
             <Navigation />
-            <main className="min-h-screen bg-gray-900">{children}</main>
+            <main className="min-h-screen bg-[#f5f5ef]">{children}</main>
             <Footer />
           </ErrorBoundary>
         </body>

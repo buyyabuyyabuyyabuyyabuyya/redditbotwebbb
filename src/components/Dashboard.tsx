@@ -16,7 +16,7 @@ interface RedditAccount {
   status?: string;
 }
 
-interface CommentTemplate {
+interface ReplyPlaybook {
   id: string;
   name: string;
   content: string;
@@ -35,21 +35,21 @@ function Modal({
 }) {
   return (
     <Dialog open={open} onClose={onClose} className="relative z-50">
-      <div className="fixed inset-0 bg-black/40" aria-hidden="true" />
+      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="mx-auto w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-xl border border-gray-700 bg-gray-800 shadow-2xl">
-          <div className="flex items-center justify-between border-b border-gray-700 px-4 py-3">
-            <Dialog.Title className="text-lg font-semibold text-white">
+        <Dialog.Panel className="mx-auto max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-3xl border border-black/10 bg-white shadow-2xl">
+          <div className="flex items-center justify-between border-b border-black/8 px-5 py-4">
+            <Dialog.Title className="text-lg font-semibold text-zinc-950">
               {title}
             </Dialog.Title>
             <button
               onClick={onClose}
-              className="rounded p-1 text-gray-400 hover:bg-gray-700 hover:text-white"
+              className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-950"
             >
               ✕
             </button>
           </div>
-          <div className="max-h-[calc(90vh-64px)] overflow-y-auto p-4">
+          <div className="max-h-[calc(90vh-72px)] overflow-y-auto p-5">
             {children}
           </div>
         </Dialog.Panel>
@@ -61,10 +61,10 @@ function Modal({
 export default function Dashboard() {
   const { user } = useUser();
   const [accounts, setAccounts] = useState<RedditAccount[]>([]);
-  const [templates, setTemplates] = useState<CommentTemplate[]>([]);
+  const [templates, setTemplates] = useState<ReplyPlaybook[]>([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [accountToEdit, setAccountToEdit] = useState<any | null>(null);
-  const [templateToEdit, setTemplateToEdit] = useState<CommentTemplate | null>(
+  const [templateToEdit, setTemplateToEdit] = useState<ReplyPlaybook | null>(
     null
   );
   const [showAddAccount, setShowAddAccount] = useState(false);
@@ -113,7 +113,7 @@ export default function Dashboard() {
   };
 
   const handleDeleteTemplate = async (templateId: string) => {
-    if (!confirm('Delete this comment template?')) return;
+    if (!confirm('Delete this reply playbook?')) return;
     const response = await fetch(`/api/reddit/templates?id=${templateId}`, {
       method: 'DELETE',
     });
@@ -126,224 +126,206 @@ export default function Dashboard() {
   if (!user) return null;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8">
-      <div className="rounded-2xl border border-gray-700 bg-gray-900/80 p-6 shadow-xl">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-white">
-              Comment Outreach Dashboard
-            </h1>
-            <p className="mt-2 max-w-2xl text-gray-300">
-              Manage Reddit accounts, comment templates, website targeting
-              configs, and auto-poster activity from one place.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/discussion-poster"
-              className="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700"
-            >
-              Open Comment Workspace
-            </Link>
-            <Link
-              href="/file-logs"
-              className="rounded-lg border border-gray-600 px-4 py-2 font-medium text-gray-200 hover:bg-gray-800"
-            >
-              View File Logs
-            </Link>
-            <Link
-              href="/settings"
-              className="rounded-lg border border-gray-600 px-4 py-2 font-medium text-gray-200 hover:bg-gray-800"
-            >
-              Usage & Billing
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      <UserStats userId={user.id} refreshTrigger={refreshTrigger} />
-
-      <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <div className="space-y-6">
-          <section className="rounded-2xl border border-gray-700 bg-gray-800/70 p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-white">
-                  Reddit Accounts
-                </h2>
-                <p className="text-sm text-gray-400">
-                  Accounts used for replies and auto-posting.
-                </p>
-              </div>
-              <button
-                onClick={() => setShowAddAccount(true)}
-                className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700"
-              >
-                Add Account
-              </button>
+    <div className="section-shell py-12">
+      <div className="space-y-8">
+        <section className="surface-card p-8">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl">
+              <p className="page-kicker">Dashboard</p>
+              <h1 className="page-title mt-3">
+                A cleaner workspace for accounts, playbooks, and campaign
+                activity
+              </h1>
+              <p className="mt-4 text-sm leading-6 text-zinc-500">
+                Manage the pieces that power your comment campaigns: Reddit
+                accounts, reply playbooks, website configs, auto-posters, and
+                the latest system activity.
+              </p>
             </div>
-            <div className="space-y-3">
-              {accounts.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-gray-600 p-6 text-sm text-gray-400">
-                  No Reddit accounts added yet.
+            <div className="flex flex-wrap gap-3">
+              <Link href="/discussion-poster" className="ui-button-primary">
+                Open discussion poster
+              </Link>
+              <Link href="/settings" className="ui-button-secondary">
+                Usage & billing
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <UserStats userId={user.id} refreshTrigger={refreshTrigger} />
+
+        <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+          <div className="space-y-6">
+            <section className="surface-card p-6">
+              <div className="mb-5 flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-zinc-950">
+                    Reddit accounts
+                  </h2>
+                  <p className="mt-1 text-sm text-zinc-500">
+                    Accounts used for replies and auto-posting.
+                  </p>
                 </div>
-              ) : (
-                accounts.map((account) => (
-                  <div
-                    key={account.id}
-                    className="flex flex-col gap-3 rounded-xl border border-gray-700 bg-gray-900/60 p-4 md:flex-row md:items-center md:justify-between"
-                  >
-                    <div>
-                      <div className="font-medium text-white">
-                        u/{account.username}
-                      </div>
-                      <div className="text-sm text-gray-400">
-                        {account.status ||
-                          (account.is_validated
-                            ? 'Validated'
-                            : 'Needs validation')}
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleEditAccount(account.id)}
-                        className="rounded-md bg-blue-600 px-3 py-2 text-sm text-white hover:bg-blue-700"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDeleteAccount(account.id)}
-                        className="rounded-md bg-red-600 px-3 py-2 text-sm text-white hover:bg-red-700"
-                      >
-                        Delete
-                      </button>
-                    </div>
+                <button
+                  onClick={() => setShowAddAccount(true)}
+                  className="ui-button-primary"
+                >
+                  Add account
+                </button>
+              </div>
+              <div className="space-y-3">
+                {accounts.length === 0 ? (
+                  <div className="surface-subtle p-6 text-sm text-zinc-500">
+                    No Reddit accounts added yet.
                   </div>
-                ))
-              )}
-            </div>
-          </section>
-
-          <section className="rounded-2xl border border-gray-700 bg-gray-800/70 p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-white">
-                  Reply Playbooks
-                </h2>
-                <p className="text-sm text-gray-400">
-                  AI guidance rules for tone, helpfulness, and what the
-                  generator should avoid.
-                </p>
-              </div>
-              <button
-                onClick={() => setShowCreateTemplate(true)}
-                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-              >
-                Create Playbook
-              </button>
-            </div>
-            <div className="space-y-3">
-              {templates.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-gray-600 p-6 text-sm text-gray-400">
-                  No reply playbooks yet.
-                </div>
-              ) : (
-                templates.map((template) => (
-                  <div
-                    key={template.id}
-                    className="rounded-xl border border-gray-700 bg-gray-900/60 p-4"
-                  >
-                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-medium text-white">
-                          {template.name}
-                        </h3>
-                        <p className="mt-2 whitespace-pre-wrap text-sm text-gray-300">
-                          {template.content}
-                        </p>
+                ) : (
+                  accounts.map((account) => (
+                    <div
+                      key={account.id}
+                      className="surface-subtle flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between"
+                    >
+                      <div>
+                        <div className="font-medium text-zinc-950">
+                          u/{account.username}
+                        </div>
+                        <div className="mt-1 text-sm text-zinc-500">
+                          {account.status ||
+                            (account.is_validated
+                              ? 'Validated'
+                              : 'Needs validation')}
+                        </div>
                       </div>
                       <div className="flex gap-2">
                         <button
-                          onClick={() => {
-                            setTemplateToEdit(template);
-                            setShowEditTemplate(true);
-                          }}
-                          className="rounded-md bg-blue-600 px-3 py-2 text-sm text-white hover:bg-blue-700"
+                          onClick={() => handleEditAccount(account.id)}
+                          className="ui-button-secondary"
                         >
                           Edit
                         </button>
                         <button
-                          onClick={() => handleDeleteTemplate(template.id)}
-                          className="rounded-md bg-red-600 px-3 py-2 text-sm text-white hover:bg-red-700"
+                          onClick={() => handleDeleteAccount(account.id)}
+                          className="ui-button-danger"
                         >
                           Delete
                         </button>
                       </div>
                     </div>
+                  ))
+                )}
+              </div>
+            </section>
+
+            <section className="surface-card p-6">
+              <div className="mb-5 flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-zinc-950">
+                    Reply playbooks
+                  </h2>
+                  <p className="mt-1 text-sm text-zinc-500">
+                    Instruction sets that shape how AI writes and what it should
+                    avoid.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowCreateTemplate(true)}
+                  className="ui-button-primary"
+                >
+                  Create playbook
+                </button>
+              </div>
+              <div className="space-y-3">
+                {templates.length === 0 ? (
+                  <div className="surface-subtle p-6 text-sm text-zinc-500">
+                    No reply playbooks yet.
                   </div>
-                ))
-              )}
-            </div>
-          </section>
-        </div>
+                ) : (
+                  templates.map((template) => (
+                    <div key={template.id} className="surface-subtle p-4">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-medium text-zinc-950">
+                            {template.name}
+                          </h3>
+                          <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-zinc-600">
+                            {template.content}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setTemplateToEdit(template);
+                              setShowEditTemplate(true);
+                            }}
+                            className="ui-button-secondary"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteTemplate(template.id)}
+                            className="ui-button-danger"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </section>
+          </div>
 
-        <div className="space-y-6">
-          <section className="rounded-2xl border border-gray-700 bg-gray-800/70 p-6">
-            <h2 className="text-xl font-semibold text-white">
-              Comment Workflow
-            </h2>
-            <div className="mt-4 space-y-3 text-sm text-gray-300">
-              <div className="rounded-xl border border-gray-700 bg-gray-900/60 p-4">
-                <div className="font-medium text-white">
-                  1. Create a website config
-                </div>
-                <p className="mt-1 text-gray-400">
-                  Define customer segments, target keywords, and negative
-                  filters for relevance scoring.
-                </p>
-              </div>
-              <div className="rounded-xl border border-gray-700 bg-gray-900/60 p-4">
-                <div className="font-medium text-white">
-                  2. Create a reply playbook
-                </div>
-                <p className="mt-1 text-gray-400">
-                  Define tone, promotion limits, and writing rules so the AI
-                  generates replies the way you want.
-                </p>
-              </div>
-              <div className="rounded-xl border border-gray-700 bg-gray-900/60 p-4">
-                <div className="font-medium text-white">
-                  3. Start the auto-poster
-                </div>
-                <p className="mt-1 text-gray-400">
-                  Launch server-driven auto-posters and monitor their status
-                  without keeping a tab open.
-                </p>
-              </div>
-            </div>
-            <Link
-              href="/discussion-poster"
-              className="mt-5 inline-flex rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700"
-            >
-              Go to Discussion Poster
-            </Link>
-          </section>
-
-          <section className="rounded-2xl border border-gray-700 bg-gray-800/70 p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-white">
-                Recent Activity
+          <div className="space-y-6">
+            <section className="surface-card p-6">
+              <h2 className="text-xl font-semibold text-zinc-950">
+                Comment workflow
               </h2>
-            </div>
-            <LogViewer userId={user.id} refreshTrigger={refreshTrigger} />
-          </section>
+              <div className="mt-5 space-y-3 text-sm text-zinc-600">
+                {[
+                  [
+                    'Create a website config',
+                    'Define audience, keywords, negative filters, and the subreddit list you actually want to target.',
+                  ],
+                  [
+                    'Create a reply playbook',
+                    'Set tone, promotion limits, and writing constraints so AI replies stay on-brand.',
+                  ],
+                  [
+                    'Start the auto-poster',
+                    'Launch the campaign and monitor output from the Discussion Poster workspace.',
+                  ],
+                ].map(([title, desc]) => (
+                  <div key={title} className="surface-subtle p-4">
+                    <div className="font-medium text-zinc-950">{title}</div>
+                    <div className="mt-1 text-sm text-zinc-500">{desc}</div>
+                  </div>
+                ))}
+              </div>
+              <Link
+                href="/discussion-poster"
+                className="ui-button-primary mt-5"
+              >
+                Go to discussion poster
+              </Link>
+            </section>
+
+            <section className="surface-card p-6">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-zinc-950">
+                  Recent activity
+                </h2>
+              </div>
+              <LogViewer userId={user.id} refreshTrigger={refreshTrigger} />
+            </section>
+          </div>
         </div>
       </div>
 
       <Modal
         open={showAddAccount}
         onClose={() => setShowAddAccount(false)}
-        title="Add Reddit Account"
+        title="Add Reddit account"
       >
         <AddRedditAccount
           userId={user.id}
@@ -354,11 +336,10 @@ export default function Dashboard() {
           }}
         />
       </Modal>
-
       <Modal
         open={showEditAccount}
         onClose={() => setShowEditAccount(false)}
-        title="Edit Reddit Account"
+        title="Edit Reddit account"
       >
         {accountToEdit && (
           <AddRedditAccount
@@ -373,11 +354,10 @@ export default function Dashboard() {
           />
         )}
       </Modal>
-
       <Modal
         open={showCreateTemplate}
         onClose={() => setShowCreateTemplate(false)}
-        title="Create Reply Playbook"
+        title="Create reply playbook"
       >
         <CreateMessageTemplate
           userId={user.id}
@@ -388,11 +368,10 @@ export default function Dashboard() {
           }}
         />
       </Modal>
-
       <Modal
         open={showEditTemplate}
         onClose={() => setShowEditTemplate(false)}
-        title="Edit Reply Playbook"
+        title="Edit reply playbook"
       >
         {templateToEdit && (
           <CreateMessageTemplate

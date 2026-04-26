@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f5f5ef;
+  --foreground: #111111;
 }
 
 @theme inline {
@@ -14,15 +14,42 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer components {
+  .surface-card {
+    @apply rounded-3xl border border-black/10 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)];
+  }
+
+  .surface-subtle {
+    @apply rounded-2xl border border-black/10 bg-[#fafaf6];
+  }
+
+  .section-shell {
+    @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .page-title {
+    @apply text-3xl font-semibold tracking-tight text-zinc-950;
+  }
+
+  .page-kicker {
+    @apply text-xs font-medium uppercase tracking-[0.2em] text-zinc-500;
+  }
+
+  .ui-button-primary {
+    @apply inline-flex items-center justify-center rounded-xl bg-[#6557ff] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#5548ec];
+  }
+
+  .ui-button-secondary {
+    @apply inline-flex items-center justify-center rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-medium text-zinc-900 transition hover:bg-zinc-50;
+  }
+
+  .ui-button-danger {
+    @apply inline-flex items-center justify-center rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100;
+  }
 }

@@ -44,7 +44,6 @@ export default function UserStats({
           fetch('/api/posted-discussions?action=stats'),
           fetch('/api/auto-poster/status'),
         ]);
-
         const accountsData = await accountsResponse.json();
         const templatesData = await templatesResponse.json();
         const postedStatsData = await postedStatsResponse.json();
@@ -80,10 +79,7 @@ export default function UserStats({
     return (
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         {[1, 2, 3, 4].map((i) => (
-          <div
-            key={i}
-            className="h-24 rounded-xl bg-gray-800/50 animate-pulse"
-          />
+          <div key={i} className="surface-card h-28 animate-pulse" />
         ))}
       </div>
     );
@@ -91,52 +87,47 @@ export default function UserStats({
 
   const cards = [
     {
-      title: 'Comments Posted',
+      title: 'Comments posted',
       value: displayCount,
       desc: !isProUser
         ? `${remaining} remaining this cycle`
         : 'Unlimited plan usage',
-      color: 'text-indigo-400',
     },
     {
-      title: 'Reddit Accounts',
+      title: 'Reddit accounts',
       value: stats.totalAccounts,
       desc:
         stats.totalAccounts === 0 ? 'Add an account to start' : 'Ready to post',
-      color: 'text-orange-400',
     },
     {
-      title: 'Reply Playbooks',
+      title: 'Reply playbooks',
       value: stats.totalTemplates,
       desc:
         stats.totalTemplates === 0
           ? 'Create a playbook to start'
           : 'Playbooks ready',
-      color: 'text-emerald-400',
     },
     {
-      title: 'Active Auto-Posters',
+      title: 'Active auto-posters',
       value: stats.activeAutoPosters,
       desc:
         stats.activeAutoPosters === 0
           ? 'No active configs'
           : 'Currently running',
-      color: 'text-rose-400',
     },
   ];
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
       {cards.map((card) => (
-        <div
-          key={card.title}
-          className="rounded-2xl border border-gray-700 bg-gray-800/70 p-5 shadow-lg"
-        >
-          <div className={`text-3xl font-bold ${card.color}`}>{card.value}</div>
-          <div className="mt-1 text-sm font-medium text-white">
+        <div key={card.title} className="surface-card p-5">
+          <div className="text-xs font-medium uppercase tracking-[0.2em] text-zinc-500">
             {card.title}
           </div>
-          <div className="mt-2 text-sm text-gray-400">{card.desc}</div>
+          <div className="mt-3 text-3xl font-semibold text-zinc-950">
+            {card.value}
+          </div>
+          <div className="mt-2 text-sm text-zinc-500">{card.desc}</div>
         </div>
       ))}
     </div>

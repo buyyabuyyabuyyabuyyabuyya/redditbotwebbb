@@ -2,7 +2,6 @@
 
 import { SignUpButton } from '@clerk/nextjs';
 import Link from 'next/link';
-import { Button3D, RippleButton } from './ui/Button';
 import { useAuthRedirectUrl } from '../hooks/useAuthRedirectUrl';
 
 interface AuthButtonsProps {
@@ -19,22 +18,22 @@ export default function AuthButtons({ pricing = false }: AuthButtonsProps) {
         afterSignUpUrl="/dashboard"
         redirectUrl={redirectUrl}
       >
-        <Button3D className="w-full">Get started</Button3D>
+        <button className="ui-button-primary w-full">Get started</button>
       </SignUpButton>
     );
   }
 
   return (
-    <div className="flex items-center justify-center gap-x-6">
+    <div className="flex items-center justify-center gap-3">
       <SignUpButton
         mode="modal"
         afterSignUpUrl="/dashboard"
         redirectUrl={redirectUrl}
       >
-        <Button3D>Get started</Button3D>
+        <button className="ui-button-primary">Get started</button>
       </SignUpButton>
-      <Link href="#pricing">
-        <RippleButton variant="secondary">View pricing</RippleButton>
+      <Link href="#pricing" className="ui-button-secondary">
+        View pricing
       </Link>
     </div>
   );

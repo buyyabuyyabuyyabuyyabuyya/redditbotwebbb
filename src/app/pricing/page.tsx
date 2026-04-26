@@ -1,5 +1,4 @@
 import { auth } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
@@ -28,8 +27,8 @@ const createSupabaseServerClient = () => {
 
 export default async function Pricing() {
   const { userId } = await auth();
-
   let user: { subscription_status?: string } | null = null;
+
   if (userId) {
     const supabase = createSupabaseServerClient();
     const { data } = await supabase
@@ -40,20 +39,21 @@ export default async function Pricing() {
     user = data;
   }
 
-  const PLANS = [
+  const plans = [
     {
       name: 'Free',
       price: '$0',
-      description: 'Perfect for testing comment outreach',
+      description:
+        'Validate the workflow with one account and one focused config.',
       features: [
         '1 Reddit account',
         '15 comment actions / month',
-        '1 comment template',
+        '1 reply playbook',
         '1 website config',
         'Basic analytics',
       ],
       cta:
-        user?.subscription_status === 'free' ? 'Current Plan' : 'Get Started',
+        user?.subscription_status === 'free' ? 'Current Plan' : 'Get started',
     },
     {
       name: 'Pro',
@@ -61,17 +61,19 @@ export default async function Pricing() {
       originalPrice: '$12.99',
       discount: true,
       discountExpiry: 'November 15th',
-      description: 'For consistent comment campaigns',
+      description:
+        'For consistent weekly campaigns across multiple accounts and configs.',
       features: [
         '3 Reddit accounts',
         '200 comment actions / month',
-        '3 comment templates',
+        '3 reply playbooks',
         '3 website configs',
         'Advanced analytics',
         'Priority support',
       ],
       cta:
         user?.subscription_status === 'pro' ? 'Current Plan' : 'Upgrade to Pro',
+      popular: true,
     },
     {
       name: 'Advanced',
@@ -79,11 +81,12 @@ export default async function Pricing() {
       originalPrice: '$18.99',
       discount: true,
       discountExpiry: 'November 15th',
-      description: 'Unlimited comment automation',
+      description:
+        'For teams running higher-volume comment systems with no practical caps.',
       features: [
         'Unlimited accounts',
         'Unlimited comment actions',
-        'Unlimited comment templates',
+        'Unlimited reply playbooks',
         'Unlimited website configs',
         '24/7 premium support',
       ],
@@ -95,42 +98,36 @@ export default async function Pricing() {
   ];
 
   return (
-    <div className="bg-gray-900 py-24 text-white sm:py-32">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+    <div className="py-16">
+      <div className="section-shell">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Simple, transparent pricing
-          </h2>
-          <p className="mt-6 text-lg leading-8 text-gray-300">
-            Choose the plan that's right for you. Start with our free tier and
-            upgrade when you're ready.
+          <p className="page-kicker">Pricing</p>
+          <h1 className="page-title mt-3">
+            Simple pricing for comment campaigns
+          </h1>
+          <p className="mt-4 text-base leading-7 text-zinc-500">
+            Start small, validate the workflow, and upgrade only when your
+            posting volume and number of active configs grow.
           </p>
         </div>
-        <div className="mt-16 sm:mt-20">
+
+        <div className="mt-12">
           <PricingClient
-            plans={PLANS}
+            plans={plans}
             userSubscriptionStatus={user?.subscription_status}
           />
         </div>
 
-        <div className="mt-16 text-center">
-          <p className="mb-4 text-sm text-gray-400">
-            By subscribing, you agree to our terms and privacy policy.
-          </p>
-          <div className="flex justify-center space-x-6">
-            <Link
-              href="/terms"
-              className="text-sm text-gray-400 underline transition-colors hover:text-white"
-            >
-              Terms of Service
-            </Link>
-            <Link
-              href="/privacy"
-              className="text-sm text-gray-400 underline transition-colors hover:text-white"
-            >
-              Privacy Policy
-            </Link>
-          </div>
+        <div className="mt-10 text-center text-sm text-zinc-500">
+          By subscribing, you agree to our{' '}
+          <Link href="/terms" className="underline-offset-4 hover:underline">
+            terms
+          </Link>{' '}
+          and{' '}
+          <Link href="/privacy" className="underline-offset-4 hover:underline">
+            privacy policy
+          </Link>
+          .
         </div>
       </div>
     </div>

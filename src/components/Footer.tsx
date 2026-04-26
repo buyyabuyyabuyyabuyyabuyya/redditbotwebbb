@@ -1,125 +1,46 @@
 'use client';
+
 import Link from 'next/link';
 import { useUser } from '@clerk/nextjs';
 
 export default function Footer() {
   const { isSignedIn } = useUser();
   const safe = (path: string) => (isSignedIn ? path : '/');
+
   return (
-    <footer className="bg-gray-900 text-white">
-      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Company Info */}
-          <div className="col-span-1 md:col-span-2">
-            <h3 className="text-lg font-semibold mb-4">RedditOutreach</h3>
-            <p className="text-gray-400 mb-4">
-              Automate your Reddit outreach with intelligent bot services. Find
-              relevant discussions, analyze content with AI, and post targeted
-              comments efficiently.
-            </p>
-            <p className="text-gray-400 text-sm">
-              {new Date().getFullYear()} RedditOutreach. All rights reserved.
-            </p>
-          </div>
-
-          {/* Quick Links */}
-          <div>
-            <h4 className="text-md font-semibold mb-4">Quick Links</h4>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Home
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  href={safe('/pricing')}
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Pricing
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href={safe('/tutorial')}
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Tutorial
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href={safe('/dashboard')}
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Dashboard
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Legal */}
-          <div>
-            <h4 className="text-md font-semibold mb-4">Legal</h4>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/privacy"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/terms"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Terms of Service
-                </Link>
-              </li>
-              <li>
-                <a
-                  href="https://www.reddit.com/wiki/api-terms"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Reddit API Terms
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        {/* Bottom Bar */}
-        <div className="mt-8 pt-8 border-t border-gray-800">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-400 text-sm"></p>
-            <div className="flex space-x-6 mt-4 md:mt-0">
-              <Link
-                href="/privacy"
-                className="text-gray-400 hover:text-white text-sm transition-colors"
-              >
-                Privacy
-              </Link>
-              <Link
-                href="/terms"
-                className="text-gray-400 hover:text-white text-sm transition-colors"
-              >
-                Terms
-              </Link>
-              <a
-                href="mailto:buyyav20@gmail.com"
-                className="text-gray-400 hover:text-white text-sm transition-colors"
-              >
-                Support
-              </a>
+    <footer className="border-t border-black/8 bg-[#f5f5ef]">
+      <div className="section-shell py-8">
+        <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-xl">
+            <div className="text-sm font-semibold text-zinc-950">
+              RedditOutreach
             </div>
+            <p className="mt-3 text-sm leading-6 text-zinc-500">
+              Comment-first Reddit outreach for teams that want cleaner
+              targeting, AI reply playbooks, and a full audit trail of what gets
+              posted.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-6 text-sm text-zinc-500">
+            <Link href="/" className="hover:text-zinc-900">
+              Home
+            </Link>
+            <Link href={safe('/pricing')} className="hover:text-zinc-900">
+              Pricing
+            </Link>
+            <Link href={safe('/tutorial')} className="hover:text-zinc-900">
+              Getting Started
+            </Link>
+            <Link href={safe('/dashboard')} className="hover:text-zinc-900">
+              Dashboard
+            </Link>
+            <Link href="/privacy" className="hover:text-zinc-900">
+              Privacy
+            </Link>
+            <Link href="/terms" className="hover:text-zinc-900">
+              Terms
+            </Link>
           </div>
         </div>
       </div>

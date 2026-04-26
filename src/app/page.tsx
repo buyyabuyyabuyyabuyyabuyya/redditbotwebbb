@@ -6,27 +6,27 @@ import { Analytics } from '@vercel/analytics/next';
 
 const featureCards = [
   {
-    title: 'User-defined subreddit targeting',
+    title: 'Own your subreddit list',
     description:
-      'Each website config now owns its own subreddit list so campaigns only run in communities the user intentionally selected.',
+      'Every website config has its own target subreddit list, so campaigns only run where you explicitly want them to run.',
   },
   {
-    title: 'Reply playbooks for AI generation',
+    title: 'Guide AI with playbooks',
     description:
-      'Instead of saving canned comments, playbooks tell the AI how to sound, what to avoid, and how promotional it is allowed to be.',
+      'Reply playbooks control tone, promotion level, and banned phrasing so generated comments stay useful and on-brand.',
   },
   {
-    title: 'Posted-comment audit trail',
+    title: 'Audit every comment',
     description:
-      'Review every comment that went out, grouped by website config, so you can keep quality and relevance high.',
+      'Track what was posted, from which config, and how your outreach system is behaving over time.',
   },
 ];
 
 const workflow = [
-  'Connect a Reddit account',
-  'Create a reply playbook',
-  'Add a website config + subreddit list',
-  'Start the auto-poster',
+  'Connect account',
+  'Create playbook',
+  'Add config + subreddits',
+  'Start auto-poster',
   'Review posted comments',
 ];
 
@@ -38,96 +38,79 @@ export default async function Home() {
   }
 
   return (
-    <div className="bg-[#0a0a0a] text-white">
+    <div className="bg-[#f5f5ef] text-zinc-950">
       <Analytics />
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-black/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <Link
-            href="/"
-            className="text-lg font-semibold tracking-tight text-white"
-          >
-            RedditOutreach
-          </Link>
-          <nav className="hidden gap-8 text-sm text-gray-400 md:flex">
-            <a href="#product" className="hover:text-white">
-              Product
-            </a>
-            <a href="#workflow" className="hover:text-white">
-              Workflow
-            </a>
-            <a href="#pricing" className="hover:text-white">
-              Pricing
-            </a>
-          </nav>
-          <AuthButtons />
-        </div>
-      </header>
-
       <main>
-        <section className="border-b border-white/10 px-6 py-24 lg:py-32">
-          <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+        <section className="border-b border-black/8 px-6 py-20 lg:py-28">
+          <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div>
-              <div className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-gray-400">
+              <div className="inline-flex items-center rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-zinc-500">
                 Comment-first Reddit outreach
               </div>
-              <h1 className="mt-6 max-w-4xl text-5xl font-semibold tracking-tight text-white sm:text-6xl lg:text-7xl">
-                Run cleaner Reddit comment campaigns without the AI-SaaS fluff.
+              <h1 className="mt-6 max-w-4xl text-5xl font-semibold tracking-tight text-zinc-950 sm:text-6xl">
+                Cleaner Reddit comment campaigns, without the AI-template look.
               </h1>
-              <p className="mt-6 max-w-2xl text-lg leading-8 text-gray-400">
-                RedditOutreach helps you define subreddit targets, generate
-                replies with playbook rules, run auto-posters, and review every
-                posted comment from one operational workspace.
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-zinc-600">
+                RedditOutreach helps you define subreddit targets, guide AI with
+                reply playbooks, run auto-posters, and review every posted
+                comment from one focused workspace.
               </p>
               <div className="mt-10 flex flex-wrap gap-4">
                 <AuthButtons />
               </div>
             </div>
 
-            <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-4 shadow-2xl shadow-black/40">
-              <div className="rounded-2xl border border-white/10 bg-black p-6">
-                <div className="flex items-center justify-between border-b border-white/10 pb-4">
+            <div className="surface-card overflow-hidden p-4 lg:p-6">
+              <div className="rounded-3xl border border-black/8 bg-[#fafaf6] p-6">
+                <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-500">Active workspace</p>
-                    <h2 className="mt-1 text-xl font-medium text-white">
+                    <p className="text-sm text-zinc-500">
+                      Live workspace preview
+                    </p>
+                    <h2 className="mt-1 text-2xl font-semibold text-zinc-950">
                       Comment operations
                     </h2>
                   </div>
-                  <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">
+                  <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
                     Running
                   </span>
                 </div>
                 <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-gray-500">
+                  <div className="rounded-2xl border border-black/8 bg-white p-4">
+                    <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">
                       Website config
                     </p>
-                    <p className="mt-3 text-sm text-gray-200">yourapp.com</p>
-                    <p className="mt-2 text-sm text-gray-500">
+                    <p className="mt-3 text-sm font-medium text-zinc-950">
+                      yourapp.com
+                    </p>
+                    <p className="mt-2 text-sm text-zinc-500">
                       SaaS • startups • entrepreneur • indiehackers
                     </p>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-gray-500">
+                  <div className="rounded-2xl border border-black/8 bg-white p-4">
+                    <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">
                       Reply playbook
                     </p>
-                    <p className="mt-3 text-sm text-gray-200">
+                    <p className="mt-3 text-sm font-medium text-zinc-950">
                       Helpful founder tone
                     </p>
-                    <p className="mt-2 text-sm text-gray-500">
+                    <p className="mt-2 text-sm text-zinc-500">
                       Soft CTA • no links unless relevant • ask one question
                     </p>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-gray-500">
+                  <div className="rounded-2xl border border-black/8 bg-white p-4">
+                    <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">
                       Posts today
                     </p>
-                    <p className="mt-3 text-3xl font-semibold text-white">12</p>
+                    <p className="mt-3 text-3xl font-semibold text-zinc-950">
+                      12
+                    </p>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-gray-500">
+                  <div className="rounded-2xl border border-black/8 bg-white p-4">
+                    <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">
                       Next run
                     </p>
-                    <p className="mt-3 text-3xl font-semibold text-white">
+                    <p className="mt-3 text-3xl font-semibold text-zinc-950">
                       18m
                     </p>
                   </div>
@@ -140,23 +123,22 @@ export default async function Home() {
         <section id="product" className="px-6 py-20">
           <div className="mx-auto max-w-7xl">
             <div className="max-w-2xl">
-              <p className="text-sm font-medium uppercase tracking-[0.2em] text-gray-500">
-                Product
-              </p>
-              <h2 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">
-                Built for comment quality, not gimmicks.
+              <p className="page-kicker">Product</p>
+              <h2 className="mt-4 text-3xl font-semibold text-zinc-950 sm:text-4xl">
+                Built for useful comments, not noisy automation.
               </h2>
+              <p className="mt-4 text-base leading-7 text-zinc-600">
+                Everything in the workflow is designed around cleaner targeting,
+                stricter writing control, and a visible audit trail.
+              </p>
             </div>
             <div className="mt-10 grid gap-4 lg:grid-cols-3">
               {featureCards.map((feature) => (
-                <div
-                  key={feature.title}
-                  className="rounded-3xl border border-white/10 bg-white/[0.02] p-6"
-                >
-                  <h3 className="text-xl font-medium text-white">
+                <div key={feature.title} className="surface-card p-6">
+                  <h3 className="text-xl font-medium text-zinc-950">
                     {feature.title}
                   </h3>
-                  <p className="mt-4 text-sm leading-6 text-gray-400">
+                  <p className="mt-4 text-sm leading-6 text-zinc-600">
                     {feature.description}
                   </p>
                 </div>
@@ -167,25 +149,20 @@ export default async function Home() {
 
         <section
           id="workflow"
-          className="border-y border-white/10 bg-white/[0.02] px-6 py-20"
+          className="border-y border-black/8 bg-white px-6 py-20"
         >
           <div className="mx-auto max-w-7xl">
             <div className="max-w-2xl">
-              <p className="text-sm font-medium uppercase tracking-[0.2em] text-gray-500">
-                Workflow
-              </p>
-              <h2 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">
-                A simpler path from setup to posted comments.
+              <p className="page-kicker">Workflow</p>
+              <h2 className="mt-4 text-3xl font-semibold text-zinc-950 sm:text-4xl">
+                A tighter path from setup to posted comments.
               </h2>
             </div>
             <div className="mt-10 grid gap-4 md:grid-cols-5">
               {workflow.map((step, index) => (
-                <div
-                  key={step}
-                  className="rounded-2xl border border-white/10 bg-black p-5"
-                >
-                  <div className="text-sm text-gray-500">0{index + 1}</div>
-                  <div className="mt-4 text-base font-medium text-white">
+                <div key={step} className="surface-subtle p-5">
+                  <div className="text-sm text-zinc-500">0{index + 1}</div>
+                  <div className="mt-4 text-base font-medium text-zinc-950">
                     {step}
                   </div>
                 </div>
@@ -195,25 +172,20 @@ export default async function Home() {
         </section>
 
         <section id="pricing" className="px-6 py-20">
-          <div className="mx-auto max-w-7xl rounded-3xl border border-white/10 bg-white/[0.03] p-8 lg:p-12">
+          <div className="mx-auto flex max-w-7xl flex-col gap-8 rounded-3xl border border-black/8 bg-white p-8 lg:flex-row lg:items-end lg:justify-between lg:p-12">
             <div className="max-w-2xl">
-              <p className="text-sm font-medium uppercase tracking-[0.2em] text-gray-500">
-                Pricing
-              </p>
-              <h2 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">
+              <p className="page-kicker">Pricing</p>
+              <h2 className="mt-4 text-3xl font-semibold text-zinc-950 sm:text-4xl">
                 Start free. Upgrade when your comment volume grows.
               </h2>
-              <p className="mt-4 text-base leading-7 text-gray-400">
-                The pricing page has the full plan details. The free plan is
-                enough to test the full workflow with one account, one website
-                config, and a limited number of comment actions.
+              <p className="mt-4 text-base leading-7 text-zinc-600">
+                The free plan is enough to validate the full workflow. Upgrade
+                only when you need more accounts, more website configs, and more
+                comment actions.
               </p>
             </div>
-            <div className="mt-8 flex flex-wrap gap-4">
-              <Link
-                href="/pricing"
-                className="rounded-xl bg-white px-4 py-2 text-sm font-medium text-black"
-              >
+            <div className="flex flex-wrap gap-3">
+              <Link href="/pricing" className="ui-button-secondary">
                 View pricing
               </Link>
               <AuthButtons />

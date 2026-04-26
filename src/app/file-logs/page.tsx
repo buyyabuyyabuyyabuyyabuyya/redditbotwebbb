@@ -4,16 +4,10 @@ import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
 import LogArchiveButton from '../../components/LogArchiveButton';
 
-// Create a Supabase admin client
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  }
+  { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
 interface ArchivedLog {
@@ -24,213 +18,170 @@ interface ArchivedLog {
   date_range_start: string;
   date_range_end: string;
   created_at: string;
-  scan_configs?: {
-    subreddit: string;
-  };
+  scan_configs?: { subreddit: string };
 }
 
 export default async function FileLogsPage() {
   const { userId } = await auth();
+  if (!userId) redirect('/sign-in?redirect_url=%2Ffile-logs');
 
-  if (!userId) {
-    redirect('/sign-in?redirect_url=%2Ffile-logs');
-  }
-
-  // Fetch all archived logs for this user
-  const { data: archivedLogs, error } = await supabaseAdmin
+  const { data: archivedLogs } = await supabaseAdmin
     .from('archived_logs')
-    .select(
-      `
-      *,
-      scan_configs (
-        subreddit
-      )
-    `
-    )
+    .select(`*, scan_configs ( subreddit )`)
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
 
-  if (error) {
-    console.error('Error fetching archived logs:', error);
-  }
-
-  // Generate signed URLs for each file
   const logsWithUrls = await Promise.all(
-    (archivedLogs || []).map(async (log) => {
+    (archivedLogs || []).map(async (log: ArchivedLog) => {
       const { data: signedUrl } = await supabaseAdmin.storage
         .from('logs')
-        .createSignedUrl(log.file_path, 30 * 60); // URL valid for 1 hour
-
-      return {
-        ...log,
-        downloadUrl: signedUrl?.signedUrl,
-      };
+        .createSignedUrl(log.file_path, 30 * 60);
+      return { ...log, downloadUrl: signedUrl?.signedUrl };
     })
   );
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <div className="py-10">
-        <header>
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-bold leading-tight tracking-tight text-white bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-red-500">
-              Archived Bot Logs
-            </h1>
-            <p className="mt-2 text-lg text-gray-300">
-              Download archived log files to free up database space
+    <div className="py-12">
+      <div className="section-shell space-y-8">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="page-kicker">File logs</p>
+            <h1 className="page-title mt-3">Archived bot logs</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-500">
+              Download archived log files when you need historical diagnostics
+              without keeping everything in the live database.
             </p>
           </div>
-        </header>
+          <div className="flex gap-3">
+            <LogArchiveButton subreddit="_system" />
+            <Link href="/dashboard" className="ui-button-secondary">
+              Back to dashboard
+            </Link>
+          </div>
+        </div>
 
-        <main>
-          <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-            <div className="px-4 py-8 sm:px-0">
-              <div className="flex justify-between mb-4">
-                <LogArchiveButton subreddit="_system" />
-                <Link
-                  href="/dashboard"
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-purple-300 hover:text-purple-200"
-                >
-                  Back to Dashboard
-                </Link>
-              </div>
-
-              {logsWithUrls?.length === 0 ? (
-                <div className="text-center py-12">
-                  <svg
-                    className="mx-auto h-12 w-12 text-gray-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1}
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
-                  <h3 className="mt-2 text-sm font-medium text-gray-300">
-                    No archived logs
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Logs are archived when you have at least 100 logs for a
-                    configuration
-                  </p>
-                </div>
-              ) : (
-                <div className="shadow overflow-hidden border border-gray-700 sm:rounded-lg">
-                  <table className="min-w-full divide-y divide-gray-700">
-                    <thead className="bg-gray-800">
-                      <tr>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
-                        >
-                          Subreddit
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
-                        >
-                          Date Range
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
-                        >
-                          Logs
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
-                        >
-                          Created
-                        </th>
-                        <th scope="col" className="relative px-6 py-3">
-                          <span className="sr-only">Download</span>
-                        </th>
+        {logsWithUrls?.length === 0 ? (
+          <section className="surface-card p-12 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-black/10 bg-[#fafaf6] text-zinc-400">
+              <svg
+                className="h-7 w-7"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+            </div>
+            <h2 className="mt-6 text-xl font-semibold text-zinc-950">
+              No archived logs yet
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-zinc-500">
+              Archives are created when a configuration builds up enough logs.
+              Once available, this page will let you download them as text
+              files.
+            </p>
+          </section>
+        ) : (
+          <section className="surface-card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-black/8">
+                <thead className="bg-[#fafaf6]">
+                  <tr>
+                    {[
+                      'Subreddit',
+                      'Date range',
+                      'Log count',
+                      'Archived',
+                      'Download',
+                    ].map((label) => (
+                      <th
+                        key={label}
+                        className="px-6 py-4 text-left text-xs font-medium uppercase tracking-[0.2em] text-zinc-500"
+                      >
+                        {label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-black/6 bg-white">
+                  {logsWithUrls.map((log: any) => {
+                    const startDate = new Date(
+                      log.date_range_start
+                    ).toLocaleString();
+                    const endDate = new Date(
+                      log.date_range_end
+                    ).toLocaleString();
+                    const createdAt = new Date(log.created_at).toLocaleString();
+                    return (
+                      <tr key={log.id}>
+                        <td className="px-6 py-4 text-sm font-medium text-zinc-950">
+                          r/{log.scan_configs?.subreddit || 'unknown'}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-zinc-500">
+                          <div>{startDate}</div>
+                          <div className="my-1 text-xs uppercase tracking-[0.2em] text-zinc-400">
+                            to
+                          </div>
+                          <div>{endDate}</div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-zinc-700">
+                          {log.log_count} entries
+                        </td>
+                        <td className="px-6 py-4 text-sm text-zinc-500">
+                          {createdAt}
+                        </td>
+                        <td className="px-6 py-4 text-sm">
+                          {log.downloadUrl ? (
+                            <a
+                              href={log.downloadUrl}
+                              download={`logs_${log.scan_configs?.subreddit || 'bot'}_${new Date(log.date_range_start).toISOString().split('T')[0]}.txt`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-medium text-zinc-950 underline-offset-4 hover:underline"
+                            >
+                              Download
+                            </a>
+                          ) : (
+                            <span className="text-zinc-400">Unavailable</span>
+                          )}
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody className="bg-gray-800/50 divide-y divide-gray-700">
-                      {logsWithUrls?.map((log) => {
-                        const startDate = new Date(
-                          log.date_range_start
-                        ).toLocaleString();
-                        const endDate = new Date(
-                          log.date_range_end
-                        ).toLocaleString();
-                        const createdAt = new Date(
-                          log.created_at
-                        ).toLocaleString();
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
 
-                        return (
-                          <tr key={log.id}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-purple-300">
-                              r/{log.scan_configs?.subreddit || 'unknown'}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-300">
-                              <div className="text-xs">{startDate}</div>
-                              <div className="text-xs text-gray-400">to</div>
-                              <div className="text-xs">{endDate}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                              {log.log_count} entries
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                              {createdAt}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                              {log.downloadUrl ? (
-                                <a
-                                  href={log.downloadUrl}
-                                  download={`logs_${log.scan_configs?.subreddit || 'bot'}_${new Date(log.date_range_start).toISOString().split('T')[0]}.txt`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-indigo-400 hover:text-indigo-300"
-                                >
-                                  Download
-                                </a>
-                              ) : (
-                                <span className="text-gray-500">
-                                  Unavailable
-                                </span>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-
-              <div className="mt-8 bg-gray-800/70 rounded-lg p-4 border border-gray-700 text-sm">
-                <h3 className="font-medium text-gray-300 mb-2">
-                  About Log Archival
-                </h3>
-                <ul className="list-disc list-inside text-gray-400 space-y-1">
-                  <li>
-                    Logs are automatically archived in batches of 100 to save
-                    database space
-                  </li>
-                  <li>
-                    Each archive contains logs for a specific bot configuration
-                  </li>
-                  <li>
-                    Archived logs are stored as text files that you can download
-                    and view
-                  </li>
-                  <li>
-                    Archived logs are removed from the database after being
-                    stored as files
-                  </li>
-                  <li>Download links are valid for 1 hour after page load</li>
-                </ul>
-              </div>
+        <section className="surface-subtle p-6">
+          <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
+            How archival works
+          </h2>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <div className="rounded-2xl border border-black/8 bg-white p-4 text-sm leading-6 text-zinc-600">
+              Logs are archived in batches to keep the live database lighter and
+              easier to query.
+            </div>
+            <div className="rounded-2xl border border-black/8 bg-white p-4 text-sm leading-6 text-zinc-600">
+              Each archive file is specific to one configuration and can be
+              downloaded for manual review.
+            </div>
+            <div className="rounded-2xl border border-black/8 bg-white p-4 text-sm leading-6 text-zinc-600">
+              Archive links are temporary and refresh whenever you reload the
+              page.
+            </div>
+            <div className="rounded-2xl border border-black/8 bg-white p-4 text-sm leading-6 text-zinc-600">
+              Use Archive Logs Now only when you intentionally want to clean
+              down the live log table.
             </div>
           </div>
-        </main>
+        </section>
       </div>
     </div>
   );

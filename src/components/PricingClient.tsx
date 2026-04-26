@@ -31,38 +31,23 @@ export default function PricingClient({
   const redirectUrl = useAuthRedirectUrl();
 
   const handleSubscribe = async (plan: 'pro' | 'advanced') => {
-    if (!userId) {
-      console.error('User not authenticated');
-      return;
-    }
-
+    if (!userId) return;
     setLoading(plan);
     try {
       const response = await fetch('/api/stripe', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'create-checkout-session',
-          plan: plan,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create-checkout-session', plan }),
       });
-
+      const data = await response.json();
       if (!response.ok) {
-        const errorData = await response.json();
-
-        if (response.status === 409 && errorData.redirectToPortal) {
-          alert(errorData.error || 'You already have an active subscription.');
+        if (response.status === 409 && data.redirectToPortal) {
+          alert(data.error || 'You already have an active subscription.');
           window.location.href = '/settings?tab=billing';
           return;
         }
-
-        throw new Error(errorData.error || 'Failed to create checkout session');
+        throw new Error(data.error || 'Failed to create checkout session');
       }
-
-      const data = await response.json();
-
       if (data.redirectToPortal) {
         alert(
           data.message ||
@@ -71,13 +56,11 @@ export default function PricingClient({
         window.location.href = '/settings?tab=billing';
         return;
       }
-
       if (data.upgraded) {
         alert('Your subscription has been updated successfully!');
         window.location.reload();
         return;
       }
-
       if (data.url) {
         window.location.href = data.url;
       } else if (data.sessionId) {
@@ -85,8 +68,6 @@ export default function PricingClient({
           process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
         );
         stripe.redirectToCheckout({ sessionId: data.sessionId });
-      } else {
-        throw new Error('No checkout URL or session ID returned');
       }
     } catch (error) {
       console.error('Error creating checkout session:', error);
@@ -97,96 +78,71 @@ export default function PricingClient({
   };
 
   return (
-    <div className="mx-auto max-w-4xl px-6 lg:px-8">
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        {plans.map((plan) => (
-          <div
-            key={plan.name}
-            className={`relative rounded-3xl p-8 ring-1 xl:p-10 ${
-              plan.popular
-                ? 'bg-gray-900 ring-purple-500'
-                : 'bg-gray-800/70 ring-gray-600/50'
-            } backdrop-blur-sm shadow-lg`}
-          >
-            {plan.popular && (
-              <div className="absolute -top-5 left-0 right-0 mx-auto w-32 rounded-full bg-gradient-to-r from-purple-500 to-red-500 px-3 py-2 text-center text-sm font-medium text-white">
-                Most popular
-              </div>
-            )}
-            <div className="flex items-center justify-between gap-x-4">
-              <h3
-                className={`text-lg font-semibold leading-8 ${plan.popular ? 'text-purple-300' : 'text-white'}`}
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      {plans.map((plan) => (
+        <div
+          key={plan.name}
+          className={`rounded-3xl border p-8 shadow-sm ${plan.popular ? 'border-[#6557ff] bg-[#6557ff] text-white' : 'border-black/10 bg-white text-zinc-950'}`}
+        >
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <div
+                className={`text-sm font-medium ${plan.popular ? 'text-white/70' : 'text-zinc-500'}`}
               >
                 {plan.name}
-              </h3>
-            </div>
-            <p className="mt-4 text-sm leading-6 text-gray-300">
-              {plan.description}
-            </p>
-            <div className="mt-6">
-              {plan.discount && plan.originalPrice && (
-                <p className="mb-2 flex items-baseline gap-x-2">
-                  <span className="text-lg font-semibold text-gray-400 line-through">
-                    {plan.originalPrice}
-                  </span>
-                  <span className="text-sm font-medium text-red-400">
-                    🔥 Save{' '}
-                    {Math.round(
-                      ((parseFloat(plan.originalPrice.replace('$', '')) -
-                        parseFloat(plan.price.replace('$', ''))) /
-                        parseFloat(plan.originalPrice.replace('$', ''))) *
-                        100
-                    )}
-                    %
-                  </span>
-                </p>
-              )}
-              <p className="flex items-baseline gap-x-1">
-                <span
-                  className={`text-4xl font-bold tracking-tight ${plan.popular ? 'text-purple-300' : 'text-white'}`}
-                >
-                  {plan.price}
-                </span>
-                {plan.price !== 'Free' && (
-                  <span className="text-sm font-semibold leading-6 text-gray-300">
+              </div>
+              <div className="mt-3 text-4xl font-semibold tracking-tight">
+                {plan.price}
+                {plan.price !== '$0' ? (
+                  <span
+                    className={`ml-1 text-sm font-medium ${plan.popular ? 'text-white/70' : 'text-zinc-500'}`}
+                  >
                     /month
                   </span>
-                )}
-              </p>
-              {plan.discount && plan.discountExpiry && (
-                <p className="mt-2 text-sm font-medium text-red-400">
-                  Limited Time: Discount expires {plan.discountExpiry}
-                </p>
-              )}
+                ) : null}
+              </div>
             </div>
-            <ul
-              role="list"
-              className="mt-8 space-y-3 text-sm leading-6 text-gray-300"
-            >
-              {plan.features.map((feature) => (
-                <li key={feature} className="flex gap-x-3">
-                  <svg
-                    className="h-6 w-5 flex-none text-purple-400"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  {feature}
-                </li>
-              ))}
-            </ul>
+            {plan.popular ? (
+              <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em]">
+                Popular
+              </span>
+            ) : null}
+          </div>
 
+          <p
+            className={`mt-4 text-sm leading-6 ${plan.popular ? 'text-white/80' : 'text-zinc-500'}`}
+          >
+            {plan.description}
+          </p>
+
+          {plan.discount && plan.originalPrice ? (
+            <p
+              className={`mt-4 text-sm ${plan.popular ? 'text-white/80' : 'text-zinc-500'}`}
+            >
+              <span className="line-through">{plan.originalPrice}</span> ·
+              discount ends {plan.discountExpiry}
+            </p>
+          ) : null}
+
+          <ul
+            className={`mt-8 space-y-3 text-sm leading-6 ${plan.popular ? 'text-white/90' : 'text-zinc-600'}`}
+          >
+            {plan.features.map((feature) => (
+              <li key={feature} className="flex gap-3">
+                <span
+                  className={`mt-1 h-1.5 w-1.5 rounded-full ${plan.popular ? 'bg-white' : 'bg-zinc-900'}`}
+                />
+                <span>{feature}</span>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-8">
             {plan.name === 'Free' && userSubscriptionStatus === 'free' ? (
               <button
                 type="button"
                 disabled
-                className="mt-10 block w-full rounded-md bg-gray-400 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm"
+                className="w-full rounded-xl border border-black/10 bg-zinc-100 px-4 py-3 text-sm font-medium text-zinc-500"
               >
                 {plan.cta}
               </button>
@@ -194,7 +150,7 @@ export default function PricingClient({
               <button
                 onClick={() => handleSubscribe('pro')}
                 disabled={loading === 'pro'}
-                className="mt-10 block w-full rounded-md bg-purple-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600 disabled:opacity-50"
+                className={`w-full rounded-xl px-4 py-3 text-sm font-medium ${plan.popular ? 'bg-white text-zinc-950' : 'bg-zinc-950 text-white'} disabled:opacity-50`}
               >
                 {loading === 'pro' ? 'Loading...' : plan.cta}
               </button>
@@ -202,7 +158,7 @@ export default function PricingClient({
               <button
                 onClick={() => handleSubscribe('advanced')}
                 disabled={loading === 'advanced'}
-                className="mt-10 block w-full rounded-md bg-purple-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600 disabled:opacity-50"
+                className="w-full rounded-xl bg-zinc-950 px-4 py-3 text-sm font-medium text-white disabled:opacity-50"
               >
                 {loading === 'advanced' ? 'Loading...' : plan.cta}
               </button>
@@ -212,14 +168,14 @@ export default function PricingClient({
                 afterSignUpUrl="/dashboard"
                 redirectUrl={redirectUrl}
               >
-                <button className="mt-10 block w-full rounded-md bg-purple-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600">
+                <button className="w-full rounded-xl bg-zinc-950 px-4 py-3 text-sm font-medium text-white">
                   {plan.cta}
                 </button>
               </SignUpButton>
             )}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   );
 }
