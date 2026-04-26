@@ -53,58 +53,44 @@ const sections = [
 
 export default async function TutorialPage() {
   const { userId } = await auth();
-
-  if (!userId) {
-    redirect('/sign-in?redirect_url=%2Ftutorial');
-  }
+  if (!userId) redirect('/sign-in?redirect_url=%2Ftutorial');
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
-      <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="rounded-3xl border border-gray-800 bg-black p-8 shadow-sm">
-          <p className="text-sm font-medium uppercase tracking-[0.2em] text-gray-500">
-            Getting Started
-          </p>
-          <h1 className="mt-3 text-3xl font-semibold sm:text-4xl">
+    <div className="py-12">
+      <div className="section-shell space-y-8">
+        <section className="surface-card p-8">
+          <p className="page-kicker">Getting started</p>
+          <h1 className="page-title mt-3">
             How to run a clean comment campaign
           </h1>
-          <p className="mt-4 max-w-3xl text-base text-gray-400">
-            This is the new version of the old tutorial. It focuses only on the
-            flows that matter now: accounts, reply playbooks, website configs,
+          <p className="mt-4 max-w-3xl text-sm leading-6 text-zinc-500">
+            This page replaces the old tutorial. It focuses only on the flows
+            that matter now: accounts, reply playbooks, website configs,
             subreddits, auto-posting, and posted comments.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link
-              href="/dashboard"
-              className="rounded-xl bg-white px-4 py-2 text-sm font-medium text-black"
-            >
-              Open Dashboard
+            <Link href="/dashboard" className="ui-button-secondary">
+              Open dashboard
             </Link>
-            <Link
-              href="/discussion-poster"
-              className="rounded-xl border border-gray-700 px-4 py-2 text-sm font-medium text-white"
-            >
-              Open Discussion Poster
+            <Link href="/discussion-poster" className="ui-button-primary">
+              Open discussion poster
             </Link>
           </div>
-        </div>
+        </section>
 
-        <div className="mt-8 grid gap-4">
+        <div className="grid gap-4 lg:grid-cols-2">
           {sections.map((section) => (
-            <section
-              key={section.title}
-              className="rounded-2xl border border-gray-800 bg-black p-6"
-            >
-              <h2 className="text-xl font-semibold text-white">
+            <section key={section.title} className="surface-card p-6">
+              <h2 className="text-xl font-semibold text-zinc-950">
                 {section.title}
               </h2>
-              <p className="mt-3 text-sm leading-6 text-gray-400">
+              <p className="mt-3 text-sm leading-6 text-zinc-600">
                 {section.body}
               </p>
-              <ul className="mt-4 space-y-2 text-sm text-gray-300">
+              <ul className="mt-4 space-y-2 text-sm text-zinc-600">
                 {section.bullets.map((bullet) => (
                   <li key={bullet} className="flex gap-2">
-                    <span className="text-gray-500">•</span>
+                    <span className="text-zinc-400">•</span>
                     <span>{bullet}</span>
                   </li>
                 ))}
@@ -113,17 +99,17 @@ export default async function TutorialPage() {
           ))}
         </div>
 
-        <div className="mt-8 rounded-2xl border border-amber-800/40 bg-amber-950/30 p-6">
-          <h2 className="text-lg font-semibold text-amber-300">
+        <section className="surface-card border-amber-200 bg-amber-50 p-6">
+          <h2 className="text-lg font-semibold text-amber-900">
             Best-practice reminder
           </h2>
-          <p className="mt-3 text-sm leading-6 text-amber-100/80">
+          <p className="mt-3 text-sm leading-6 text-amber-900/80">
             Use this product for helpful public discussion replies, not spam.
             The safest campaigns use narrow subreddit lists, strong negative
             keywords, low posting frequency, and reply playbooks that bias the
             AI toward usefulness instead of hard selling.
           </p>
-        </div>
+        </section>
       </div>
     </div>
   );
