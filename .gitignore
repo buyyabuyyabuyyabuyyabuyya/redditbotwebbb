@@ -160,3 +160,6 @@ reddit-chrome-extension/
   # Local tool folders
   /.agent/
   /.kiro/
+
+# Local scratch scripts
+scripts/scratch/
