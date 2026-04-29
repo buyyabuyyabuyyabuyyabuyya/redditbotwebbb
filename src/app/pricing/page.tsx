@@ -44,12 +44,13 @@ export default async function Pricing() {
       name: 'Free',
       price: '$0',
       description:
-        'Validate the workflow with one account and one focused config.',
+        'Validate the managed posting workflow with one focused config.',
       features: [
-        '1 Reddit account',
-        '15 comment actions / month',
+        'Up to 1 website config',
+        'Up to 1 auto-poster',
+        '30 comments per month',
         '1 reply playbook',
-        '1 website config',
+        'Managed Posting Network access',
         'Basic analytics',
       ],
       cta:
@@ -62,12 +63,13 @@ export default async function Pricing() {
       discount: true,
       discountExpiry: 'November 15th',
       description:
-        'For consistent weekly campaigns across multiple accounts and configs.',
+        'For consistent weekly campaigns across multiple website configs.',
       features: [
-        '3 Reddit accounts',
-        '200 comment actions / month',
-        '3 reply playbooks',
-        '3 website configs',
+        'Up to 5 website configs',
+        'Up to 5 auto-posters',
+        '300 comments per month',
+        'Managed Posting Network access',
+        'Unlimited reply playbooks',
         'Advanced analytics',
         'Priority support',
       ],
@@ -76,36 +78,38 @@ export default async function Pricing() {
       popular: true,
     },
     {
-      name: 'Advanced',
+      name: 'Elite',
       price: '$13.99',
       originalPrice: '$18.99',
       discount: true,
       discountExpiry: 'November 15th',
       description:
-        'For teams running higher-volume comment systems with no practical caps.',
+        'For higher-volume managed comment systems with expanded capacity.',
       features: [
-        'Unlimited accounts',
-        'Unlimited comment actions',
+        'Up to 20 website configs',
+        'Up to 20 auto-posters',
+        '1,500 comments per month',
+        'Managed Posting Network access',
         'Unlimited reply playbooks',
-        'Unlimited website configs',
         '24/7 premium support',
       ],
       cta:
-        user?.subscription_status === 'advanced'
+        user?.subscription_status === 'advanced' ||
+        user?.subscription_status === 'elite'
           ? 'Current Plan'
-          : 'Get Advanced',
+          : 'Get Elite',
     },
   ];
 
   return (
-    <div className="py-16">
+    <div className="bg-[#080808] py-16 text-zinc-50">
       <div className="section-shell">
         <div className="mx-auto max-w-2xl text-center">
           <p className="page-kicker">Pricing</p>
           <h1 className="page-title mt-3">
             Simple pricing for comment campaigns
           </h1>
-          <p className="mt-4 text-base leading-7 text-zinc-500">
+          <p className="mt-4 text-base leading-7 text-zinc-400">
             Start small, validate the workflow, and upgrade only when your
             posting volume and number of active configs grow.
           </p>
@@ -118,7 +122,7 @@ export default async function Pricing() {
           />
         </div>
 
-        <div className="mt-10 text-center text-sm text-zinc-500">
+        <div className="mt-10 text-center text-sm text-zinc-400">
           By subscribing, you agree to our{' '}
           <Link href="/terms" className="underline-offset-4 hover:underline">
             terms

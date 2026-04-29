@@ -64,8 +64,7 @@ export async function GET(request: NextRequest) {
             totalPosts: totalPosts || 0,
             intervalMinutes: config.interval_minutes || 30,
             maxPostsPerDay: config.max_posts_per_day || 10,
-            redditAccount:
-              config.reddit_accounts?.username || 'No account assigned',
+            redditAccount: 'Managed network',
             currentWebsiteConfig: config.website_configs,
           };
         })
@@ -148,7 +147,7 @@ export async function GET(request: NextRequest) {
         currentWebsiteConfig: config,
         intervalMinutes: 30,
         maxPostsPerDay: 10,
-        redditAccount: 'No account assigned',
+        redditAccount: 'Managed network',
       });
     }
 
@@ -167,8 +166,7 @@ export async function GET(request: NextRequest) {
       currentWebsiteConfig: config,
       intervalMinutes: autoposterConfig.interval_minutes || 30,
       maxPostsPerDay: autoposterConfig.max_posts_per_day || 10,
-      redditAccount:
-        autoposterConfig.reddit_accounts?.username || 'No account assigned',
+      redditAccount: 'Managed network',
     });
   } catch (error) {
     console.error('Error fetching auto-poster status:', error);

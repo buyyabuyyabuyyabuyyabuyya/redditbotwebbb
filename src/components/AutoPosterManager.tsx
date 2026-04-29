@@ -412,7 +412,7 @@ export default function AutoPosterManager({
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {[
-              ['Assigned account', status.redditAccount],
+              ['Posting network', 'Managed rotation'],
               ['Posting interval', `Every ${status.intervalMinutes} minutes`],
               ['Daily max', status.maxPostsPerDay],
               [

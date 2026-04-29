@@ -7,8 +7,9 @@ import WebsiteConfigManagerStepByStep from './WebsiteConfigManagerStepByStep';
 import { WebsiteConfig } from '../lib/relevanceFiltering';
 
 interface AccountStatus {
-  accounts: any[];
-  estimatedWaitMinutes?: number;
+  status: 'healthy' | 'limited' | 'offline';
+  availableCount: number;
+  nextAvailableIn: number;
 }
 interface PostingHistory {
   id: string;
@@ -48,9 +49,7 @@ export default function DiscussionPosterClient() {
   }, [selectedConfigId]);
 
   const loadAccountStatus = useCallback(async () => {
-    const response = await fetch(
-      '/api/reddit/accounts/available?action=status'
-    );
+    const response = await fetch('/api/reddit/accounts/available');
     const data = await response.json();
     if (response.ok) setAccountStatus(data);
   }, []);
@@ -99,10 +98,20 @@ export default function DiscussionPosterClient() {
     );
 
   const tabs = [
-    { id: 'autoposter', label: 'Auto-Poster', icon: '🤖' },
-    { id: 'config', label: 'Website Configs', icon: '⚙️' },
-    { id: 'history', label: 'Posted Comments', icon: '📝' },
+    { id: 'autoposter', label: 'Auto-Poster' },
+    { id: 'config', label: 'Website Configs' },
+    { id: 'history', label: 'Posted Comments' },
   ] as const;
+
+  const networkLabel = accountStatus
+    ? accountStatus.status.charAt(0).toUpperCase() + accountStatus.status.slice(1)
+    : 'Checking';
+  const networkDot =
+    accountStatus?.status === 'healthy'
+      ? 'bg-emerald-400'
+      : accountStatus?.status === 'limited'
+        ? 'bg-amber-400'
+        : 'bg-red-400';
 
   return (
     <div className="py-12">
@@ -124,16 +133,19 @@ export default function DiscussionPosterClient() {
               <div className="flex items-center gap-4">
                 <div className="flex items-center">
                   <div
-                    className={`mr-2 h-2.5 w-2.5 rounded-full ${accountStatus.accounts?.length > 0 ? 'bg-emerald-400' : 'bg-red-400'}`}
+                    className={`mr-2 h-2.5 w-2.5 rounded-full ${networkDot}`}
                   />
                   <span className="text-sm font-medium text-zinc-800">
-                    {accountStatus.accounts?.length || 0} Reddit account
-                    {accountStatus.accounts?.length === 1 ? '' : 's'} available
+                    Posting Network: {networkLabel}
                   </span>
                 </div>
-                {accountStatus.estimatedWaitMinutes ? (
+                <span className="text-sm text-zinc-500">
+                  {accountStatus.availableCount} posting slot
+                  {accountStatus.availableCount === 1 ? '' : 's'} ready
+                </span>
+                {accountStatus.nextAvailableIn ? (
                   <span className="text-sm text-amber-500">
-                    Next available in {accountStatus.estimatedWaitMinutes}m
+                    Next available in {accountStatus.nextAvailableIn}m
                   </span>
                 ) : null}
               </div>
@@ -156,7 +168,6 @@ export default function DiscussionPosterClient() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`border-b-2 px-1 py-4 text-sm font-medium ${activeTab === tab.id ? 'border-zinc-950 text-zinc-950' : 'border-transparent text-zinc-500 hover:border-black/10 hover:text-zinc-900'}`}
                 >
-                  <span className="mr-2">{tab.icon}</span>
                   {tab.label}
                 </button>
               ))}

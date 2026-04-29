@@ -7,7 +7,7 @@ export default function StructuredData() {
     name: 'RedditOutreach',
     applicationCategory: 'BusinessApplication',
     description:
-      'Automate your Reddit comment outreach with AI-ranked discussion discovery, comment templates, and server-managed auto-posters.',
+      'Run Reddit comment outreach with AI-ranked discussion discovery, reply playbooks, managed posting capacity, and server-managed auto-posters.',
     operatingSystem: 'Web Browser',
     url: 'https://redditoutreach.com',
     offers: {
@@ -22,10 +22,10 @@ export default function StructuredData() {
     featureList: [
       'Automated Reddit comment outreach',
       'Subreddit targeting',
-      'Comment template personalization',
+      'Reply playbook personalization',
       'Analytics and tracking',
       'Comment campaign automation',
-      'Reddit account management',
+      'Managed Posting Network',
     ],
     screenshot: 'https://redditoutreach.com/icon-512x512.png',
     softwareVersion: '1.0',

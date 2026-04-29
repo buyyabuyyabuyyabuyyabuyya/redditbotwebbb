@@ -5,12 +5,12 @@ import Link from 'next/link';
 
 const sections = [
   {
-    title: '1. Add a Reddit account',
-    body: 'Connect one or more Reddit accounts that will be used for posting comments. Use established accounts and keep your behavior helpful and non-spammy.',
+    title: '1. Configure your website',
+    body: 'Add the website you want to promote and describe the audience, customer problem, keywords, negative filters, and target subreddit list.',
     bullets: [
-      'Use accounts with healthy history and verified email',
-      'Avoid repetitive posting behavior',
-      'Review account availability before starting campaigns',
+      'Keep the site description specific',
+      'Add only subreddits you actually want to target',
+      'Use negative keywords to filter out poor-fit discussions',
     ],
   },
   {
@@ -23,19 +23,18 @@ const sections = [
     ],
   },
   {
-    title: '3. Build a website config',
-    body: 'Each website config stores your site description, customer segments, target keywords, negative keywords, business context, and target subreddit list.',
+    title: '3. Review managed network capacity',
+    body: 'The platform handles posting accounts, rotation, cooldowns, and availability. Your job is to make sure the campaign setup is narrow and useful.',
     bullets: [
-      'Add only subreddits you actually want to target',
-      'Use negative keywords to exclude junk traffic',
-      'Keep the site description specific so AI scoring stays sharp',
+      'Check Posting Network status before launch',
+      'Use one focused website config per campaign',
+      'Stay within your monthly comment capacity',
     ],
   },
   {
     title: '4. Start the auto-poster',
     body: 'The auto-poster rotates through the subreddits in your website config, finds relevant discussions, generates a reply using your playbook guidance, and posts one comment per cycle.',
     bullets: [
-      'Check assigned account availability before launch',
       'Review posts today / total posts in the dashboard',
       'Stop campaigns from the active auto-poster panel anytime',
     ],
@@ -65,8 +64,8 @@ export default async function TutorialPage() {
           </h1>
           <p className="mt-4 max-w-3xl text-sm leading-6 text-zinc-500">
             This page replaces the old tutorial. It focuses only on the flows
-            that matter now: accounts, reply playbooks, website configs,
-            subreddits, auto-posting, and posted comments.
+            that matter now: website configs, reply playbooks, managed network
+            status, subreddits, auto-posting, and posted comments.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href="/dashboard" className="ui-button-secondary">

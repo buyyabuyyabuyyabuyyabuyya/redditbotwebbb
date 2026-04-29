@@ -23,13 +23,13 @@ export default function Navigation() {
     pathname !== '/' && pathname !== '/sign-in' && pathname !== '/sign-up';
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-black/8 bg-[#f5f5ef]/90 backdrop-blur-xl">
+    <nav className="sticky top-0 z-50 border-b border-white/10 bg-[#080808]/90 backdrop-blur-xl">
       <div className="section-shell">
         <div className="flex h-16 items-center justify-between gap-6">
           <div className="flex items-center gap-8">
             <Link
               href={user ? '/dashboard' : '/'}
-              className="text-lg font-semibold tracking-tight text-zinc-950"
+              className="text-lg font-semibold tracking-tight text-zinc-50"
             >
               RedditOutreach
             </Link>
@@ -39,7 +39,7 @@ export default function Navigation() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`text-sm font-medium transition-colors ${pathname === item.href ? 'text-zinc-950' : 'text-zinc-500 hover:text-zinc-900'}`}
+                    className={`text-sm font-medium transition-colors ${pathname === item.href ? 'text-zinc-50' : 'text-zinc-400 hover:text-zinc-100'}`}
                   >
                     {item.name}
                   </Link>
@@ -51,7 +51,7 @@ export default function Navigation() {
           <div className="flex items-center gap-3">
             {user ? (
               <>
-                <span className="hidden text-sm text-zinc-500 md:block">
+                <span className="hidden text-sm text-zinc-400 md:block">
                   {user.emailAddresses[0]?.emailAddress}
                 </span>
                 <UserButton afterSignOutUrl="/" />

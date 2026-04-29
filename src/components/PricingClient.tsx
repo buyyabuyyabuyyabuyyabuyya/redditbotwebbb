@@ -79,15 +79,22 @@ export default function PricingClient({
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-      {plans.map((plan) => (
+      {plans.map((plan) => {
+        const isCurrentPlan =
+          (plan.name === 'Free' && userSubscriptionStatus === 'free') ||
+          (plan.name === 'Pro' && userSubscriptionStatus === 'pro') ||
+          (plan.name === 'Elite' &&
+            (userSubscriptionStatus === 'elite' ||
+              userSubscriptionStatus === 'advanced'));
+        return (
         <div
           key={plan.name}
-          className={`rounded-3xl border p-8 shadow-sm ${plan.popular ? 'border-[#6557ff] bg-[#6557ff] text-white' : 'border-black/10 bg-white text-zinc-950'}`}
+          className={`rounded-2xl border p-8 shadow-sm ${plan.popular ? 'border-[#7c6cff] bg-[#7c6cff] text-white' : 'border-white/10 bg-[#111111] text-zinc-50'}`}
         >
           <div className="flex items-center justify-between gap-4">
             <div>
               <div
-                className={`text-sm font-medium ${plan.popular ? 'text-white/70' : 'text-zinc-500'}`}
+                className={`text-sm font-medium ${plan.popular ? 'text-white/70' : 'text-zinc-400'}`}
               >
                 {plan.name}
               </div>
@@ -95,7 +102,7 @@ export default function PricingClient({
                 {plan.price}
                 {plan.price !== '$0' ? (
                   <span
-                    className={`ml-1 text-sm font-medium ${plan.popular ? 'text-white/70' : 'text-zinc-500'}`}
+                    className={`ml-1 text-sm font-medium ${plan.popular ? 'text-white/70' : 'text-zinc-400'}`}
                   >
                     /month
                   </span>
@@ -110,14 +117,14 @@ export default function PricingClient({
           </div>
 
           <p
-            className={`mt-4 text-sm leading-6 ${plan.popular ? 'text-white/80' : 'text-zinc-500'}`}
+            className={`mt-4 text-sm leading-6 ${plan.popular ? 'text-white/80' : 'text-zinc-400'}`}
           >
             {plan.description}
           </p>
 
           {plan.discount && plan.originalPrice ? (
             <p
-              className={`mt-4 text-sm ${plan.popular ? 'text-white/80' : 'text-zinc-500'}`}
+              className={`mt-4 text-sm ${plan.popular ? 'text-white/80' : 'text-zinc-400'}`}
             >
               <span className="line-through">{plan.originalPrice}</span> ·
               discount ends {plan.discountExpiry}
@@ -125,12 +132,12 @@ export default function PricingClient({
           ) : null}
 
           <ul
-            className={`mt-8 space-y-3 text-sm leading-6 ${plan.popular ? 'text-white/90' : 'text-zinc-600'}`}
+            className={`mt-8 space-y-3 text-sm leading-6 ${plan.popular ? 'text-white/90' : 'text-zinc-300'}`}
           >
             {plan.features.map((feature) => (
               <li key={feature} className="flex gap-3">
                 <span
-                  className={`mt-1 h-1.5 w-1.5 rounded-full ${plan.popular ? 'bg-white' : 'bg-zinc-900'}`}
+                  className={`mt-1 h-1.5 w-1.5 rounded-full ${plan.popular ? 'bg-white' : 'bg-zinc-400'}`}
                 />
                 <span>{feature}</span>
               </li>
@@ -138,11 +145,11 @@ export default function PricingClient({
           </ul>
 
           <div className="mt-8">
-            {plan.name === 'Free' && userSubscriptionStatus === 'free' ? (
+            {isCurrentPlan ? (
               <button
                 type="button"
                 disabled
-                className="w-full rounded-xl border border-black/10 bg-zinc-100 px-4 py-3 text-sm font-medium text-zinc-500"
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-zinc-400"
               >
                 {plan.cta}
               </button>
@@ -150,15 +157,15 @@ export default function PricingClient({
               <button
                 onClick={() => handleSubscribe('pro')}
                 disabled={loading === 'pro'}
-                className={`w-full rounded-xl px-4 py-3 text-sm font-medium ${plan.popular ? 'bg-white text-zinc-950' : 'bg-zinc-950 text-white'} disabled:opacity-50`}
+                className={`w-full rounded-xl px-4 py-3 text-sm font-medium ${plan.popular ? 'bg-white text-zinc-950' : 'bg-white text-zinc-950'} disabled:opacity-50`}
               >
                 {loading === 'pro' ? 'Loading...' : plan.cta}
               </button>
-            ) : plan.name === 'Advanced' ? (
+            ) : plan.name === 'Elite' ? (
               <button
                 onClick={() => handleSubscribe('advanced')}
                 disabled={loading === 'advanced'}
-                className="w-full rounded-xl bg-zinc-950 px-4 py-3 text-sm font-medium text-white disabled:opacity-50"
+                className="w-full rounded-xl bg-white px-4 py-3 text-sm font-medium text-zinc-950 disabled:opacity-50"
               >
                 {loading === 'advanced' ? 'Loading...' : plan.cta}
               </button>
@@ -168,14 +175,15 @@ export default function PricingClient({
                 afterSignUpUrl="/dashboard"
                 redirectUrl={redirectUrl}
               >
-                <button className="w-full rounded-xl bg-zinc-950 px-4 py-3 text-sm font-medium text-white">
+                <button className="w-full rounded-xl bg-white px-4 py-3 text-sm font-medium text-zinc-950">
                   {plan.cta}
                 </button>
               </SignUpButton>
             )}
           </div>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

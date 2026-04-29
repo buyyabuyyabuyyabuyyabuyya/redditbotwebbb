@@ -6,7 +6,7 @@ import { Analytics } from '@vercel/analytics/next';
 
 const featureCards = [
   {
-    title: 'Own your subreddit list',
+    title: 'Configure your subreddit list',
     description:
       'Every website config has its own target subreddit list, so campaigns only run where you explicitly want them to run.',
   },
@@ -16,16 +16,16 @@ const featureCards = [
       'Reply playbooks control tone, promotion level, and banned phrasing so generated comments stay useful and on-brand.',
   },
   {
-    title: 'Audit every comment',
+    title: 'Audit every managed comment',
     description:
       'Track what was posted, from which config, and how your outreach system is behaving over time.',
   },
 ];
 
 const workflow = [
-  'Connect account',
+  'Configure website',
   'Create playbook',
-  'Add config + subreddits',
+  'Add target subreddits',
   'Start auto-poster',
   'Review posted comments',
 ];
@@ -38,22 +38,23 @@ export default async function Home() {
   }
 
   return (
-    <div className="bg-[#f5f5ef] text-zinc-950">
+    <div className="bg-[#080808] text-zinc-50">
       <Analytics />
       <main>
-        <section className="border-b border-black/8 px-6 py-20 lg:py-28">
+        <section className="border-b border-white/10 px-6 py-20 lg:py-28">
           <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div>
-              <div className="inline-flex items-center rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-zinc-500">
-                Comment-first Reddit outreach
+              <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-zinc-400">
+                Managed Reddit comment outreach
               </div>
-              <h1 className="mt-6 max-w-4xl text-5xl font-semibold tracking-tight text-zinc-950 sm:text-6xl">
-                Cleaner Reddit comment campaigns, without the AI-template look.
+              <h1 className="mt-6 max-w-4xl text-5xl font-semibold tracking-tight text-zinc-50 sm:text-6xl">
+                Comment campaigns powered by a managed posting network.
               </h1>
-              <p className="mt-6 max-w-2xl text-lg leading-8 text-zinc-600">
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-zinc-400">
                 RedditOutreach helps you define subreddit targets, guide AI with
                 reply playbooks, run auto-posters, and review every posted
-                comment from one focused workspace.
+                comment while the platform handles account rotation in the
+                background.
               </p>
               <div className="mt-10 flex flex-wrap gap-4">
                 <AuthButtons />
@@ -61,13 +62,13 @@ export default async function Home() {
             </div>
 
             <div className="surface-card overflow-hidden p-4 lg:p-6">
-              <div className="rounded-3xl border border-black/8 bg-[#fafaf6] p-6">
+              <div className="rounded-2xl border border-white/10 bg-[#141414] p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-zinc-500">
+                    <p className="text-sm text-zinc-400">
                       Live workspace preview
                     </p>
-                    <h2 className="mt-1 text-2xl font-semibold text-zinc-950">
+                    <h2 className="mt-1 text-2xl font-semibold text-zinc-50">
                       Comment operations
                     </h2>
                   </div>
@@ -76,41 +77,41 @@ export default async function Home() {
                   </span>
                 </div>
                 <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-black/8 bg-white p-4">
+                  <div className="rounded-2xl border border-white/10 bg-[#0c0c0c] p-4">
                     <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">
                       Website config
                     </p>
-                    <p className="mt-3 text-sm font-medium text-zinc-950">
+                    <p className="mt-3 text-sm font-medium text-zinc-50">
                       yourapp.com
                     </p>
-                    <p className="mt-2 text-sm text-zinc-500">
+                    <p className="mt-2 text-sm text-zinc-400">
                       SaaS • startups • entrepreneur • indiehackers
                     </p>
                   </div>
-                  <div className="rounded-2xl border border-black/8 bg-white p-4">
+                  <div className="rounded-2xl border border-white/10 bg-[#0c0c0c] p-4">
                     <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">
                       Reply playbook
                     </p>
-                    <p className="mt-3 text-sm font-medium text-zinc-950">
+                    <p className="mt-3 text-sm font-medium text-zinc-50">
                       Helpful founder tone
                     </p>
-                    <p className="mt-2 text-sm text-zinc-500">
+                    <p className="mt-2 text-sm text-zinc-400">
                       Soft CTA • no links unless relevant • ask one question
                     </p>
                   </div>
-                  <div className="rounded-2xl border border-black/8 bg-white p-4">
+                  <div className="rounded-2xl border border-white/10 bg-[#0c0c0c] p-4">
                     <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">
                       Posts today
                     </p>
-                    <p className="mt-3 text-3xl font-semibold text-zinc-950">
+                    <p className="mt-3 text-3xl font-semibold text-zinc-50">
                       12
                     </p>
                   </div>
-                  <div className="rounded-2xl border border-black/8 bg-white p-4">
+                  <div className="rounded-2xl border border-white/10 bg-[#0c0c0c] p-4">
                     <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">
                       Next run
                     </p>
-                    <p className="mt-3 text-3xl font-semibold text-zinc-950">
+                    <p className="mt-3 text-3xl font-semibold text-zinc-50">
                       18m
                     </p>
                   </div>
@@ -124,10 +125,10 @@ export default async function Home() {
           <div className="mx-auto max-w-7xl">
             <div className="max-w-2xl">
               <p className="page-kicker">Product</p>
-              <h2 className="mt-4 text-3xl font-semibold text-zinc-950 sm:text-4xl">
+              <h2 className="mt-4 text-3xl font-semibold text-zinc-50 sm:text-4xl">
                 Built for useful comments, not noisy automation.
               </h2>
-              <p className="mt-4 text-base leading-7 text-zinc-600">
+              <p className="mt-4 text-base leading-7 text-zinc-400">
                 Everything in the workflow is designed around cleaner targeting,
                 stricter writing control, and a visible audit trail.
               </p>
@@ -135,10 +136,10 @@ export default async function Home() {
             <div className="mt-10 grid gap-4 lg:grid-cols-3">
               {featureCards.map((feature) => (
                 <div key={feature.title} className="surface-card p-6">
-                  <h3 className="text-xl font-medium text-zinc-950">
+                  <h3 className="text-xl font-medium text-zinc-50">
                     {feature.title}
                   </h3>
-                  <p className="mt-4 text-sm leading-6 text-zinc-600">
+                  <p className="mt-4 text-sm leading-6 text-zinc-400">
                     {feature.description}
                   </p>
                 </div>
@@ -149,12 +150,12 @@ export default async function Home() {
 
         <section
           id="workflow"
-          className="border-y border-black/8 bg-white px-6 py-20"
+          className="border-y border-white/10 bg-[#0c0c0c] px-6 py-20"
         >
           <div className="mx-auto max-w-7xl">
             <div className="max-w-2xl">
               <p className="page-kicker">Workflow</p>
-              <h2 className="mt-4 text-3xl font-semibold text-zinc-950 sm:text-4xl">
+              <h2 className="mt-4 text-3xl font-semibold text-zinc-50 sm:text-4xl">
                 A tighter path from setup to posted comments.
               </h2>
             </div>
@@ -162,7 +163,7 @@ export default async function Home() {
               {workflow.map((step, index) => (
                 <div key={step} className="surface-subtle p-5">
                   <div className="text-sm text-zinc-500">0{index + 1}</div>
-                  <div className="mt-4 text-base font-medium text-zinc-950">
+                  <div className="mt-4 text-base font-medium text-zinc-50">
                     {step}
                   </div>
                 </div>
@@ -172,16 +173,16 @@ export default async function Home() {
         </section>
 
         <section id="pricing" className="px-6 py-20">
-          <div className="mx-auto flex max-w-7xl flex-col gap-8 rounded-3xl border border-black/8 bg-white p-8 lg:flex-row lg:items-end lg:justify-between lg:p-12">
+          <div className="mx-auto flex max-w-7xl flex-col gap-8 rounded-2xl border border-white/10 bg-[#111111] p-8 lg:flex-row lg:items-end lg:justify-between lg:p-12">
             <div className="max-w-2xl">
               <p className="page-kicker">Pricing</p>
-              <h2 className="mt-4 text-3xl font-semibold text-zinc-950 sm:text-4xl">
+              <h2 className="mt-4 text-3xl font-semibold text-zinc-50 sm:text-4xl">
                 Start free. Upgrade when your comment volume grows.
               </h2>
-              <p className="mt-4 text-base leading-7 text-zinc-600">
+              <p className="mt-4 text-base leading-7 text-zinc-400">
                 The free plan is enough to validate the full workflow. Upgrade
-                only when you need more accounts, more website configs, and more
-                comment actions.
+                only when you need more website configs, more auto-posters, and
+                more monthly comments.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">

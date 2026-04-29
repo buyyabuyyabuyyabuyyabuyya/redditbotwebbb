@@ -9,7 +9,6 @@ interface UserStatsProps {
 }
 
 interface StatsData {
-  totalAccounts: number;
   totalTemplates: number;
   totalCommentsPosted: number;
   activeAutoPosters: number;
@@ -20,39 +19,30 @@ export default function UserStats({
   refreshTrigger = 0,
 }: UserStatsProps) {
   const [stats, setStats] = useState<StatsData>({
-    totalAccounts: 0,
     totalTemplates: 0,
     totalCommentsPosted: 0,
     activeAutoPosters: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
-  const { commentActionCount, remaining, isProUser } = useUserPlan();
+  const { commentActionCount, remaining, limit, maxAutoPosters } =
+    useUserPlan();
 
   useEffect(() => {
     const fetchStats = async () => {
       if (!userId) return;
       setIsLoading(true);
       try {
-        const [
-          accountsResponse,
-          templatesResponse,
-          postedStatsResponse,
-          autoPosterResponse,
-        ] = await Promise.all([
-          fetch('/api/reddit/account'),
-          fetch('/api/reddit/templates'),
-          fetch('/api/posted-discussions?action=stats'),
-          fetch('/api/auto-poster/status'),
-        ]);
-        const accountsData = await accountsResponse.json();
+        const [templatesResponse, postedStatsResponse, autoPosterResponse] =
+          await Promise.all([
+            fetch('/api/reddit/templates'),
+            fetch('/api/posted-discussions?action=stats'),
+            fetch('/api/auto-poster/status'),
+          ]);
         const templatesData = await templatesResponse.json();
         const postedStatsData = await postedStatsResponse.json();
         const autoPosterData = await autoPosterResponse.json();
 
         setStats({
-          totalAccounts: accountsResponse.ok
-            ? accountsData.accounts?.length || 0
-            : 0,
           totalTemplates: templatesResponse.ok
             ? templatesData.templates?.length || 0
             : 0,
@@ -74,6 +64,7 @@ export default function UserStats({
   }, [userId, refreshTrigger]);
 
   const displayCount = commentActionCount ?? stats.totalCommentsPosted;
+  const monthlyLimit = limit ?? 30;
 
   if (isLoading) {
     return (
@@ -87,17 +78,9 @@ export default function UserStats({
 
   const cards = [
     {
-      title: 'Comments posted',
-      value: displayCount,
-      desc: !isProUser
-        ? `${remaining} remaining this cycle`
-        : 'Unlimited plan usage',
-    },
-    {
-      title: 'Reddit accounts',
-      value: stats.totalAccounts,
-      desc:
-        stats.totalAccounts === 0 ? 'Add an account to start' : 'Ready to post',
+      title: 'Monthly usage',
+      value: `${displayCount}/${monthlyLimit}`,
+      desc: `${remaining ?? Math.max(0, monthlyLimit - displayCount)} comments remaining`,
     },
     {
       title: 'Reply playbooks',
@@ -109,11 +92,16 @@ export default function UserStats({
     },
     {
       title: 'Active auto-posters',
-      value: stats.activeAutoPosters,
+      value: `${stats.activeAutoPosters}/${maxAutoPosters}`,
       desc:
         stats.activeAutoPosters === 0
           ? 'No active configs'
-          : 'Currently running',
+          : 'Managed network running',
+    },
+    {
+      title: 'Posting network',
+      value: 'Managed',
+      desc: 'Platform pool handles account rotation',
     },
   ];
 

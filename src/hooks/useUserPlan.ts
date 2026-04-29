@@ -9,6 +9,8 @@ export function useUserPlan() {
   const [commentActionCount, setCommentActionCount] = useState(0);
   const [remaining, setRemaining] = useState<number | null>(null);
   const [limit, setLimit] = useState<number | null>(null);
+  const [maxWebsiteConfigs, setMaxWebsiteConfigs] = useState(1);
+  const [maxAutoPosters, setMaxAutoPosters] = useState(1);
   const [loading, setLoading] = useState(true);
 
   const channelRef = useRef<RealtimeChannel | null>(null);
@@ -35,9 +37,13 @@ export function useUserPlan() {
 
         const data = await response.json();
         setPlan(data.subscription_status);
-        setCommentActionCount(data.comment_count ?? data.message_count ?? 0);
+        setCommentActionCount(
+          data.monthly_comment_count ?? data.comment_count ?? data.message_count ?? 0
+        );
         setRemaining(data.remaining);
         setLimit(data.limit);
+        setMaxWebsiteConfigs(data.max_website_configs ?? 1);
+        setMaxAutoPosters(data.max_auto_posters ?? 1);
       } catch (error) {
         console.error('Error fetching user plan:', error);
       } finally {
@@ -87,6 +93,8 @@ export function useUserPlan() {
     commentActionCount,
     messageCount: commentActionCount,
     limit,
+    maxWebsiteConfigs,
+    maxAutoPosters,
     loading,
     remaining,
     isProUser,

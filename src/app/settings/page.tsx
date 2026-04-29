@@ -4,6 +4,7 @@ import Link from 'next/link';
 import DuplicateSubscriptionWarning from '../../components/DuplicateSubscriptionWarning';
 import CommentCounter from '../../components/CommentCounter';
 import { createClient } from '@supabase/supabase-js';
+import { getPlanLimits } from '@/utils/planLimits';
 
 export default async function Settings() {
   const { userId } = await auth();
@@ -23,13 +24,26 @@ export default async function Settings() {
     .select('*')
     .eq('id', userId)
     .single();
+  const monthStart = new Date();
+  monthStart.setUTCDate(1);
+  monthStart.setUTCHours(0, 0, 0, 0);
+
   const { count: commentCount } = await supabaseAdmin
     .from('posted_reddit_discussions')
     .select('id, website_configs!inner(user_id)', {
       count: 'exact',
       head: true,
     })
-    .eq('website_configs.user_id', userId);
+    .eq('website_configs.user_id', userId)
+    .gte('created_at', monthStart.toISOString());
+  const planStatus = user?.subscription_status || 'free';
+  const limits = getPlanLimits(planStatus);
+  const planLabel =
+    planStatus === 'pro'
+      ? 'Pro'
+      : planStatus === 'advanced' || planStatus === 'elite'
+        ? 'Elite'
+        : 'Free';
 
   return (
     <div className="py-12">
@@ -37,11 +51,11 @@ export default async function Settings() {
         <div>
           <p className="page-kicker">Settings</p>
           <h1 className="page-title mt-3">
-            Billing, plan usage, and account controls
+            Billing, plan usage, and workspace controls
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-500">
-            Manage your subscription, monitor usage, and handle the core account
-            actions for your workspace.
+            Manage your subscription, monitor monthly posting capacity, and
+            review workspace-level controls.
           </p>
         </div>
 
@@ -70,11 +84,7 @@ export default async function Settings() {
                 Current plan
               </div>
               <div className="mt-3 text-2xl font-semibold text-zinc-950">
-                {user?.subscription_status === 'pro'
-                  ? 'Pro'
-                  : user?.subscription_status === 'advanced'
-                    ? 'Advanced'
-                    : 'Free'}
+                {planLabel}
               </div>
             </div>
             <div className="surface-subtle p-5">
@@ -90,11 +100,7 @@ export default async function Settings() {
                 Plan limit
               </div>
               <div className="mt-3 text-2xl font-semibold text-zinc-950">
-                {user?.subscription_status === 'pro'
-                  ? '200 / month'
-                  : user?.subscription_status === 'advanced'
-                    ? 'Unlimited'
-                    : '15 / month'}
+                {limits.monthlyCommentLimit.toLocaleString()} / month
               </div>
             </div>
           </div>

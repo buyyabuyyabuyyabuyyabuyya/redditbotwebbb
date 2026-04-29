@@ -4,17 +4,10 @@ import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useUser } from '@clerk/nextjs';
 import { Dialog } from '@headlessui/react';
-import AddRedditAccount from './AddRedditAccount';
 import CreateMessageTemplate from './CreateMessageTemplate';
 import LogViewer from './LogViewer';
 import UserStats from './UserStats';
 
-interface RedditAccount {
-  id: string;
-  username: string;
-  is_validated: boolean | null;
-  status?: string;
-}
 interface ReplyPlaybook {
   id: string;
   name: string;
@@ -34,16 +27,16 @@ function Modal({
 }) {
   return (
     <Dialog open={open} onClose={onClose} className="relative z-50">
-      <div className="fixed inset-0 bg-black/20" aria-hidden="true" />
+      <div className="fixed inset-0 bg-black/70" aria-hidden="true" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="mx-auto max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-3xl border border-black/10 bg-white shadow-2xl">
-          <div className="flex items-center justify-between border-b border-black/8 px-5 py-4">
-            <Dialog.Title className="text-lg font-semibold text-zinc-950">
+        <Dialog.Panel className="mx-auto max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-2xl border border-white/10 bg-[#111111] shadow-2xl">
+          <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+            <Dialog.Title className="text-lg font-semibold text-zinc-50">
               {title}
             </Dialog.Title>
             <button
               onClick={onClose}
-              className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-950"
+              className="rounded-lg p-2 text-zinc-400 hover:bg-white/10 hover:text-zinc-50"
             >
               ✕
             </button>
@@ -57,55 +50,16 @@ function Modal({
   );
 }
 
-function AccountRow({
-  account,
-  onEdit,
-  onDelete,
-}: {
-  account: RedditAccount;
-  onEdit: () => void;
-  onDelete: () => void;
-}) {
-  return (
-    <div className="flex flex-col gap-3 py-4 md:flex-row md:items-center md:justify-between">
-      <div>
-        <div className="font-medium text-zinc-950">u/{account.username}</div>
-        <div className="mt-1 text-sm text-zinc-500">
-          {account.status ||
-            (account.is_validated ? 'Validated' : 'Needs validation')}
-        </div>
-      </div>
-      <div className="flex gap-2">
-        <button onClick={onEdit} className="ui-button-secondary">
-          Edit
-        </button>
-        <button onClick={onDelete} className="ui-button-danger">
-          Delete
-        </button>
-      </div>
-    </div>
-  );
-}
-
 export default function Dashboard() {
   const { user } = useUser();
-  const [accounts, setAccounts] = useState<RedditAccount[]>([]);
   const [templates, setTemplates] = useState<ReplyPlaybook[]>([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [accountToEdit, setAccountToEdit] = useState<any | null>(null);
   const [templateToEdit, setTemplateToEdit] = useState<ReplyPlaybook | null>(
     null
   );
-  const [showAddAccount, setShowAddAccount] = useState(false);
-  const [showEditAccount, setShowEditAccount] = useState(false);
   const [showCreateTemplate, setShowCreateTemplate] = useState(false);
   const [showEditTemplate, setShowEditTemplate] = useState(false);
 
-  const loadAccounts = async () => {
-    const response = await fetch('/api/reddit/account');
-    const data = await response.json();
-    if (response.ok) setAccounts(data.accounts || []);
-  };
   const loadTemplates = async () => {
     const response = await fetch('/api/reddit/templates');
     const data = await response.json();
@@ -114,31 +68,8 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!user) return;
-    void loadAccounts();
     void loadTemplates();
   }, [user]);
-
-  const handleDeleteAccount = async (accountId: string) => {
-    if (!confirm('Delete this Reddit account?')) return;
-    const response = await fetch(`/api/reddit/account?id=${accountId}`, {
-      method: 'DELETE',
-    });
-    if (response.ok) {
-      await loadAccounts();
-      setRefreshTrigger((value) => value + 1);
-    }
-  };
-
-  const handleEditAccount = async (accountId: string) => {
-    const response = await fetch(
-      `/api/reddit/account?id=${accountId}&credentials=true`
-    );
-    const data = await response.json();
-    if (response.ok) {
-      setAccountToEdit(data.account);
-      setShowEditAccount(true);
-    }
-  };
 
   const handleDeleteTemplate = async (templateId: string) => {
     if (!confirm('Delete this reply playbook?')) return;
@@ -161,12 +92,13 @@ export default function Dashboard() {
             <div className="p-8">
               <p className="page-kicker">Dashboard</p>
               <h1 className="page-title mt-3">
-                Accounts, playbooks, and campaign activity in one place
+                Managed network, playbooks, and campaign activity
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-zinc-500">
-                The dashboard is for high-level control: manage posting
-                accounts, adjust reply playbooks, and jump into the discussion
-                workspace when you want to operate campaigns.
+                The dashboard is for high-level control: review posting
+                capacity, adjust reply playbooks, and jump into the discussion
+                workspace when you want to operate campaigns. Posting account
+                rotation is handled by the managed posting network.
               </p>
             </div>
             <div className="border-l border-black/8 bg-[#fafaf6] p-8">
@@ -184,7 +116,7 @@ export default function Dashboard() {
               <div className="mt-6 text-sm leading-6 text-zinc-500">
                 <p>Use Discussion Poster for campaign setup and execution.</p>
                 <p className="mt-2">
-                  Use this dashboard for account/admin tasks and overall
+                  Use this dashboard for usage, playbooks, and overall
                   visibility.
                 </p>
               </div>
@@ -196,38 +128,30 @@ export default function Dashboard() {
 
         <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
           <section className="surface-card p-6">
-            <div className="mb-6 flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-zinc-950">
-                  Reddit accounts
-                </h2>
-                <p className="mt-1 text-sm text-zinc-500">
-                  Accounts used for replies and auto-posting.
-                </p>
-              </div>
-              <button
-                onClick={() => setShowAddAccount(true)}
-                className="ui-button-primary"
-              >
-                Add account
-              </button>
+            <h2 className="text-xl font-semibold text-zinc-950">
+              Managed Posting Network
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-zinc-500">
+              Posting accounts, cooldowns, rotation, proxies, and credentials
+              are operated by the platform. Your workspace only needs website
+              configs, reply playbooks, and active auto-posters.
+            </p>
+            <div className="mt-6 grid gap-3 md:grid-cols-3">
+              {[
+                ['Account setup', 'Handled by platform'],
+                ['Rotation', 'Automatic'],
+                ['User action', 'Configure website'],
+              ].map(([label, value]) => (
+                <div key={label} className="surface-subtle p-4">
+                  <div className="text-xs uppercase tracking-[0.2em] text-zinc-500">
+                    {label}
+                  </div>
+                  <div className="mt-2 text-sm font-medium text-zinc-950">
+                    {value}
+                  </div>
+                </div>
+              ))}
             </div>
-            {accounts.length === 0 ? (
-              <div className="surface-subtle p-6 text-sm text-zinc-500">
-                No Reddit accounts added yet.
-              </div>
-            ) : (
-              <div className="divide-y divide-black/8">
-                {accounts.map((account) => (
-                  <AccountRow
-                    key={account.id}
-                    account={account}
-                    onEdit={() => handleEditAccount(account.id)}
-                    onDelete={() => handleDeleteAccount(account.id)}
-                  />
-                ))}
-              </div>
-            )}
           </section>
 
           <section className="surface-card p-6">
@@ -342,38 +266,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <Modal
-        open={showAddAccount}
-        onClose={() => setShowAddAccount(false)}
-        title="Add Reddit account"
-      >
-        <AddRedditAccount
-          userId={user.id}
-          onSuccess={() => {
-            setShowAddAccount(false);
-            void loadAccounts();
-            setRefreshTrigger((value) => value + 1);
-          }}
-        />
-      </Modal>
-      <Modal
-        open={showEditAccount}
-        onClose={() => setShowEditAccount(false)}
-        title="Edit Reddit account"
-      >
-        {accountToEdit && (
-          <AddRedditAccount
-            userId={user.id}
-            account={accountToEdit}
-            onSuccess={() => {
-              setShowEditAccount(false);
-              setAccountToEdit(null);
-              void loadAccounts();
-              setRefreshTrigger((value) => value + 1);
-            }}
-          />
-        )}
-      </Modal>
       <Modal
         open={showCreateTemplate}
         onClose={() => setShowCreateTemplate(false)}

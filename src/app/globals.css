@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --background: #f5f5ef;
-  --foreground: #111111;
+  --background: #080808;
+  --foreground: #fafafa;
 }
 
 @theme inline {
@@ -22,11 +22,11 @@ body {
 
 @layer components {
   .surface-card {
-    @apply rounded-3xl border border-black/10 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)];
+    @apply rounded-2xl border border-white/10 bg-[#111111] shadow-[0_1px_2px_rgba(0,0,0,0.35)];
   }
 
   .surface-subtle {
-    @apply rounded-2xl border border-black/10 bg-[#fafaf6];
+    @apply rounded-xl border border-white/10 bg-[#181818];
   }
 
   .section-shell {
@@ -34,22 +34,73 @@ body {
   }
 
   .page-title {
-    @apply text-3xl font-semibold tracking-tight text-zinc-950;
+    @apply text-3xl font-semibold tracking-tight text-zinc-50;
   }
 
   .page-kicker {
-    @apply text-xs font-medium uppercase tracking-[0.2em] text-zinc-500;
+    @apply text-xs font-medium uppercase tracking-[0.2em] text-zinc-400;
   }
 
   .ui-button-primary {
-    @apply inline-flex items-center justify-center rounded-xl bg-[#6557ff] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#5548ec];
+    @apply inline-flex items-center justify-center rounded-xl bg-[#7c6cff] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#6b5af0];
   }
 
   .ui-button-secondary {
-    @apply inline-flex items-center justify-center rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-medium text-zinc-900 transition hover:bg-zinc-50;
+    @apply inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-zinc-100 transition hover:bg-white/10;
   }
 
   .ui-button-danger {
     @apply inline-flex items-center justify-center rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100;
+  }
+
+  .surface-card .text-zinc-950,
+  .surface-subtle .text-zinc-950 {
+    @apply text-zinc-50;
+  }
+
+  .surface-card .text-zinc-900,
+  .surface-subtle .text-zinc-900,
+  .surface-card .text-zinc-800,
+  .surface-subtle .text-zinc-800 {
+    @apply text-zinc-100;
+  }
+
+  .surface-card .text-zinc-700,
+  .surface-subtle .text-zinc-700,
+  .surface-card .text-zinc-600,
+  .surface-subtle .text-zinc-600 {
+    @apply text-zinc-300;
+  }
+
+  .surface-card .text-zinc-500,
+  .surface-subtle .text-zinc-500 {
+    @apply text-zinc-400;
+  }
+
+  .surface-card .bg-white,
+  .surface-subtle .bg-white,
+  .surface-card .bg-\[\#fafaf6\],
+  .surface-subtle .bg-\[\#fafaf6\] {
+    @apply bg-[#181818];
+  }
+
+  .dark-policy .text-gray-900,
+  .dark-policy .text-gray-800 {
+    @apply text-zinc-50;
+  }
+
+  .dark-policy .text-gray-700,
+  .dark-policy .text-gray-600,
+  .dark-policy .text-gray-500 {
+    @apply text-zinc-300;
+  }
+
+  .dark-policy .bg-white,
+  .dark-policy .bg-gray-50 {
+    @apply bg-[#111111];
+  }
+
+  .dark-policy .border-gray-200 {
+    @apply border-white/10;
   }
 }

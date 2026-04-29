@@ -803,7 +803,7 @@ function AutoReplyStep({ discussions, onBack, onContinue }: {
 
   const handleGenerateReplies = async () => {
     if (!selectedAccountId) {
-      alert('Please select a Reddit account first');
+      alert('Managed Posting Network capacity is selected automatically.');
       return;
     }
 

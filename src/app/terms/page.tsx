@@ -2,10 +2,10 @@ import Link from 'next/link';
 
 export default function TermsOfService() {
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="dark-policy min-h-screen bg-[#080808] py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white shadow-lg rounded-lg p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">
+        <div className="rounded-2xl border border-white/10 bg-[#111111] p-8 shadow-lg">
+          <h1 className="text-3xl font-bold text-zinc-50 mb-8">
             Terms of Service
           </h1>
 
@@ -50,7 +50,7 @@ export default function TermsOfService() {
               <p className="text-gray-600 mb-4">You agree to:</p>
               <ul className="list-disc pl-6 text-gray-600 space-y-2">
                 <li>
-                  <strong>Comply with Reddit's Terms:</strong> Follow all Reddit
+                  <strong>Comply with Reddit&apos;s Terms:</strong> Follow all Reddit
                   terms of service and community guidelines
                 </li>
                 <li>
@@ -88,7 +88,7 @@ export default function TermsOfService() {
                   Send spam, leave low-value comments, or engage in harassment
                 </li>
                 <li>
-                  Violate Reddit's terms of service or community guidelines
+                  Violate Reddit&apos;s terms of service or community guidelines
                 </li>
                 <li>Engage in illegal activities or promote illegal content</li>
                 <li>Impersonate others or create fake accounts</li>
@@ -122,7 +122,8 @@ export default function TermsOfService() {
                 </li>
                 <li>
                   <strong>Usage Limits:</strong> Each plan has specific limits
-                  on bot accounts, comment actions, auto-posters, and features
+                  on managed posting capacity, monthly comments, auto-posters,
+                  and features
                 </li>
               </ul>
             </section>
@@ -143,17 +144,17 @@ export default function TermsOfService() {
                 7. Reddit API Compliance
               </h2>
               <p className="text-gray-600 mb-4">
-                Our service relies on Reddit's API and is subject to Reddit's
+                Our service relies on Reddit&apos;s API and is subject to Reddit&apos;s
                 terms and limitations:
               </p>
               <ul className="list-disc pl-6 text-gray-600 space-y-2">
                 <li>
-                  We comply with Reddit's API rate limits and usage policies
+                  We comply with Reddit&apos;s API rate limits and usage policies
                 </li>
                 <li>Reddit may change their API or terms at any time</li>
                 <li>
                   Users are responsible for ensuring their bot activities comply
-                  with Reddit's rules
+                  with Reddit&apos;s rules
                 </li>
                 <li>We may suspend service if Reddit access is restricted</li>
               </ul>

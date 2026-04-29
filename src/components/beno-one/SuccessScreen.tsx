@@ -27,7 +27,7 @@ export default function SuccessScreen({ productName, onViewCustomers, onStartOve
         </h1>
         
         <p className="text-lg text-gray-600 mb-8">
-          Beno has found customers for '{productName}'
+          Beno has found customers for &apos;{productName}&apos;
         </p>
 
         {/* Action Button */}
@@ -59,7 +59,7 @@ export default function SuccessScreen({ productName, onViewCustomers, onStartOve
             </div>
             <div className="flex items-start">
               <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-              <p>Replies will be posted using managed Reddit accounts</p>
+              <p>Replies will be posted through the Managed Posting Network</p>
             </div>
             <div className="flex items-start">
               <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
@@ -94,4 +94,4 @@ export default function SuccessScreen({ productName, onViewCustomers, onStartOve
       </div>
     </div>
   );
-} 
+}
