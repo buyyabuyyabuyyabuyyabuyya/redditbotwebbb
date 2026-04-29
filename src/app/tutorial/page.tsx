@@ -55,7 +55,7 @@ export default async function TutorialPage() {
   if (!userId) redirect('/sign-in?redirect_url=%2Ftutorial');
 
   return (
-    <div className="py-12">
+    <div className="min-h-screen bg-zinc-950 py-12 text-zinc-100">
       <div className="section-shell space-y-8">
         <section className="surface-card p-8">
           <p className="page-kicker">Getting started</p>
@@ -80,7 +80,7 @@ export default async function TutorialPage() {
         <div className="grid gap-4 lg:grid-cols-2">
           {sections.map((section) => (
             <section key={section.title} className="surface-card p-6">
-              <h2 className="text-xl font-semibold text-zinc-950">
+              <h2 className="text-xl font-semibold text-zinc-50">
                 {section.title}
               </h2>
               <p className="mt-3 text-sm leading-6 text-zinc-600">
@@ -98,11 +98,11 @@ export default async function TutorialPage() {
           ))}
         </div>
 
-        <section className="surface-card border-amber-200 bg-amber-50 p-6">
-          <h2 className="text-lg font-semibold text-amber-900">
+        <section className="surface-card border-amber-400/20 bg-amber-400/10 p-6">
+          <h2 className="text-lg font-semibold text-amber-200">
             Best-practice reminder
           </h2>
-          <p className="mt-3 text-sm leading-6 text-amber-900/80">
+          <p className="mt-3 text-sm leading-6 text-amber-100/80">
             Use this product for helpful public discussion replies, not spam.
             The safest campaigns use narrow subreddit lists, strong negative
             keywords, low posting frequency, and reply playbooks that bias the

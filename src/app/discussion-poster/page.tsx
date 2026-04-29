@@ -9,5 +9,9 @@ export default async function DiscussionPosterPage() {
     redirect('/sign-in?redirect_url=%2Fdiscussion-poster');
   }
 
-  return <DiscussionPosterClient />;
+  return (
+    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+      <DiscussionPosterClient />
+    </div>
+  );
 }

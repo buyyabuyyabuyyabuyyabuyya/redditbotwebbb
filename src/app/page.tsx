@@ -38,13 +38,13 @@ export default async function Home() {
   }
 
   return (
-    <div className="bg-[#080808] text-zinc-50">
+    <div className="bg-zinc-950 text-zinc-50">
       <Analytics />
       <main>
         <section className="border-b border-white/10 px-6 py-20 lg:py-28">
           <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div>
-              <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-zinc-400">
+              <div className="inline-flex items-center rounded-full border border-white/10 bg-zinc-900/80 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-zinc-400">
                 Managed Reddit comment outreach
               </div>
               <h1 className="mt-6 max-w-4xl text-5xl font-semibold tracking-tight text-zinc-50 sm:text-6xl">
@@ -62,7 +62,7 @@ export default async function Home() {
             </div>
 
             <div className="surface-card overflow-hidden p-4 lg:p-6">
-              <div className="rounded-2xl border border-white/10 bg-[#141414] p-6">
+              <div className="rounded-2xl border border-white/10 bg-zinc-950 p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-zinc-400">
@@ -72,12 +72,12 @@ export default async function Home() {
                       Comment operations
                     </h2>
                   </div>
-                  <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+                  <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-200">
                     Running
                   </span>
                 </div>
                 <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-white/10 bg-[#0c0c0c] p-4">
+                  <div className="rounded-2xl border border-white/10 bg-zinc-900 p-4">
                     <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">
                       Website config
                     </p>
@@ -88,7 +88,7 @@ export default async function Home() {
                       SaaS • startups • entrepreneur • indiehackers
                     </p>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-[#0c0c0c] p-4">
+                  <div className="rounded-2xl border border-white/10 bg-zinc-900 p-4">
                     <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">
                       Reply playbook
                     </p>
@@ -99,7 +99,7 @@ export default async function Home() {
                       Soft CTA • no links unless relevant • ask one question
                     </p>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-[#0c0c0c] p-4">
+                  <div className="rounded-2xl border border-white/10 bg-zinc-900 p-4">
                     <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">
                       Posts today
                     </p>
@@ -107,7 +107,7 @@ export default async function Home() {
                       12
                     </p>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-[#0c0c0c] p-4">
+                  <div className="rounded-2xl border border-white/10 bg-zinc-900 p-4">
                     <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">
                       Next run
                     </p>
@@ -150,7 +150,7 @@ export default async function Home() {
 
         <section
           id="workflow"
-          className="border-y border-white/10 bg-[#0c0c0c] px-6 py-20"
+          className="border-y border-white/10 bg-zinc-900 px-6 py-20"
         >
           <div className="mx-auto max-w-7xl">
             <div className="max-w-2xl">
@@ -173,7 +173,7 @@ export default async function Home() {
         </section>
 
         <section id="pricing" className="px-6 py-20">
-          <div className="mx-auto flex max-w-7xl flex-col gap-8 rounded-2xl border border-white/10 bg-[#111111] p-8 lg:flex-row lg:items-end lg:justify-between lg:p-12">
+          <div className="mx-auto flex max-w-7xl flex-col gap-8 rounded-2xl border border-white/10 bg-zinc-900 p-8 lg:flex-row lg:items-end lg:justify-between lg:p-12">
             <div className="max-w-2xl">
               <p className="page-kicker">Pricing</p>
               <h2 className="mt-4 text-3xl font-semibold text-zinc-50 sm:text-4xl">

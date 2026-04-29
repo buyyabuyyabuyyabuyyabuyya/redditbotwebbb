@@ -251,7 +251,7 @@ export default function AutoPosterManager({
       <section className="surface-card p-6">
         <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h2 className="text-2xl font-semibold text-zinc-950">
+            <h2 className="text-2xl font-semibold text-zinc-50">
               Auto-poster
             </h2>
             <p className="mt-1 text-sm text-zinc-500">
@@ -259,7 +259,7 @@ export default function AutoPosterManager({
               calm control surface.
             </p>
           </div>
-          <div className="rounded-full border border-black/10 bg-[#fafaf6] px-3 py-2 text-sm text-zinc-600">
+          <div className="rounded-full border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-zinc-300">
             {hasActiveConfigs
               ? `${activeConfigs.length} active configuration${activeConfigs.length === 1 ? '' : 's'}`
               : 'No active auto-posters'}
@@ -281,7 +281,7 @@ export default function AutoPosterManager({
               <div className="text-xs uppercase tracking-[0.2em] text-zinc-500">
                 {label}
               </div>
-              <div className="mt-3 text-2xl font-semibold text-zinc-950">
+              <div className="mt-3 text-2xl font-semibold text-zinc-50">
                 {value as any}
               </div>
             </div>
@@ -291,12 +291,12 @@ export default function AutoPosterManager({
 
       <section className="surface-card p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-zinc-950">
+          <h3 className="text-lg font-semibold text-zinc-50">
             Start a new auto-poster
           </h3>
           <button
             onClick={() => void refreshAll(selectedConfigId || undefined)}
-            className="text-sm text-zinc-500 hover:text-zinc-950"
+            className="text-sm text-zinc-400 hover:text-zinc-100"
           >
             Refresh
           </button>
@@ -313,7 +313,7 @@ export default function AutoPosterManager({
               id="website-config"
               value={selectedConfigId}
               onChange={(e) => setSelectedConfigId(e.target.value)}
-              className="w-full rounded-xl border border-black/10 bg-white px-3 py-3 text-zinc-950 shadow-sm focus:border-[#6557ff] focus:outline-none focus:ring-[#6557ff]"
+              className="w-full rounded-xl border border-white/10 bg-zinc-950 px-3 py-3 text-zinc-100 shadow-sm focus:border-[#7c6cff] focus:outline-none focus:ring-[#7c6cff]"
             >
               <option value="">Select a website configuration...</option>
               {websiteConfigs.map((config) => (
@@ -339,7 +339,7 @@ export default function AutoPosterManager({
       </section>
 
       <section className="surface-card p-6">
-        <h3 className="mb-4 text-lg font-semibold text-zinc-950">
+        <h3 className="mb-4 text-lg font-semibold text-zinc-50">
           Active configurations
         </h3>
         {activeConfigs.length === 0 ? (
@@ -352,7 +352,7 @@ export default function AutoPosterManager({
               <div key={config.id} className="surface-subtle p-4">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div>
-                    <div className="font-medium text-zinc-950">
+                    <div className="font-medium text-zinc-50">
                       {config.currentWebsiteConfig?.website_url ||
                         config.currentWebsiteConfig?.url}
                     </div>
@@ -394,7 +394,7 @@ export default function AutoPosterManager({
         <section className="surface-card p-6">
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold text-zinc-950">
+              <h3 className="text-lg font-semibold text-zinc-50">
                 Running details
               </h3>
               <p className="text-sm text-zinc-500">
@@ -404,7 +404,7 @@ export default function AutoPosterManager({
               </p>
             </div>
             <span
-              className={`rounded-full px-3 py-1 text-xs font-medium ${status.isRunning ? 'border border-emerald-200 bg-emerald-50 text-emerald-700' : 'border border-black/10 bg-[#fafaf6] text-zinc-600'}`}
+              className={`rounded-full px-3 py-1 text-xs font-medium ${status.isRunning ? 'border border-emerald-400/30 bg-emerald-400/10 text-emerald-300' : 'border border-white/10 bg-zinc-950 text-zinc-300'}`}
             >
               {status.isRunning ? 'Running' : 'Stopped'}
             </span>
@@ -426,7 +426,7 @@ export default function AutoPosterManager({
                 <div className="text-xs uppercase tracking-[0.2em] text-zinc-500">
                   {label}
                 </div>
-                <div className="mt-2 text-sm font-medium text-zinc-950">
+                <div className="mt-2 text-sm font-medium text-zinc-50">
                   {value as any}
                 </div>
               </div>
@@ -446,11 +446,11 @@ export default function AutoPosterManager({
                 recentPosts.map((post) => (
                   <div
                     key={post.id}
-                    className="rounded-2xl border border-black/10 bg-white p-4"
+                    className="rounded-2xl border border-white/10 bg-zinc-950 p-4"
                   >
                     <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                       <div>
-                        <div className="font-medium text-zinc-950">
+                        <div className="font-medium text-zinc-50">
                           {post.post_title}
                         </div>
                         <div className="text-xs text-zinc-500">
@@ -463,7 +463,7 @@ export default function AutoPosterManager({
                           href={post.comment_url}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-sm font-medium text-zinc-950 underline-offset-4 hover:underline"
+                          className="text-sm font-medium text-zinc-50 underline-offset-4 hover:underline"
                         >
                           Open comment ↗
                         </a>

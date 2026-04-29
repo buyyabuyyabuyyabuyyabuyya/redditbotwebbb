@@ -326,7 +326,7 @@ export default function LogViewer({
         );
       default:
         return (
-          <span className="flex items-center text-gray-500">
+          <span className="flex items-center text-zinc-400">
             <svg
               className="w-4 h-4 mr-1"
               viewBox="0 0 20 20"
@@ -595,7 +595,7 @@ export default function LogViewer({
                       // Reset filters when viewing detailed logs
                       setFilters({});
                     }}
-                    className="px-2 py-1 text-xs rounded bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-200 flex items-center"
+                    className="px-2 py-1 text-xs rounded bg-[#7c6cff] hover:bg-[#6b5af0] text-white transition-colors duration-200 flex items-center"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -782,7 +782,7 @@ export default function LogViewer({
               <button
                 onClick={() => setCurrentPage(1)}
                 disabled={currentPage === 1}
-                className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-700 text-sm font-medium ${currentPage === 1 ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
+                className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-700 text-sm font-medium ${currentPage === 1 ? 'bg-gray-800 text-zinc-400 cursor-not-allowed' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
               >
                 <span className="sr-only">First</span>
                 <svg
@@ -807,7 +807,7 @@ export default function LogViewer({
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className={`relative inline-flex items-center px-2 py-2 border border-gray-700 text-sm font-medium ${currentPage === 1 ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
+                className={`relative inline-flex items-center px-2 py-2 border border-gray-700 text-sm font-medium ${currentPage === 1 ? 'bg-gray-800 text-zinc-400 cursor-not-allowed' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
               >
                 <span className="sr-only">Previous</span>
                 <svg
@@ -855,7 +855,7 @@ export default function LogViewer({
                   setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                 }
                 disabled={currentPage === totalPages}
-                className={`relative inline-flex items-center px-2 py-2 border border-gray-700 text-sm font-medium ${currentPage === totalPages ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
+                className={`relative inline-flex items-center px-2 py-2 border border-gray-700 text-sm font-medium ${currentPage === totalPages ? 'bg-gray-800 text-zinc-400 cursor-not-allowed' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
               >
                 <span className="sr-only">Next</span>
                 <svg
@@ -875,7 +875,7 @@ export default function LogViewer({
               <button
                 onClick={() => setCurrentPage(totalPages)}
                 disabled={currentPage === totalPages}
-                className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-700 text-sm font-medium ${currentPage === totalPages ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
+                className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-700 text-sm font-medium ${currentPage === totalPages ? 'bg-gray-800 text-zinc-400 cursor-not-allowed' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
               >
                 <span className="sr-only">Last</span>
                 <svg
@@ -918,7 +918,7 @@ export default function LogViewer({
       return (
         <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-8 text-center">
           <svg
-            className="mx-auto h-12 w-12 text-gray-500"
+            className="mx-auto h-12 w-12 text-zinc-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -1106,7 +1106,7 @@ export default function LogViewer({
     return (
       <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-8 text-center">
         <svg
-          className="mx-auto h-12 w-12 text-gray-500"
+          className="mx-auto h-12 w-12 text-zinc-400"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"

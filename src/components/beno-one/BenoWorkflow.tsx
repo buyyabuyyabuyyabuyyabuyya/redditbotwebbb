@@ -679,12 +679,12 @@ function ProductInput({ onSubmit }: ProductInputProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-6">
+    <div className="bg-zinc-900 rounded-lg shadow-sm border p-6">
       <h2 className="text-2xl font-bold mb-6">Enter Your Product Details</h2>
       
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-zinc-300 mb-2">
             Product URL *
           </label>
           <input
@@ -692,13 +692,13 @@ function ProductInput({ onSubmit }: ProductInputProps) {
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://yourproduct.com"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6cff]"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-zinc-300 mb-2">
             Product Name
           </label>
           <input
@@ -706,12 +706,12 @@ function ProductInput({ onSubmit }: ProductInputProps) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="My Awesome Product"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6cff]"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-zinc-300 mb-2">
             Product Description *
           </label>
           <textarea
@@ -719,13 +719,13 @@ function ProductInput({ onSubmit }: ProductInputProps) {
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Describe what your product does and who it's for..."
             rows={4}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6cff]"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-zinc-300 mb-2">
             Customer Segments
           </label>
           <div className="space-y-2">
@@ -736,13 +736,13 @@ function ProductInput({ onSubmit }: ProductInputProps) {
                   value={segment}
                   onChange={(e) => updateSegment(index, e.target.value)}
                   placeholder="e.g., Small business owners, Developers, Students..."
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-3 py-2 border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6cff]"
                 />
                 {segments.length > 1 && (
                   <button
                     type="button"
                     onClick={() => removeSegment(index)}
-                    className="px-3 py-2 text-red-600 hover:text-red-800"
+                    className="px-3 py-2 text-red-200 hover:text-red-200"
                   >
                     Remove
                   </button>
@@ -752,7 +752,7 @@ function ProductInput({ onSubmit }: ProductInputProps) {
             <button
               type="button"
               onClick={addSegment}
-              className="text-blue-600 hover:text-blue-800 text-sm"
+              className="text-blue-600 hover:text-blue-200 text-sm"
             >
               + Add another segment
             </button>
@@ -760,13 +760,13 @@ function ProductInput({ onSubmit }: ProductInputProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-zinc-300 mb-2">
             Reddit Account for Posting
           </label>
           <select
             value={selectedAccountId}
             onChange={(e) => setSelectedAccountId(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+            className="w-full px-3 py-2 border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6cff] mb-4"
             required
           >
             <option value="">Select Reddit Account</option>
@@ -777,7 +777,7 @@ function ProductInput({ onSubmit }: ProductInputProps) {
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 font-medium"
+          className="w-full bg-[#7c6cff] text-white py-3 px-4 rounded-md hover:bg-[#6b5af0] font-medium"
           disabled={!selectedAccountId}
         >
           Start Customer Finding

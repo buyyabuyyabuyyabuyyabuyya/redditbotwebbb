@@ -185,7 +185,7 @@ export default function CustomerFinding({ url, name, description, segments, onCu
   }, [url, name, description, segments, onCustomersFound]);
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-6">
+    <div className="min-h-screen bg-zinc-900 flex items-center justify-center px-6">
       <div className="max-w-md w-full text-center">
         {/* Progress Circle */}
         <div className="relative mb-8">
@@ -216,18 +216,18 @@ export default function CustomerFinding({ url, name, description, segments, onCu
             
             {/* Progress text */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-2xl font-bold text-gray-900">{progress}%</span>
+              <span className="text-2xl font-bold text-zinc-50">{progress}%</span>
             </div>
           </div>
         </div>
 
         {/* Main Title */}
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
+        <h1 className="text-3xl font-bold text-zinc-50 mb-4">
           Finding your customers
         </h1>
 
         {/* Subtitle */}
-        <p className="text-lg text-gray-600 mb-8 flex items-center justify-center">
+        <p className="text-lg text-zinc-300 mb-8 flex items-center justify-center">
           <svg className="w-6 h-6 mr-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
           </svg>
@@ -243,17 +243,17 @@ export default function CustomerFinding({ url, name, description, segments, onCu
         </div>
 
         {/* Progress Text */}
-        <p className="text-sm text-gray-500 mb-8">
+        <p className="text-sm text-zinc-400 mb-8">
           {progress}% complete
         </p>
 
         {/* Current Step Message */}
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-8">
+        <div className="bg-orange-500/10 border border-orange-400/20 rounded-lg p-4 mb-8">
           <div className="flex items-center justify-center">
             <svg className="w-5 h-5 text-orange-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span className="text-orange-800 font-medium">
+            <span className="text-orange-200 font-medium">
               {stepMessages[currentStep as keyof typeof stepMessages]}
             </span>
           </div>
@@ -263,7 +263,7 @@ export default function CustomerFinding({ url, name, description, segments, onCu
         {progress < 50 && (
           <button
             onClick={onBack}
-            className="px-6 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200"
+            className="px-6 py-2 border border-white/10 text-zinc-300 font-medium rounded-lg hover:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 transition-all duration-200"
           >
             Back
           </button>
@@ -286,7 +286,7 @@ export default function CustomerFinding({ url, name, description, segments, onCu
             <div className="text-green-600 text-lg font-medium">
               ✓ Process completed successfully!
             </div>
-            <p className="text-gray-600 text-sm mt-2">
+            <p className="text-zinc-300 text-sm mt-2">
               Redirecting to results...
             </p>
           </div>

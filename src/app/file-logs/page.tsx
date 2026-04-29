@@ -41,7 +41,7 @@ export default async function FileLogsPage() {
   );
 
   return (
-    <div className="py-12">
+    <div className="min-h-screen bg-zinc-950 py-12 text-zinc-100">
       <div className="section-shell space-y-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
@@ -62,7 +62,7 @@ export default async function FileLogsPage() {
 
         {logsWithUrls?.length === 0 ? (
           <section className="surface-card p-12 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-black/10 bg-[#fafaf6] text-zinc-400">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-zinc-900 text-zinc-400">
               <svg
                 className="h-7 w-7"
                 fill="none"
@@ -77,7 +77,7 @@ export default async function FileLogsPage() {
                 />
               </svg>
             </div>
-            <h2 className="mt-6 text-xl font-semibold text-zinc-950">
+            <h2 className="mt-6 text-xl font-semibold text-zinc-100">
               No archived logs yet
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-zinc-500">
@@ -89,8 +89,8 @@ export default async function FileLogsPage() {
         ) : (
           <section className="surface-card overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-black/8">
-                <thead className="bg-[#fafaf6]">
+              <table className="min-w-full divide-y divide-white/10">
+                <thead className="bg-zinc-900">
                   <tr>
                     {[
                       'Subreddit',
@@ -108,7 +108,7 @@ export default async function FileLogsPage() {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-black/6 bg-white">
+                <tbody className="divide-y divide-white/10 bg-zinc-950">
                   {logsWithUrls.map((log: any) => {
                     const startDate = new Date(
                       log.date_range_start
@@ -119,7 +119,7 @@ export default async function FileLogsPage() {
                     const createdAt = new Date(log.created_at).toLocaleString();
                     return (
                       <tr key={log.id}>
-                        <td className="px-6 py-4 text-sm font-medium text-zinc-950">
+                        <td className="px-6 py-4 text-sm font-medium text-zinc-100">
                           r/{log.scan_configs?.subreddit || 'unknown'}
                         </td>
                         <td className="px-6 py-4 text-sm text-zinc-500">
@@ -142,7 +142,7 @@ export default async function FileLogsPage() {
                               download={`logs_${log.scan_configs?.subreddit || 'bot'}_${new Date(log.date_range_start).toISOString().split('T')[0]}.txt`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="font-medium text-zinc-950 underline-offset-4 hover:underline"
+                              className="font-medium text-zinc-100 underline-offset-4 hover:underline"
                             >
                               Download
                             </a>
@@ -164,19 +164,19 @@ export default async function FileLogsPage() {
             How archival works
           </h2>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <div className="rounded-2xl border border-black/8 bg-white p-4 text-sm leading-6 text-zinc-600">
+            <div className="rounded-2xl border border-white/10 bg-zinc-950 p-4 text-sm leading-6 text-zinc-300">
               Logs are archived in batches to keep the live database lighter and
               easier to query.
             </div>
-            <div className="rounded-2xl border border-black/8 bg-white p-4 text-sm leading-6 text-zinc-600">
+            <div className="rounded-2xl border border-white/10 bg-zinc-950 p-4 text-sm leading-6 text-zinc-300">
               Each archive file is specific to one configuration and can be
               downloaded for manual review.
             </div>
-            <div className="rounded-2xl border border-black/8 bg-white p-4 text-sm leading-6 text-zinc-600">
+            <div className="rounded-2xl border border-white/10 bg-zinc-950 p-4 text-sm leading-6 text-zinc-300">
               Archive links are temporary and refresh whenever you reload the
               page.
             </div>
-            <div className="rounded-2xl border border-black/8 bg-white p-4 text-sm leading-6 text-zinc-600">
+            <div className="rounded-2xl border border-white/10 bg-zinc-950 p-4 text-sm leading-6 text-zinc-300">
               Use Archive Logs Now only when you intentionally want to clean
               down the live log table.
             </div>

@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export default function TermsOfService() {
   return (
-    <div className="dark-policy min-h-screen bg-[#080808] py-12">
+    <div className="dark-policy min-h-screen bg-zinc-950 py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="rounded-2xl border border-white/10 bg-[#111111] p-8 shadow-lg">
           <h1 className="text-3xl font-bold text-zinc-50 mb-8">
@@ -10,15 +10,15 @@ export default function TermsOfService() {
           </h1>
 
           <div className="prose prose-lg max-w-none">
-            <p className="text-gray-600 mb-6">
+            <p className="text-zinc-300 mb-6">
               <strong>Last updated:</strong> {new Date().toLocaleDateString()}
             </p>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+              <h2 className="text-2xl font-semibold text-zinc-100 mb-4">
                 1. Acceptance of Terms
               </h2>
-              <p className="text-gray-600 mb-4">
+              <p className="text-zinc-300 mb-4">
                 By accessing and using our Reddit Bot SaaS service, you accept
                 and agree to be bound by the terms and provision of this
                 agreement. If you do not agree to abide by the above, please do
@@ -27,14 +27,14 @@ export default function TermsOfService() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+              <h2 className="text-2xl font-semibold text-zinc-100 mb-4">
                 2. Service Description
               </h2>
-              <p className="text-gray-600 mb-4">
+              <p className="text-zinc-300 mb-4">
                 Our service provides automated Reddit bot functionality,
                 including:
               </p>
-              <ul className="list-disc pl-6 text-gray-600 space-y-2">
+              <ul className="list-disc pl-6 text-zinc-300 space-y-2">
                 <li>Automated Reddit discussion discovery and monitoring</li>
                 <li>Keyword-based and AI-based relevance filtering</li>
                 <li>Comment template management and drafting workflows</li>
@@ -44,11 +44,11 @@ export default function TermsOfService() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+              <h2 className="text-2xl font-semibold text-zinc-100 mb-4">
                 3. User Responsibilities
               </h2>
-              <p className="text-gray-600 mb-4">You agree to:</p>
-              <ul className="list-disc pl-6 text-gray-600 space-y-2">
+              <p className="text-zinc-300 mb-4">You agree to:</p>
+              <ul className="list-disc pl-6 text-zinc-300 space-y-2">
                 <li>
                   <strong>Comply with Reddit&apos;s Terms:</strong> Follow all Reddit
                   terms of service and community guidelines
@@ -77,13 +77,13 @@ export default function TermsOfService() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+              <h2 className="text-2xl font-semibold text-zinc-100 mb-4">
                 4. Prohibited Activities
               </h2>
-              <p className="text-gray-600 mb-4">
+              <p className="text-zinc-300 mb-4">
                 You may not use our service to:
               </p>
-              <ul className="list-disc pl-6 text-gray-600 space-y-2">
+              <ul className="list-disc pl-6 text-zinc-300 space-y-2">
                 <li>
                   Send spam, leave low-value comments, or engage in harassment
                 </li>
@@ -104,10 +104,10 @@ export default function TermsOfService() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+              <h2 className="text-2xl font-semibold text-zinc-100 mb-4">
                 5. Subscription and Billing
               </h2>
-              <ul className="list-disc pl-6 text-gray-600 space-y-2">
+              <ul className="list-disc pl-6 text-zinc-300 space-y-2">
                 <li>
                   <strong>Payment:</strong> Subscription fees are processed
                   through Stripe and billed monthly
@@ -129,10 +129,10 @@ export default function TermsOfService() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+              <h2 className="text-2xl font-semibold text-zinc-100 mb-4">
                 6. Service Availability
               </h2>
-              <p className="text-gray-600 mb-4">
+              <p className="text-zinc-300 mb-4">
                 We strive to maintain high service availability, but we do not
                 guarantee uninterrupted service. We may experience downtime for
                 maintenance, updates, or due to factors beyond our control.
@@ -140,14 +140,14 @@ export default function TermsOfService() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+              <h2 className="text-2xl font-semibold text-zinc-100 mb-4">
                 7. Reddit API Compliance
               </h2>
-              <p className="text-gray-600 mb-4">
+              <p className="text-zinc-300 mb-4">
                 Our service relies on Reddit&apos;s API and is subject to Reddit&apos;s
                 terms and limitations:
               </p>
-              <ul className="list-disc pl-6 text-gray-600 space-y-2">
+              <ul className="list-disc pl-6 text-zinc-300 space-y-2">
                 <li>
                   We comply with Reddit&apos;s API rate limits and usage policies
                 </li>
@@ -161,10 +161,10 @@ export default function TermsOfService() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+              <h2 className="text-2xl font-semibold text-zinc-100 mb-4">
                 8. Intellectual Property
               </h2>
-              <p className="text-gray-600 mb-4">
+              <p className="text-zinc-300 mb-4">
                 The service, including its original content, features, and
                 functionality, is owned by us and protected by international
                 copyright, trademark, and other intellectual property laws.
@@ -172,10 +172,10 @@ export default function TermsOfService() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+              <h2 className="text-2xl font-semibold text-zinc-100 mb-4">
                 9. Limitation of Liability
               </h2>
-              <p className="text-gray-600 mb-4">
+              <p className="text-zinc-300 mb-4">
                 In no event shall we be liable for any indirect, incidental,
                 special, consequential, or punitive damages, including without
                 limitation, loss of profits, data, use, goodwill, or other
@@ -184,10 +184,10 @@ export default function TermsOfService() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+              <h2 className="text-2xl font-semibold text-zinc-100 mb-4">
                 10. Account Termination
               </h2>
-              <p className="text-gray-600 mb-4">
+              <p className="text-zinc-300 mb-4">
                 We reserve the right to terminate or suspend your account and
                 access to the service at our sole discretion, without notice,
                 for conduct that we believe violates these Terms of Service or
@@ -196,10 +196,10 @@ export default function TermsOfService() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+              <h2 className="text-2xl font-semibold text-zinc-100 mb-4">
                 11. Data and Privacy
               </h2>
-              <p className="text-gray-600 mb-4">
+              <p className="text-zinc-300 mb-4">
                 Your privacy is important to us. Please review our Privacy
                 Policy, which also governs your use of the service, to
                 understand our practices.
@@ -207,10 +207,10 @@ export default function TermsOfService() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+              <h2 className="text-2xl font-semibold text-zinc-100 mb-4">
                 12. Changes to Terms
               </h2>
-              <p className="text-gray-600 mb-4">
+              <p className="text-zinc-300 mb-4">
                 We reserve the right to modify these terms at any time. We will
                 notify users of any material changes via email or through the
                 service. Your continued use of the service after such
@@ -219,10 +219,10 @@ export default function TermsOfService() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+              <h2 className="text-2xl font-semibold text-zinc-100 mb-4">
                 13. Governing Law
               </h2>
-              <p className="text-gray-600 mb-4">
+              <p className="text-zinc-300 mb-4">
                 These Terms shall be interpreted and governed by the laws of the
                 jurisdiction in which our company is registered, without regard
                 to its conflict of law provisions.
@@ -230,25 +230,25 @@ export default function TermsOfService() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+              <h2 className="text-2xl font-semibold text-zinc-100 mb-4">
                 14. Contact Information
               </h2>
-              <p className="text-gray-600 mb-4">
+              <p className="text-zinc-300 mb-4">
                 If you have any questions about these Terms of Service, please
                 contact us:
               </p>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-gray-600">
+              <div className="bg-zinc-900 p-4 rounded-lg">
+                <p className="text-zinc-300">
                   <strong>Support:</strong> buyyav20@gmail.com
                 </p>
               </div>
             </section>
           </div>
 
-          <div className="mt-12 pt-8 border-t border-gray-200">
+          <div className="mt-12 pt-8 border-t border-white/10">
             <Link
               href="/"
-              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-[#7c6cff] hover:bg-[#6b5af0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7c6cff] transition-colors"
             >
               ← Back to Home
             </Link>

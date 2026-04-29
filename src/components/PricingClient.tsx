@@ -110,7 +110,7 @@ export default function PricingClient({
               </div>
             </div>
             {plan.popular ? (
-              <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em]">
+              <span className="rounded-full border border-white/20 bg-zinc-950/30 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em]">
                 Popular
               </span>
             ) : null}
@@ -137,7 +137,7 @@ export default function PricingClient({
             {plan.features.map((feature) => (
               <li key={feature} className="flex gap-3">
                 <span
-                  className={`mt-1 h-1.5 w-1.5 rounded-full ${plan.popular ? 'bg-white' : 'bg-zinc-400'}`}
+                  className={`mt-1 h-1.5 w-1.5 rounded-full ${plan.popular ? 'bg-zinc-100' : 'bg-zinc-400'}`}
                 />
                 <span>{feature}</span>
               </li>
@@ -149,7 +149,7 @@ export default function PricingClient({
               <button
                 type="button"
                 disabled
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-zinc-400"
+                className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-3 text-sm font-medium text-zinc-400"
               >
                 {plan.cta}
               </button>
@@ -157,7 +157,7 @@ export default function PricingClient({
               <button
                 onClick={() => handleSubscribe('pro')}
                 disabled={loading === 'pro'}
-                className={`w-full rounded-xl px-4 py-3 text-sm font-medium ${plan.popular ? 'bg-white text-zinc-950' : 'bg-white text-zinc-950'} disabled:opacity-50`}
+                className="w-full rounded-xl border border-white/10 bg-zinc-800 px-4 py-3 text-sm font-medium text-zinc-50 transition hover:bg-zinc-700 disabled:opacity-50"
               >
                 {loading === 'pro' ? 'Loading...' : plan.cta}
               </button>
@@ -165,7 +165,7 @@ export default function PricingClient({
               <button
                 onClick={() => handleSubscribe('advanced')}
                 disabled={loading === 'advanced'}
-                className="w-full rounded-xl bg-white px-4 py-3 text-sm font-medium text-zinc-950 disabled:opacity-50"
+                className="w-full rounded-xl bg-[#7c6cff] px-4 py-3 text-sm font-medium text-white disabled:opacity-50"
               >
                 {loading === 'advanced' ? 'Loading...' : plan.cta}
               </button>
@@ -175,7 +175,7 @@ export default function PricingClient({
                 afterSignUpUrl="/dashboard"
                 redirectUrl={redirectUrl}
               >
-                <button className="w-full rounded-xl bg-white px-4 py-3 text-sm font-medium text-zinc-950">
+                <button className="w-full rounded-xl bg-[#7c6cff] px-4 py-3 text-sm font-medium text-white">
                   {plan.cta}
                 </button>
               </SignUpButton>

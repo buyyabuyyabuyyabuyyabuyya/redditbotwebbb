@@ -28,20 +28,20 @@ export class ErrorBoundary extends React.Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
+        <div className="flex min-h-screen items-center justify-center bg-zinc-950">
+          <div className="w-full max-w-md space-y-8 rounded-2xl border border-white/10 bg-zinc-900 p-8 shadow-lg">
             <div>
-              <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+              <h2 className="mt-6 text-center text-3xl font-extrabold text-zinc-50">
                 Something went wrong
               </h2>
-              <p className="mt-2 text-center text-sm text-gray-600">
+              <p className="mt-2 text-center text-sm text-zinc-400">
                 {this.state.error?.message || 'An unexpected error occurred'}
               </p>
             </div>
             <div className="mt-8 space-y-6">
               <button
                 onClick={() => window.location.reload()}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="flex w-full justify-center rounded-xl border border-transparent bg-[#7c6cff] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#6b5af0] focus:outline-none focus:ring-2 focus:ring-[#7c6cff] focus:ring-offset-2 focus:ring-offset-zinc-950"
               >
                 Reload Page
               </button>

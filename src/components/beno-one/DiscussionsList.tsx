@@ -67,16 +67,16 @@ export default function DiscussionsList({ productId, creatorId, discussions, onR
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-6">
+    <div className="min-h-screen bg-zinc-900 flex items-center justify-center px-6">
       <div className="max-w-4xl w-full">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6 text-center">Select Reddit posts to engage</h1>
+        <h1 className="text-3xl font-bold text-zinc-50 mb-6 text-center">Select Reddit posts to engage</h1>
 
         {error && (
-          <div className="bg-red-50 text-red-600 p-3 mb-4 rounded-lg text-center text-sm">{error}</div>
+          <div className="bg-red-500/10 text-red-200 p-3 mb-4 rounded-lg text-center text-sm">{error}</div>
         )}
 
         {discussions.length === 0 ? (
-          <div className="text-center text-gray-500 mb-8">
+          <div className="text-center text-zinc-400 mb-8">
             No relevant Reddit posts were found yet. Try scanning again later or go back to adjust criteria.
           </div>
         ) : (
@@ -89,24 +89,24 @@ export default function DiscussionsList({ productId, creatorId, discussions, onR
                   key={id}
                   onClick={() => toggleSelect(id)}
                   className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                    selected ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:bg-gray-50'
+                    selected ? 'border-orange-500 bg-orange-500/10' : 'border-white/10 hover:bg-zinc-900'
                   }`}
                 >
                   <div className="flex justify-between items-center">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 truncate">
+                      <h3 className="font-semibold text-zinc-50 truncate">
                         {(((d as any).title || d.comment) as string)?.slice(0, 120) || 'Reddit post'}
                       </h3>
-                      <p className="text-sm text-gray-600 mt-1 overflow-hidden whitespace-nowrap text-ellipsis">
+                      <p className="text-sm text-zinc-300 mt-1 overflow-hidden whitespace-nowrap text-ellipsis">
                         {(((d as any).description || d.comment) as string)?.slice(0, 160)}
                       </p>
-                      <p className="text-xs text-gray-500 mt-2">
+                      <p className="text-xs text-zinc-400 mt-2">
                         Relevance: {(d.relevance_score * 100).toFixed(0)}%
                       </p>
                     </div>
                     <div
                       className={`w-5 h-5 rounded-full border-2 ${
-                        selected ? 'bg-orange-500 border-orange-500' : 'border-gray-300'
+                        selected ? 'bg-orange-500 border-orange-500' : 'border-white/10'
                       }`}
                     />
                   </div>
@@ -119,7 +119,7 @@ export default function DiscussionsList({ productId, creatorId, discussions, onR
         <div className="flex gap-4 justify-center">
           <button
             onClick={onBack}
-            className="px-8 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200"
+            className="px-8 py-3 border border-white/10 text-zinc-300 font-medium rounded-lg hover:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 transition-all duration-200"
             disabled={posting}
           >
             Back

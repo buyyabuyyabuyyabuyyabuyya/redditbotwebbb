@@ -46,7 +46,7 @@ export default async function Settings() {
         : 'Free';
 
   return (
-    <div className="py-12">
+    <div className="min-h-screen bg-zinc-950 py-12 text-zinc-100">
       <div className="section-shell space-y-8">
         <div>
           <p className="page-kicker">Settings</p>
@@ -64,7 +64,7 @@ export default async function Settings() {
         <section className="surface-card p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-zinc-950">
+              <h2 className="text-lg font-semibold text-zinc-50">
                 Subscription overview
               </h2>
               <p className="mt-2 text-sm text-zinc-500">
@@ -83,7 +83,7 @@ export default async function Settings() {
               <div className="text-xs font-medium uppercase tracking-[0.2em] text-zinc-500">
                 Current plan
               </div>
-              <div className="mt-3 text-2xl font-semibold text-zinc-950">
+              <div className="mt-3 text-2xl font-semibold text-zinc-50">
                 {planLabel}
               </div>
             </div>
@@ -91,7 +91,7 @@ export default async function Settings() {
               <div className="text-xs font-medium uppercase tracking-[0.2em] text-zinc-500">
                 Comments posted
               </div>
-              <div className="mt-3 text-2xl font-semibold text-zinc-950">
+              <div className="mt-3 text-2xl font-semibold text-zinc-50">
                 <CommentCounter initialCount={commentCount || 0} />
               </div>
             </div>
@@ -99,7 +99,7 @@ export default async function Settings() {
               <div className="text-xs font-medium uppercase tracking-[0.2em] text-zinc-500">
                 Plan limit
               </div>
-              <div className="mt-3 text-2xl font-semibold text-zinc-950">
+              <div className="mt-3 text-2xl font-semibold text-zinc-50">
                 {limits.monthlyCommentLimit.toLocaleString()} / month
               </div>
             </div>
@@ -107,7 +107,7 @@ export default async function Settings() {
         </section>
 
         <section className="surface-card p-6">
-          <h2 className="text-lg font-semibold text-zinc-950">Billing</h2>
+          <h2 className="text-lg font-semibold text-zinc-50">Billing</h2>
           <p className="mt-2 text-sm text-zinc-500">
             Open the Stripe billing portal to update payment methods or manage
             your subscription.

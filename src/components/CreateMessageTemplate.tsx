@@ -131,7 +131,7 @@ export default function CreateMessageTemplate({
                   <button
                     type="button"
                     onClick={() => handlePickTemplate(template)}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded-md transition-colors"
+                    className="w-full bg-[#7c6cff] hover:bg-[#6b5af0] text-white text-sm font-medium py-2 px-3 rounded-md transition-colors"
                   >
                     Use This Playbook
                   </button>
@@ -166,7 +166,7 @@ export default function CreateMessageTemplate({
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm placeholder-gray-400"
+                  className="block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-blue-500 focus:ring-[#7c6cff] sm:text-sm placeholder-gray-400"
                   placeholder="e.g., Helpful Reply"
                   required
                 />
@@ -187,7 +187,7 @@ export default function CreateMessageTemplate({
                   rows={4}
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  className="block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm placeholder-gray-400"
+                  className="block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-blue-500 focus:ring-[#7c6cff] sm:text-sm placeholder-gray-400"
                   placeholder="Describe how the AI should write. Include tone, promotion rules, banned phrases, and what makes a reply useful."
                   required
                 />
@@ -240,7 +240,7 @@ export default function CreateMessageTemplate({
                   rows={3}
                   value={aiPrompt}
                   onChange={(e) => setAiPrompt(e.target.value)}
-                  className="block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm placeholder-gray-400"
+                  className="block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-blue-500 focus:ring-[#7c6cff] sm:text-sm placeholder-gray-400"
                   placeholder="E.g., Check if the post is discussing an app, project, or website that the user has created or is promoting."
                 />
               </div>

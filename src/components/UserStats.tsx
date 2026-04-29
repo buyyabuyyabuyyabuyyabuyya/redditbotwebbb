@@ -112,7 +112,7 @@ export default function UserStats({
           <div className="text-xs font-medium uppercase tracking-[0.2em] text-zinc-500">
             {card.title}
           </div>
-          <div className="mt-3 text-3xl font-semibold text-zinc-950">
+          <div className="mt-3 text-3xl font-semibold text-zinc-50">
             {card.value}
           </div>
           <div className="mt-2 text-sm text-zinc-500">{card.desc}</div>

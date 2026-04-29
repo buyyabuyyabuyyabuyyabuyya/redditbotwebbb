@@ -102,7 +102,7 @@ export default async function Pricing() {
   ];
 
   return (
-    <div className="bg-[#080808] py-16 text-zinc-50">
+    <div className="min-h-screen bg-zinc-950 py-16 text-zinc-50">
       <div className="section-shell">
         <div className="mx-auto max-w-2xl text-center">
           <p className="page-kicker">Pricing</p>

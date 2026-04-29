@@ -216,12 +216,12 @@ export default function WebsiteConfigManager({
           {(config.customer_segments || []).map((segment, index) => (
             <span
               key={index}
-              className="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm"
+              className="inline-flex items-center px-3 py-1 bg-purple-500/15 text-purple-200 rounded-full text-sm"
             >
               {segment}
               <button
                 onClick={() => removeFromArray('customer_segments', index)}
-                className="ml-2 text-purple-600 hover:text-purple-800"
+                className="ml-2 text-purple-600 hover:text-purple-200"
               >
                 ×
               </button>
@@ -255,12 +255,12 @@ export default function WebsiteConfigManager({
           {(config.target_keywords || []).map((keyword, index) => (
             <span
               key={index}
-              className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+              className="inline-flex items-center px-3 py-1 bg-blue-500/15 text-blue-200 rounded-full text-sm"
             >
               {keyword}
               <button
                 onClick={() => removeFromArray('target_keywords', index)}
-                className="ml-2 text-blue-600 hover:text-blue-800"
+                className="ml-2 text-blue-600 hover:text-blue-200"
               >
                 ×
               </button>
@@ -294,12 +294,12 @@ export default function WebsiteConfigManager({
           {(config.negative_keywords || []).map((keyword, index) => (
             <span
               key={index}
-              className="inline-flex items-center px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm"
+              className="inline-flex items-center px-3 py-1 bg-red-500/15 text-red-200 rounded-full text-sm"
             >
               {keyword}
               <button
                 onClick={() => removeFromArray('negative_keywords', index)}
-                className="ml-2 text-red-600 hover:text-red-800"
+                className="ml-2 text-red-200 hover:text-red-200"
               >
                 ×
               </button>
@@ -333,12 +333,12 @@ export default function WebsiteConfigManager({
           {(config.business_context_terms || []).map((term, index) => (
             <span
               key={index}
-              className="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm"
+              className="inline-flex items-center px-3 py-1 bg-green-500/15 text-green-200 rounded-full text-sm"
             >
               {term}
               <button
                 onClick={() => removeFromArray('business_context_terms', index)}
-                className="ml-2 text-green-600 hover:text-green-800"
+                className="ml-2 text-green-600 hover:text-green-200"
               >
                 ×
               </button>
@@ -385,7 +385,7 @@ export default function WebsiteConfigManager({
             onChange={(e) => setConfig(prev => ({ ...prev, auto_poster_enabled: e.target.checked }))}
             className="sr-only peer"
           />
-          <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+          <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-100 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
         </label>
       </div> */}
 

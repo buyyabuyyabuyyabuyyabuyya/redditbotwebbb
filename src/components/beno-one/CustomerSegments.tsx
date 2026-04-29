@@ -66,15 +66,15 @@ export default function CustomerSegments({ onSegmentsSelected, onBack }: Custome
   const selectedCount = segments.filter(s => s.is_selected).length;
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-6">
+    <div className="min-h-screen bg-zinc-900 flex items-center justify-center px-6">
       <div className="max-w-4xl w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-zinc-50 mb-2">
             Which customers better suit your product?
           </h1>
-          <p className="text-gray-600">
-            If all segments are relevant, you can choose all of them - it's ok
+          <p className="text-zinc-300">
+            If all segments are relevant, you can choose all of them - it&apos;s ok
           </p>
         </div>
 
@@ -86,15 +86,15 @@ export default function CustomerSegments({ onSegmentsSelected, onBack }: Custome
               onClick={() => toggleSegment(segment.id)}
               className={`p-6 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
                 segment.is_selected
-                  ? 'border-orange-500 bg-orange-50 ring-2 ring-orange-200'
-                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                  ? 'border-orange-500 bg-orange-500/10 ring-2 ring-orange-400/20'
+                  : 'border-white/10 hover:border-white/10 hover:bg-zinc-900'
               }`}
             >
               <div className="flex items-start space-x-3">
                 <div className={`flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                   segment.is_selected
                     ? 'border-orange-500 bg-orange-500'
-                    : 'border-gray-300'
+                    : 'border-white/10'
                 }`}>
                   {segment.is_selected && (
                     <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -104,12 +104,12 @@ export default function CustomerSegments({ onSegmentsSelected, onBack }: Custome
                 </div>
                 <div className="flex-1">
                   <h3 className={`font-medium text-lg ${
-                    segment.is_selected ? 'text-orange-900' : 'text-gray-900'
+                    segment.is_selected ? 'text-orange-900' : 'text-zinc-50'
                   }`}>
                     {segment.title}
                   </h3>
                   <p className={`text-sm mt-1 ${
-                    segment.is_selected ? 'text-orange-700' : 'text-gray-600'
+                    segment.is_selected ? 'text-orange-700' : 'text-zinc-300'
                   }`}>
                     {segment.description}
                   </p>
@@ -122,7 +122,7 @@ export default function CustomerSegments({ onSegmentsSelected, onBack }: Custome
         {/* Selection Summary */}
         {selectedCount > 0 && (
           <div className="text-center mb-6">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-zinc-300">
               {selectedCount} customer segment{selectedCount !== 1 ? 's' : ''} selected
             </p>
           </div>
@@ -132,7 +132,7 @@ export default function CustomerSegments({ onSegmentsSelected, onBack }: Custome
         <div className="flex gap-4 justify-center">
           <button
             onClick={onBack}
-            className="px-8 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200"
+            className="px-8 py-3 border border-white/10 text-zinc-300 font-medium rounded-lg hover:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 transition-all duration-200"
           >
             Back
           </button>
@@ -146,7 +146,7 @@ export default function CustomerSegments({ onSegmentsSelected, onBack }: Custome
         </div>
 
         {/* Help Text */}
-        <div className="mt-8 text-center text-sm text-gray-500 max-w-2xl mx-auto">
+        <div className="mt-8 text-center text-sm text-zinc-400 max-w-2xl mx-auto">
           <p>
             These customer segments help our AI identify the most relevant Reddit discussions 
             where your product can provide genuine value. Choose the segments that best 

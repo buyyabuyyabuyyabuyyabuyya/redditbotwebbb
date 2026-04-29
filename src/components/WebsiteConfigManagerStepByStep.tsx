@@ -284,7 +284,7 @@ export default function WebsiteConfigManagerStepByStep({
         <button
           onClick={analyzeWebsite}
           disabled={analyzing || !config.website_url}
-          className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed"
+          className="flex-1 px-6 py-3 bg-[#7c6cff] text-white rounded-md hover:bg-[#6b5af0] disabled:bg-gray-600 disabled:cursor-not-allowed"
         >
           {analyzing ? 'Analyzing Website...' : 'Analyze Website'}
         </button>
@@ -516,12 +516,12 @@ export default function WebsiteConfigManagerStepByStep({
             {(config.customer_segments || []).map((segment, index) => (
               <span
                 key={index}
-                className="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm"
+                className="inline-flex items-center px-3 py-1 bg-purple-500/15 text-purple-200 rounded-full text-sm"
               >
                 {segment}
                 <button
                   onClick={() => removeKeyword('customer_segments', index)}
-                  className="ml-2 text-purple-600 hover:text-purple-800"
+                  className="ml-2 text-purple-600 hover:text-purple-200"
                 >
                   ×
                 </button>
@@ -563,7 +563,7 @@ export default function WebsiteConfigManagerStepByStep({
                 )
               }
               placeholder="Add target keyword... (use commas to separate multiple)"
-              className="flex-1 px-3 py-2 bg-gray-600 border border-gray-500 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-3 py-2 bg-gray-600 border border-gray-500 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#7c6cff]"
             />
             <button
               onClick={() =>
@@ -573,7 +573,7 @@ export default function WebsiteConfigManagerStepByStep({
                   setNewTargetKeyword
                 )
               }
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
+              className="px-4 py-2 bg-[#7c6cff] text-white rounded-md hover:bg-[#6b5af0] text-sm"
             >
               Add
             </button>
@@ -583,12 +583,12 @@ export default function WebsiteConfigManagerStepByStep({
             {(config.target_keywords || []).map((keyword, index) => (
               <span
                 key={index}
-                className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                className="inline-flex items-center px-3 py-1 bg-blue-500/15 text-blue-200 rounded-full text-sm"
               >
                 {keyword}
                 <button
                   onClick={() => removeKeyword('target_keywords', index)}
-                  className="ml-2 text-blue-600 hover:text-blue-800"
+                  className="ml-2 text-blue-600 hover:text-blue-200"
                 >
                   ×
                 </button>
@@ -650,12 +650,12 @@ export default function WebsiteConfigManagerStepByStep({
             {(config.business_context_terms || []).map((term, index) => (
               <span
                 key={index}
-                className="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm"
+                className="inline-flex items-center px-3 py-1 bg-green-500/15 text-green-200 rounded-full text-sm"
               >
                 {term}
                 <button
                   onClick={() => removeKeyword('business_context_terms', index)}
-                  className="ml-2 text-green-600 hover:text-green-800"
+                  className="ml-2 text-green-600 hover:text-green-200"
                 >
                   ×
                 </button>
@@ -718,12 +718,12 @@ export default function WebsiteConfigManagerStepByStep({
             {(config.negative_keywords || []).map((keyword, index) => (
               <span
                 key={index}
-                className="inline-flex items-center px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm"
+                className="inline-flex items-center px-3 py-1 bg-red-500/15 text-red-200 rounded-full text-sm"
               >
                 {keyword}
                 <button
                   onClick={() => removeKeyword('negative_keywords', index)}
-                  className="ml-2 text-red-600 hover:text-red-800"
+                  className="ml-2 text-red-200 hover:text-red-200"
                 >
                   ×
                 </button>
@@ -829,7 +829,7 @@ export default function WebsiteConfigManagerStepByStep({
             onChange={(e) => setConfig(prev => ({ ...prev, auto_poster_enabled: e.target.checked }))}
             className="sr-only peer"
           />
-          <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+          <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-100 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
         </label>
       </div>
       */}
@@ -920,21 +920,21 @@ export default function WebsiteConfigManagerStepByStep({
                       {existingConfig.website_description}
                     </p>
                     <div className="flex flex-wrap gap-2 text-xs">
-                      <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded">
+                      <span className="bg-purple-500/15 text-purple-200 px-2 py-1 rounded">
                         {existingConfig.customer_segments?.length || 0} segments
                       </span>
-                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                      <span className="bg-blue-500/15 text-blue-200 px-2 py-1 rounded">
                         {existingConfig.target_keywords?.length || 0} keywords
                       </span>
-                      <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
+                      <span className="bg-green-500/15 text-green-200 px-2 py-1 rounded">
                         {existingConfig.business_context_terms?.length || 0}{' '}
                         business terms
                       </span>
-                      <span className="bg-red-100 text-red-800 px-2 py-1 rounded">
+                      <span className="bg-red-500/15 text-red-200 px-2 py-1 rounded">
                         {existingConfig.negative_keywords?.length || 0} negative
                         keywords
                       </span>
-                      {/*<span className={`px-2 py-1 rounded ${existingConfig.auto_poster_enabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                      {/*<span className={`px-2 py-1 rounded ${existingConfig.auto_poster_enabled ? 'bg-green-500/15 text-green-200' : 'bg-zinc-800 text-zinc-100'}`}>
                         Auto-poster: {existingConfig.auto_poster_enabled ? 'ON' : 'OFF'}
                       </span>*/}
                     </div>
@@ -945,7 +945,7 @@ export default function WebsiteConfigManagerStepByStep({
                         setConfig(existingConfig);
                         setCurrentStep(1);
                       }}
-                      className="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
+                      className="rounded bg-[#7c6cff] px-3 py-1 text-sm text-white hover:bg-[#6b5af0]"
                     >
                       Edit
                     </button>

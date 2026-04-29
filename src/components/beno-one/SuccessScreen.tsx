@@ -10,11 +10,11 @@ interface SuccessScreenProps {
 
 export default function SuccessScreen({ productName, onViewCustomers, onStartOver }: SuccessScreenProps) {
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-6">
+    <div className="min-h-screen bg-zinc-900 flex items-center justify-center px-6">
       <div className="max-w-md w-full text-center">
         {/* Success Icon */}
         <div className="mb-8">
-          <div className="w-24 h-24 mx-auto bg-orange-100 rounded-full flex items-center justify-center">
+          <div className="w-24 h-24 mx-auto bg-orange-500/15 rounded-full flex items-center justify-center">
             <svg className="w-12 h-12 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -22,11 +22,11 @@ export default function SuccessScreen({ productName, onViewCustomers, onStartOve
         </div>
 
         {/* Success Message */}
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
+        <h1 className="text-3xl font-bold text-zinc-50 mb-4">
           Success!
         </h1>
         
-        <p className="text-lg text-gray-600 mb-8">
+        <p className="text-lg text-zinc-300 mb-8">
           Beno has found customers for &apos;{productName}&apos;
         </p>
 
@@ -44,11 +44,11 @@ export default function SuccessScreen({ productName, onViewCustomers, onStartOve
         </div>
 
         {/* What Happens Next */}
-        <div className="bg-gray-50 rounded-lg p-6 mb-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">
+        <div className="bg-zinc-900 rounded-lg p-6 mb-8">
+          <h3 className="text-lg font-semibold text-zinc-50 mb-3">
             What happens next?
           </h3>
-          <div className="text-left space-y-3 text-sm text-gray-600">
+          <div className="text-left space-y-3 text-sm text-zinc-300">
             <div className="flex items-start">
               <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
               <p>Beno will monitor relevant Reddit discussions</p>
@@ -72,19 +72,19 @@ export default function SuccessScreen({ productName, onViewCustomers, onStartOve
         <div className="space-y-3">
           <button
             onClick={onStartOver}
-            className="w-full py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200"
+            className="w-full py-3 border border-white/10 text-zinc-300 font-medium rounded-lg hover:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 transition-all duration-200"
           >
             Add Another Product
           </button>
           
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-zinc-400">
             You can manage all your products and monitor their performance from your dashboard.
           </p>
         </div>
 
         {/* Support Info */}
-        <div className="mt-8 pt-6 border-t border-gray-200">
-          <p className="text-sm text-gray-500">
+        <div className="mt-8 pt-6 border-t border-white/10">
+          <p className="text-sm text-zinc-400">
             Need help? Contact us at{' '}
             <a href="mailto:support@redditoutreach.com" className="text-orange-600 hover:text-orange-700">
               support@redditoutreach.com

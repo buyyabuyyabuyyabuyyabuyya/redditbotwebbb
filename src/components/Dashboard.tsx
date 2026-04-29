@@ -36,7 +36,7 @@ function Modal({
             </Dialog.Title>
             <button
               onClick={onClose}
-              className="rounded-lg p-2 text-zinc-400 hover:bg-white/10 hover:text-zinc-50"
+              className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-50"
             >
               ✕
             </button>
@@ -101,7 +101,7 @@ export default function Dashboard() {
                 rotation is handled by the managed posting network.
               </p>
             </div>
-            <div className="border-l border-black/8 bg-[#fafaf6] p-8">
+            <div className="border-l border-white/10 bg-zinc-950 p-8">
               <div className="flex flex-wrap gap-3">
                 <Link href="/discussion-poster" className="ui-button-primary">
                   Open discussion poster
@@ -128,7 +128,7 @@ export default function Dashboard() {
 
         <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
           <section className="surface-card p-6">
-            <h2 className="text-xl font-semibold text-zinc-950">
+            <h2 className="text-xl font-semibold text-zinc-50">
               Managed Posting Network
             </h2>
             <p className="mt-2 text-sm leading-6 text-zinc-500">
@@ -146,7 +146,7 @@ export default function Dashboard() {
                   <div className="text-xs uppercase tracking-[0.2em] text-zinc-500">
                     {label}
                   </div>
-                  <div className="mt-2 text-sm font-medium text-zinc-950">
+                  <div className="mt-2 text-sm font-medium text-zinc-50">
                     {value}
                   </div>
                 </div>
@@ -155,7 +155,7 @@ export default function Dashboard() {
           </section>
 
           <section className="surface-card p-6">
-            <h2 className="text-xl font-semibold text-zinc-950">
+            <h2 className="text-xl font-semibold text-zinc-50">
               Comment workflow
             </h2>
             <div className="mt-6 space-y-5 text-sm text-zinc-600">
@@ -177,11 +177,11 @@ export default function Dashboard() {
                 ],
               ].map(([step, title, desc]) => (
                 <div key={title} className="flex gap-4">
-                  <div className="h-8 w-8 rounded-full border border-black/10 bg-[#fafaf6] text-xs font-semibold leading-8 text-center text-zinc-700">
+                  <div className="h-8 w-8 rounded-full border border-white/10 bg-zinc-950 text-center text-xs font-semibold leading-8 text-zinc-300">
                     {step}
                   </div>
                   <div>
-                    <div className="font-medium text-zinc-950">{title}</div>
+                    <div className="font-medium text-zinc-50">{title}</div>
                     <div className="mt-1 text-sm leading-6 text-zinc-500">
                       {desc}
                     </div>
@@ -199,7 +199,7 @@ export default function Dashboard() {
           <section className="surface-card p-6">
             <div className="mb-5 flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold text-zinc-950">
+                <h2 className="text-xl font-semibold text-zinc-50">
                   Reply playbooks
                 </h2>
                 <p className="mt-1 text-sm text-zinc-500">
@@ -224,7 +224,7 @@ export default function Dashboard() {
                   <div key={template.id} className="py-4 first:pt-0 last:pb-0">
                     <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                       <div className="min-w-0 flex-1">
-                        <h3 className="font-medium text-zinc-950">
+                        <h3 className="font-medium text-zinc-50">
                           {template.name}
                         </h3>
                         <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-zinc-600">
@@ -256,7 +256,7 @@ export default function Dashboard() {
           </section>
 
           <section className="surface-card p-6">
-            <h2 className="text-xl font-semibold text-zinc-950">
+            <h2 className="text-xl font-semibold text-zinc-50">
               Recent activity
             </h2>
             <div className="mt-4">

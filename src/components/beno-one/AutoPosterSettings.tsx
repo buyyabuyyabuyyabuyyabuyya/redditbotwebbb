@@ -168,7 +168,7 @@ export default function AutoPosterSettings({ productId, accountId }: AutoPosterS
       <Card>
         <CardContent className="p-8 text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading auto-poster settings...</p>
+          <p className="mt-4 text-zinc-300">Loading auto-poster settings...</p>
         </CardContent>
       </Card>
     );
@@ -200,26 +200,26 @@ export default function AutoPosterSettings({ productId, accountId }: AutoPosterS
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
+            <div className="text-center p-4 bg-zinc-900 rounded-lg">
               <div className="flex items-center justify-center mb-2">
                 <Target className="h-5 w-5 text-blue-600" />
               </div>
-              <div className="text-2xl font-bold text-gray-900">{config.postsToday}</div>
-              <div className="text-sm text-gray-600">Posts Today</div>
+              <div className="text-2xl font-bold text-zinc-50">{config.postsToday}</div>
+              <div className="text-sm text-zinc-300">Posts Today</div>
             </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
+            <div className="text-center p-4 bg-zinc-900 rounded-lg">
               <div className="flex items-center justify-center mb-2">
                 <Clock className="h-5 w-5 text-green-600" />
               </div>
-              <div className="text-2xl font-bold text-gray-900">{config.intervalMinutes}m</div>
-              <div className="text-sm text-gray-600">Interval</div>
+              <div className="text-2xl font-bold text-zinc-50">{config.intervalMinutes}m</div>
+              <div className="text-sm text-zinc-300">Interval</div>
             </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
+            <div className="text-center p-4 bg-zinc-900 rounded-lg">
               <div className="flex items-center justify-center mb-2">
                 <TrendingUp className="h-5 w-5 text-purple-600" />
               </div>
-              <div className="text-2xl font-bold text-gray-900">{config.maxPostsPerDay}</div>
-              <div className="text-sm text-gray-600">Daily Limit</div>
+              <div className="text-2xl font-bold text-zinc-50">{config.maxPostsPerDay}</div>
+              <div className="text-sm text-zinc-300">Daily Limit</div>
             </div>
           </div>
 
@@ -260,13 +260,13 @@ export default function AutoPosterSettings({ productId, accountId }: AutoPosterS
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-zinc-300 mb-2">
                 Posting Interval (minutes)
               </label>
               <select
                 value={config.intervalMinutes}
                 onChange={(e) => updateConfig({ intervalMinutes: parseInt(e.target.value) })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6cff]"
                 disabled={saving}
               >
                 <option value={15}>15 minutes</option>
@@ -278,13 +278,13 @@ export default function AutoPosterSettings({ productId, accountId }: AutoPosterS
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-zinc-300 mb-2">
                 Maximum Posts Per Day
               </label>
               <select
                 value={config.maxPostsPerDay}
                 onChange={(e) => updateConfig({ maxPostsPerDay: parseInt(e.target.value) })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6cff]"
                 disabled={saving}
               >
                 <option value={5}>5 posts</option>
@@ -301,10 +301,10 @@ export default function AutoPosterSettings({ productId, accountId }: AutoPosterS
                 id="highScoreOnly"
                 checked={config.onlyHighScoreReplies}
                 onChange={(e) => updateConfig({ onlyHighScoreReplies: e.target.checked })}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="h-4 w-4 text-blue-600 focus:ring-[#7c6cff] border-white/10 rounded"
                 disabled={saving}
               />
-              <label htmlFor="highScoreOnly" className="ml-2 block text-sm text-gray-900">
+              <label htmlFor="highScoreOnly" className="ml-2 block text-sm text-zinc-50">
                 Only post high-quality replies (80%+ relevance score)
               </label>
             </div>
@@ -316,7 +316,7 @@ export default function AutoPosterSettings({ productId, accountId }: AutoPosterS
       {config.lastPostedAt && (
         <Card>
           <CardContent className="p-4">
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-zinc-300">
               <p><strong>Last Posted:</strong> {config.lastPostedAt ? new Date(config.lastPostedAt).toLocaleString() : 'Never'}</p>
               {config.nextPostAt && (
                 <p><strong>Next Post:</strong> {new Date(config.nextPostAt).toLocaleString()}</p>

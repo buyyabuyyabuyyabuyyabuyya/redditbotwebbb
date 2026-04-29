@@ -136,8 +136,8 @@ export default function DiscussionCampaigns() {
                     <h3 className="text-lg font-medium text-gray-300 mb-2">
                       No Comments Yet
                     </h3>
-                    <p className="text-gray-500">
-                      This campaign hasn't generated any comments yet. Check back later!
+                    <p className="text-zinc-400">
+                      This campaign hasn&apos;t generated any comments yet. Check back later!
                     </p>
                   </CardContent>
                 </Card>
@@ -200,7 +200,7 @@ export default function DiscussionCampaigns() {
                 <h3 className="text-lg font-medium text-gray-300 mb-2">
                   No Campaigns Yet
                 </h3>
-                <p className="text-gray-500 mb-6">
+                <p className="text-zinc-400 mb-6">
                   Start your first discussion campaign using the AI-Powered Reddit Outreach workflow above.
                 </p>
               </CardContent>

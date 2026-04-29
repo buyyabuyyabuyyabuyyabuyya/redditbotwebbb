@@ -33,7 +33,7 @@ export default function Button({
     primary:
       'bg-indigo-600 hover:bg-indigo-700 text-white border border-transparent focus:ring-indigo-500',
     secondary:
-      'bg-gray-700 hover:bg-gray-600 text-white border border-gray-600 focus:ring-gray-500',
+      'bg-gray-700 hover:bg-gray-600 text-white border border-gray-600 focus:ring-zinc-500',
     danger:
       'bg-red-600 hover:bg-red-700 text-white border border-transparent focus:ring-red-500',
     success:
@@ -123,8 +123,8 @@ export function RippleButton({
       {...props}
     >
       <span className="relative z-10 font-semibold">{children}</span>
-      <span className="absolute inset-0 translate-y-[100%] bg-white/25 transition-transform duration-300 ease-out group-hover:translate-y-[0%] group-hover:mix-blend-overlay"></span>
-      <span className="absolute inset-0 -translate-y-[100%] bg-white/10 transition-transform duration-300 ease-out group-hover:translate-y-[0%] group-hover:mix-blend-overlay"></span>
+      <span className="absolute inset-0 translate-y-[100%] bg-zinc-100/15 transition-transform duration-300 ease-out group-hover:translate-y-[0%] group-hover:mix-blend-overlay"></span>
+      <span className="absolute inset-0 -translate-y-[100%] bg-zinc-100/10 transition-transform duration-300 ease-out group-hover:translate-y-[0%] group-hover:mix-blend-overlay"></span>
     </button>
   );
 }

@@ -151,7 +151,7 @@ export default function DiscussionPosterClient() {
               </div>
               <button
                 onClick={() => void loadAccountStatus()}
-                className="text-sm text-zinc-500 hover:text-zinc-950"
+                className="text-sm text-zinc-400 hover:text-zinc-100"
               >
                 Refresh
               </button>
@@ -166,7 +166,7 @@ export default function DiscussionPosterClient() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`border-b-2 px-1 py-4 text-sm font-medium ${activeTab === tab.id ? 'border-zinc-950 text-zinc-950' : 'border-transparent text-zinc-500 hover:border-black/10 hover:text-zinc-900'}`}
+                  className={`border-b-2 px-1 py-4 text-sm font-medium ${activeTab === tab.id ? 'border-zinc-100 text-zinc-100' : 'border-transparent text-zinc-400 hover:border-white/20 hover:text-zinc-100'}`}
                 >
                   {tab.label}
                 </button>
@@ -192,7 +192,7 @@ export default function DiscussionPosterClient() {
               <div className="space-y-4">
                 <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                   <div>
-                    <h3 className="text-lg font-medium text-zinc-950">
+                    <h3 className="text-lg font-medium text-zinc-50">
                       Posted comments
                     </h3>
                     <p className="text-sm text-zinc-500">
@@ -202,7 +202,7 @@ export default function DiscussionPosterClient() {
                   <select
                     value={selectedConfigId}
                     onChange={(e) => setSelectedConfigId(e.target.value)}
-                    className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-zinc-950 md:max-w-md"
+                    className="w-full rounded-xl border border-white/10 bg-zinc-950 px-3 py-2 text-zinc-100 md:max-w-md"
                   >
                     <option value="">All website configurations</option>
                     {websiteConfigs.map((config) => (
@@ -232,7 +232,7 @@ export default function DiscussionPosterClient() {
                       <div key={post.id} className="surface-subtle p-4">
                         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                           <div className="flex-1">
-                            <h4 className="font-medium text-zinc-950">
+                            <h4 className="font-medium text-zinc-50">
                               {post.post_title}
                             </h4>
                             <p className="mt-1 text-sm text-zinc-500">
@@ -246,7 +246,7 @@ export default function DiscussionPosterClient() {
                                 href={post.comment_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="mt-3 inline-block text-sm font-medium text-zinc-950 underline-offset-4 hover:underline"
+                                className="mt-3 inline-block text-sm font-medium text-zinc-50 underline-offset-4 hover:underline"
                               >
                                 View comment on Reddit ↗
                               </a>

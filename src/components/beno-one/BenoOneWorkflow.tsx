@@ -224,9 +224,9 @@ export default function BenoOneWorkflow() {
       
       default:
         return (
-          <div className="min-h-screen bg-white flex items-center justify-center">
+          <div className="min-h-screen bg-zinc-900 flex items-center justify-center">
             <div className="text-center">
-              <h1 className="text-2xl font-bold text-gray-900 mb-4">
+              <h1 className="text-2xl font-bold text-zinc-50 mb-4">
                 Something went wrong
               </h1>
               <button
@@ -245,11 +245,11 @@ export default function BenoOneWorkflow() {
     <div className="beno-one-workflow">
       {/* Progress Indicator */}
       {currentStep < 5 && (
-        <div className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50">
+        <div className="fixed top-0 left-0 right-0 bg-zinc-900 border-b border-white/10 z-50">
           <div className="max-w-4xl mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <span className="text-sm font-medium text-gray-500">
+                <span className="text-sm font-medium text-zinc-400">
                   Step {currentStep} of 4
                 </span>
                 <div className="flex space-x-2">
@@ -257,14 +257,14 @@ export default function BenoOneWorkflow() {
                     <div
                       key={step}
                       className={`w-3 h-3 rounded-full ${
-                        step <= currentStep ? 'bg-orange-500' : 'bg-gray-300'
+                        step <= currentStep ? 'bg-orange-500' : 'bg-zinc-700'
                       }`}
                     />
                   ))}
                 </div>
               </div>
               
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-zinc-400">
                 {currentStep === 1 && 'Enter Website'}
                 {currentStep === 2 && 'Review Description'}
                 {currentStep === 3 && 'Select Segments'}

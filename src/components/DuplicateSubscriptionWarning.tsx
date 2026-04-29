@@ -226,7 +226,7 @@ export default function DuplicateSubscriptionWarning() {
             </button>
             <a
               href="/settings?tab=billing"
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md transition-colors"
+              className="px-4 py-2 bg-[#7c6cff] hover:bg-[#6b5af0] text-white text-sm rounded-md transition-colors"
             >
               Go to Billing Portal
             </a>

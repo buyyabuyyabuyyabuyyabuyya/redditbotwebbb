@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --background: #080808;
-  --foreground: #fafafa;
+  --background: #09090b;
+  --foreground: #f4f4f5;
 }
 
 @theme inline {
@@ -22,11 +22,11 @@ body {
 
 @layer components {
   .surface-card {
-    @apply rounded-2xl border border-white/10 bg-[#111111] shadow-[0_1px_2px_rgba(0,0,0,0.35)];
+    @apply rounded-2xl border border-white/10 bg-zinc-900 shadow-[0_1px_2px_rgba(0,0,0,0.35)];
   }
 
   .surface-subtle {
-    @apply rounded-xl border border-white/10 bg-[#181818];
+    @apply rounded-xl border border-white/10 bg-zinc-950;
   }
 
   .section-shell {
@@ -46,11 +46,11 @@ body {
   }
 
   .ui-button-secondary {
-    @apply inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-zinc-100 transition hover:bg-white/10;
+    @apply inline-flex items-center justify-center rounded-xl border border-white/10 bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-100 transition hover:bg-zinc-800;
   }
 
   .ui-button-danger {
-    @apply inline-flex items-center justify-center rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100;
+    @apply inline-flex items-center justify-center rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-200 transition hover:bg-red-500/20;
   }
 
   .surface-card .text-zinc-950,
@@ -77,13 +77,6 @@ body {
     @apply text-zinc-400;
   }
 
-  .surface-card .bg-white,
-  .surface-subtle .bg-white,
-  .surface-card .bg-\[\#fafaf6\],
-  .surface-subtle .bg-\[\#fafaf6\] {
-    @apply bg-[#181818];
-  }
-
   .dark-policy .text-gray-900,
   .dark-policy .text-gray-800 {
     @apply text-zinc-50;
@@ -95,12 +88,17 @@ body {
     @apply text-zinc-300;
   }
 
-  .dark-policy .bg-white,
-  .dark-policy .bg-gray-50 {
-    @apply bg-[#111111];
-  }
-
   .dark-policy .border-gray-200 {
     @apply border-white/10;
+  }
+}
+
+@layer utilities {
+  .app-dark-surface {
+    @apply border-white/10 bg-zinc-900 text-zinc-100;
+  }
+
+  .app-dark-subtle {
+    @apply border-white/10 bg-zinc-950 text-zinc-300;
   }
 }

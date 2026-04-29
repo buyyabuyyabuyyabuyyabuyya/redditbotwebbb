@@ -178,10 +178,10 @@ export default function RedditPoster({ productId, generatedReplies = [] }: Reddi
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'validation_passed': return 'bg-green-100 text-green-800';
-      case 'validation_passed_manual_awaiting': return 'bg-blue-100 text-blue-800';
-      case 'submitted': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'validation_passed': return 'bg-green-500/15 text-green-200';
+      case 'validation_passed_manual_awaiting': return 'bg-blue-500/15 text-blue-200';
+      case 'submitted': return 'bg-yellow-500/15 text-yellow-200';
+      default: return 'bg-zinc-800 text-zinc-100';
     }
   };
 
@@ -217,7 +217,7 @@ export default function RedditPoster({ productId, generatedReplies = [] }: Reddi
       ) : replies.length === 0 ? (
         <Card>
           <CardContent className="text-center py-8">
-            <MessageSquare className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+            <MessageSquare className="h-12 w-12 text-zinc-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-white mb-2">No replies ready</h3>
             <p className="text-gray-400">Check back later for new validated replies to post.</p>
           </CardContent>

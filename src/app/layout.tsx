@@ -63,7 +63,7 @@ export const metadata = {
 };
 
 export const viewport = {
-  themeColor: '#f5f5ef',
+  themeColor: '#09090b',
 };
 
 export default function RootLayout({
@@ -94,9 +94,9 @@ export default function RootLayout({
             type="image/png"
           />
           <link rel="apple-touch-icon" href="/icon-192x192.png" />
-          <meta name="theme-color" content="#f5f5ef" />
+          <meta name="theme-color" content="#09090b" />
         </head>
-        <body className={`${inter.className} bg-[#f5f5ef] text-zinc-950`}>
+        <body className={`${inter.className} bg-zinc-950 text-zinc-100`}>
           <StructuredData />
           <Script
             id="pwa-register"
@@ -107,7 +107,9 @@ export default function RootLayout({
           />
           <ErrorBoundary>
             <Navigation />
-            <main className="min-h-screen bg-[#f5f5ef]">{children}</main>
+            <main className="min-h-screen bg-zinc-950 text-zinc-100">
+              {children}
+            </main>
             <Footer />
           </ErrorBoundary>
         </body>
