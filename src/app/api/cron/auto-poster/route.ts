@@ -275,7 +275,7 @@ export async function POST(req: Request) {
           .select('*')
           .eq('is_validated', true)
           .eq('is_discussion_poster', true)
-          .eq('status', 'active')
+          .eq('is_available', true)
           .order('last_used_at', { ascending: true, nullsFirst: true });
 
         // Filter accounts that are actually available (not in cooldown)

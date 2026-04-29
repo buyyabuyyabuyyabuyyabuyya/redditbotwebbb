@@ -5,6 +5,7 @@ import {
   decodeWebsiteConfigCollections,
   mergeWebsiteConfigCollections,
 } from '@/lib/websiteConfigCollections';
+import { getPlanLimits } from '@/utils/planLimits';
 
 const createAdmin = () =>
   createClient(
@@ -21,6 +22,41 @@ const normalizeConfigForResponse = (config: any) => {
     business_context_terms: decoded.businessContextTerms,
     target_subreddits: decoded.targetSubreddits,
   };
+};
+
+const enforceWebsiteConfigLimit = async (
+  supabaseAdmin: ReturnType<typeof createAdmin>,
+  userId: string
+) => {
+  const { data: userRecord } = await supabaseAdmin
+    .from('users')
+    .select('subscription_status')
+    .eq('id', userId)
+    .maybeSingle();
+
+  const limits = getPlanLimits(userRecord?.subscription_status);
+  const { count, error } = await supabaseAdmin
+    .from('website_configs')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId);
+
+  if (error) {
+    throw new Error(`Failed to check website config limit: ${error.message}`);
+  }
+
+  if ((count || 0) >= limits.maxWebsiteConfigs) {
+    return NextResponse.json(
+      {
+        error: 'website_config_limit_reached',
+        limit: limits.maxWebsiteConfigs,
+        current: count || 0,
+        message: `Your plan allows ${limits.maxWebsiteConfigs} website config${limits.maxWebsiteConfigs === 1 ? '' : 's'}.`,
+      },
+      { status: 403 }
+    );
+  }
+
+  return null;
 };
 
 export async function GET(req: Request) {
@@ -130,6 +166,12 @@ export async function POST(req: Request) {
         });
       }
     }
+
+    const limitResponse = await enforceWebsiteConfigLimit(
+      supabaseAdmin,
+      userId
+    );
+    if (limitResponse) return limitResponse;
 
     const { data: newConfig, error } = await supabaseAdmin
       .from('website_configs')

@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
 import { createServerSupabaseClient } from '../../../../utils/supabase-server';
 import { createClient } from '@supabase/supabase-js';
-import { getPlanLimits } from '../../../../utils/planLimits';
 
 // Create a Supabase admin client with service role key for bypassing RLS
 const supabaseAdmin = createClient(
@@ -123,34 +122,6 @@ export async function POST(req: Request) {
           { status: 500 }
         );
       }
-    }
-
-    // ---- PLAN LIMIT CHECK ----
-    const { data: userRecord } = await supabaseAdmin
-      .from('users')
-      .select('subscription_status')
-      .eq('id', userId)
-      .single();
-    const plan = (userRecord?.subscription_status || 'free') as any;
-    const limits = getPlanLimits(plan);
-
-    // Count existing templates
-    const { count: templateCount } = await supabaseAdmin
-      .from('message_templates')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId);
-
-    if (
-      limits.maxTemplates !== null &&
-      (templateCount || 0) >= limits.maxTemplates
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            'Template limit reached for your current plan. Please upgrade your plan to create more templates.',
-        },
-        { status: 403 }
-      );
     }
 
     // Now insert the comment template

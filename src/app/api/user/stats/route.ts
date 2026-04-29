@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
 import { createClient } from '@supabase/supabase-js';
+import { getPlanLimits } from '@/utils/planLimits';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -37,6 +38,10 @@ export async function GET(req: Request) {
       );
     }
 
+    const monthStart = new Date();
+    monthStart.setUTCDate(1);
+    monthStart.setUTCHours(0, 0, 0, 0);
+
     const { count: commentCount, error: commentCountError } =
       await supabaseAdmin
         .from('posted_reddit_discussions')
@@ -46,33 +51,47 @@ export async function GET(req: Request) {
         })
         .eq('website_configs.user_id', userId);
 
-    if (commentCountError) {
+    const { count: monthlyCommentCount, error: monthlyCommentCountError } =
+      await supabaseAdmin
+        .from('posted_reddit_discussions')
+        .select('id, website_configs!inner(user_id)', {
+          count: 'exact',
+          head: true,
+        })
+        .eq('website_configs.user_id', userId)
+        .gte('created_at', monthStart.toISOString());
+
+    if (commentCountError || monthlyCommentCountError) {
       return NextResponse.json(
-        { error: `Database error: ${commentCountError.message}` },
+        {
+          error: `Database error: ${
+            commentCountError?.message || monthlyCommentCountError?.message
+          }`,
+        },
         { status: 500 }
       );
     }
 
     const subscriptionStatus = userStatsData?.subscription_status || 'free';
-    const PLAN_LIMITS: Record<string, number | null> = {
-      free: 15,
-      pro: 200,
-      advanced: null,
-    };
-
-    const planLimit = PLAN_LIMITS[subscriptionStatus] ?? 15;
-    const usageCount = userStatsData?.message_count || 0;
-    const remaining =
-      planLimit === null ? null : Math.max(0, planLimit - usageCount);
+    const limits = getPlanLimits(subscriptionStatus);
+    const usageCount = monthlyCommentCount || 0;
+    const remaining = Math.max(0, limits.monthlyCommentLimit - usageCount);
 
     return NextResponse.json({
       subscription_status: subscriptionStatus,
-      message_count: usageCount,
+      message_count: userStatsData?.message_count || 0,
       usage_count: usageCount,
       comment_count: commentCount || 0,
-      limit: planLimit,
+      monthly_comment_count: usageCount,
+      limit: limits.monthlyCommentLimit,
       remaining,
-      is_pro: subscriptionStatus === 'pro' || subscriptionStatus === 'advanced',
+      is_pro:
+        subscriptionStatus === 'pro' ||
+        subscriptionStatus === 'advanced' ||
+        subscriptionStatus === 'elite',
+      max_website_configs: limits.maxWebsiteConfigs,
+      max_auto_posters: limits.maxAutoPosters,
+      monthly_comment_limit: limits.monthlyCommentLimit,
     });
   } catch (error: any) {
     return NextResponse.json(

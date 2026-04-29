@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { createClient } from '@supabase/supabase-js';
 import { getWebsiteConfigSubreddits } from '@/lib/websiteConfigCollections';
+import { getPlanLimits } from '@/utils/planLimits';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -39,6 +40,51 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const { data: userRecord } = await supabaseAdmin
+      .from('users')
+      .select('subscription_status')
+      .eq('id', userId)
+      .maybeSingle();
+    const limits = getPlanLimits(userRecord?.subscription_status);
+
+    const { data: existingAutoPoster } = await supabaseAdmin
+      .from('auto_poster_configs')
+      .select('id, status, enabled')
+      .eq('user_id', userId)
+      .eq('website_config_id', config.id)
+      .limit(1)
+      .maybeSingle();
+
+    if (!existingAutoPoster?.enabled || existingAutoPoster.status !== 'active') {
+      const { count: activeAutoPosterCount, error: countError } =
+        await supabaseAdmin
+          .from('auto_poster_configs')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .eq('enabled', true)
+          .eq('status', 'active');
+
+      if (countError) {
+        console.error('Error checking auto-poster limit:', countError);
+        return NextResponse.json(
+          { error: 'Failed to check auto-poster limit' },
+          { status: 500 }
+        );
+      }
+
+      if ((activeAutoPosterCount || 0) >= limits.maxAutoPosters) {
+        return NextResponse.json(
+          {
+            error: 'auto_poster_limit_reached',
+            limit: limits.maxAutoPosters,
+            current: activeAutoPosterCount || 0,
+            message: `Your plan allows ${limits.maxAutoPosters} active auto-poster${limits.maxAutoPosters === 1 ? '' : 's'}.`,
+          },
+          { status: 403 }
+        );
+      }
+    }
+
     // Update the config to enable auto-posting
     const { error: updateError } = await supabaseAdmin
       .from('website_configs')
@@ -56,18 +102,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get first available admin-controlled Reddit account
+    // Get first available platform-managed Reddit account.
     const { data: account } = await supabaseAdmin
       .from('reddit_accounts')
       .select('*')
       .eq('is_discussion_poster', true)
       .eq('is_validated', true)
+      .eq('is_available', true)
+      .order('last_used_at', { ascending: true, nullsFirst: true })
       .limit(1)
       .maybeSingle();
 
     if (!account) {
       return NextResponse.json(
-        { error: 'No Reddit accounts available for posting' },
+        { error: 'No managed posting network accounts are available' },
         { status: 400 }
       );
     }
@@ -75,28 +123,32 @@ export async function POST(request: NextRequest) {
     const subredditRotation = getWebsiteConfigSubreddits(config);
 
     // Create auto-poster config entry
-    const { error: autoposterError } = await supabaseAdmin
-      .from('auto_poster_configs')
-      .upsert(
-        {
-          user_id: userId,
-          website_config_id: config.id, // Use website config UUID
-          product_id: null, // Deprecate legacy product_id column
-          account_id: account.id,
-          enabled: true,
-          interval_minutes: 30,
-          max_posts_per_day: 10,
-          status: 'active',
-          next_post_at: new Date().toISOString(), // Post immediately
-          posts_today: 0,
-          current_subreddit_index: 0,
-          last_subreddit_used: subredditRotation[0],
-          last_reset_date: new Date().toISOString().split('T')[0],
-        },
-        {
-          onConflict: 'user_id,website_config_id,account_id',
-        }
-      );
+    const autoPosterPayload = {
+      user_id: userId,
+      website_config_id: config.id, // Use website config UUID
+      product_id: null, // Deprecate legacy product_id column
+      account_id: account.id,
+      enabled: true,
+      interval_minutes: 30,
+      max_posts_per_day: 10,
+      status: 'active',
+      next_post_at: new Date().toISOString(), // Post immediately
+      posts_today: 0,
+      current_subreddit_index: 0,
+      last_subreddit_used: subredditRotation[0],
+      last_reset_date: new Date().toISOString().split('T')[0],
+    };
+
+    const autoPosterMutation = existingAutoPoster
+      ? supabaseAdmin
+          .from('auto_poster_configs')
+          .update(autoPosterPayload)
+          .eq('id', existingAutoPoster.id)
+      : supabaseAdmin
+          .from('auto_poster_configs')
+          .insert(autoPosterPayload);
+
+    const { error: autoposterError } = await autoPosterMutation;
 
     if (autoposterError) {
       console.error('Error creating auto-poster config:', autoposterError);
@@ -112,7 +164,6 @@ export async function POST(request: NextRequest) {
       .select('*')
       .eq('user_id', userId)
       .eq('website_config_id', config.id)
-      .eq('account_id', account.id)
       .single();
 
     if (verifyError || !verifyConfig) {

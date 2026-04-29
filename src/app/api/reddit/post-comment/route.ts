@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import snoowrap from 'snoowrap';
 import { AccountCooldownManager } from '../../../../lib/accountCooldownManager';
 import { generateUserAgent } from '../../../../lib/redditService';
+import { getPlanLimits } from '../../../../utils/planLimits';
 
 // Generate auto comment based on website config and discussion
 function generateAutoComment(websiteConfig: any, discussion: any): string {
@@ -34,7 +35,7 @@ export async function POST(req: Request) {
 
     const body = (await req.json()) as {
       userId?: string;
-      accountId: string;
+      accountId?: string;
       postId: string; // Reddit post ID (e.g., "1mx4yal")
       comment?: string;
       subreddit?: string;
@@ -46,9 +47,13 @@ export async function POST(req: Request) {
     };
 
     if (!internal) body.userId = userId!;
+    const postingUserId = body.userId || userId;
+
+    if (!postingUserId) {
+      return NextResponse.json({ error: 'Missing user context' }, { status: 400 });
+    }
 
     const {
-      accountId,
       postId,
       websiteConfig,
       discussion,
@@ -56,6 +61,7 @@ export async function POST(req: Request) {
       postTitle,
       relevanceScore,
     } = body;
+    const accountId = body.accountId || 'auto';
     let { comment, subreddit } = body;
 
     // Auto-generate comment if not provided (for auto-poster)
@@ -64,7 +70,7 @@ export async function POST(req: Request) {
       subreddit = discussion.subreddit;
     }
 
-    if (!accountId || !postId || !comment) {
+    if (!postId || !comment) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -78,45 +84,60 @@ export async function POST(req: Request) {
 
     // Log attempt
     await supabaseAdmin.from('bot_logs').insert({
-      user_id: body.userId || userId,
+      user_id: postingUserId,
       action: 'comment_post_attempt',
       status: 'info',
       subreddit,
       message: `Attempting to comment on post ${postId}`,
     });
 
-    // Quota check for comment actions
-    const PLAN_LIMITS: Record<string, number | null> = {
-      free: 15,
-      pro: 200,
-      advanced: null,
-    };
+    // Quota check for monthly comment actions.
     const { data: userRow } = await supabaseAdmin
       .from('users')
       .select('subscription_status, message_count')
-      .eq('id', body.userId || userId)
-      .single();
+      .eq('id', postingUserId)
+      .maybeSingle();
 
-    const planStatus = userRow?.subscription_status || 'free';
-    const planLimit = Object.prototype.hasOwnProperty.call(
-      PLAN_LIMITS,
-      planStatus
-    )
-      ? PLAN_LIMITS[planStatus]
-      : 15;
+    const limits = getPlanLimits(userRow?.subscription_status);
+    const monthStart = new Date();
+    monthStart.setUTCDate(1);
+    monthStart.setUTCHours(0, 0, 0, 0);
 
-    if (planLimit !== null) {
-      const used = userRow?.message_count || 0;
-      if (used >= planLimit) {
-        await supabaseAdmin.from('bot_logs').insert({
-          user_id: body.userId || userId,
-          action: 'quota_reached',
-          status: 'error',
-          subreddit,
-          message: `Comment-action quota reached: ${used}/${planLimit}`,
-        });
-        return NextResponse.json({ error: 'quota_reached' }, { status: 402 });
-      }
+    const { count: monthlyCommentCount, error: monthlyCountError } =
+      await supabaseAdmin
+        .from('posted_reddit_discussions')
+        .select('id, website_configs!inner(user_id)', {
+          count: 'exact',
+          head: true,
+        })
+        .eq('website_configs.user_id', postingUserId)
+        .gte('created_at', monthStart.toISOString());
+
+    if (monthlyCountError) {
+      console.error('Failed to check monthly comment usage:', monthlyCountError);
+      return NextResponse.json(
+        { error: 'Failed to check comment usage' },
+        { status: 500 }
+      );
+    }
+
+    const usedThisMonth = monthlyCommentCount || 0;
+    if (usedThisMonth >= limits.monthlyCommentLimit) {
+      await supabaseAdmin.from('bot_logs').insert({
+        user_id: postingUserId,
+        action: 'quota_reached',
+        status: 'error',
+        subreddit,
+        message: `Monthly comment limit reached: ${usedThisMonth}/${limits.monthlyCommentLimit}`,
+      });
+      return NextResponse.json(
+        {
+          error: 'monthly_comment_limit_reached',
+          limit: limits.monthlyCommentLimit,
+          current: usedThisMonth,
+        },
+        { status: 402 }
+      );
     }
 
     // Use cooldown manager to get available account
@@ -173,6 +194,7 @@ export async function POST(req: Request) {
         .eq('id', accountId)
         .eq('is_discussion_poster', true)
         .eq('is_validated', true)
+        .eq('is_available', true)
         .single();
 
       if (!specificAccount) {
@@ -212,22 +234,14 @@ export async function POST(req: Request) {
         );
 
         // Get all accounts status for debugging
-        const { data: allAccounts } = await supabaseAdmin
+        const { count: platformAccountCount } = await supabaseAdmin
           .from('reddit_accounts')
-          .select(
-            'id, username, last_used_at, cooldown_minutes, is_available, is_discussion_poster'
-          )
+          .select('id', { count: 'exact', head: true })
           .eq('is_discussion_poster', true)
           .eq('is_validated', true);
 
         console.log(
-          '📋 [POST-COMMENT] All discussion poster accounts status:',
-          allAccounts?.map((acc) => ({
-            username: acc.username,
-            last_used: acc.last_used_at,
-            cooldown_mins: acc.cooldown_minutes,
-            is_available: acc.is_available,
-          }))
+          `[POST-COMMENT] Managed posting network accounts tracked: ${platformAccountCount || 0}`
         );
 
         return NextResponse.json(
@@ -235,7 +249,10 @@ export async function POST(req: Request) {
             error: 'No accounts available',
             status: 'rate_limited',
             estimatedWaitMinutes: waitTime,
-            accountsStatus: allAccounts,
+            poolStatus: {
+              status: waitTime > 0 ? 'limited' : 'offline',
+              nextAvailableIn: waitTime,
+            },
           },
           { status: 429 }
         );
@@ -345,14 +362,14 @@ export async function POST(req: Request) {
         await supabaseAdmin
           .from('users')
           .update({ message_count: (userRow?.message_count ?? 0) + 1 })
-          .eq('id', body.userId || userId);
+          .eq('id', postingUserId);
 
         if (websiteConfigId) {
           const { data: ownedConfig } = await supabaseAdmin
             .from('website_configs')
             .select('id')
             .eq('id', websiteConfigId)
-            .eq('user_id', body.userId || userId)
+            .eq('user_id', postingUserId)
             .maybeSingle();
 
           if (ownedConfig) {
@@ -384,7 +401,7 @@ export async function POST(req: Request) {
 
         // Log success
         await supabaseAdmin.from('bot_logs').insert({
-          user_id: body.userId || userId,
+          user_id: postingUserId,
           action: 'comment_posted',
           status: 'success',
           subreddit,
@@ -395,7 +412,7 @@ export async function POST(req: Request) {
           success: true,
           commentId: commentResponse.id,
           commentUrl,
-          accountId: account.id,
+          ...(internal ? { accountId: account.id } : {}),
         });
       } catch (err: any) {
         const msg = err instanceof Error ? err.message : String(err);
@@ -407,7 +424,7 @@ export async function POST(req: Request) {
         if (msg.includes('THREAD_LOCKED')) {
           console.log(`🔒 [POST-COMMENT] Thread is locked, skipping...`);
           await supabaseAdmin.from('bot_logs').insert({
-            user_id: body.userId || userId,
+            user_id: postingUserId,
             action: 'thread_locked',
             status: 'warning',
             subreddit,
@@ -421,7 +438,7 @@ export async function POST(req: Request) {
           msg.includes('USER_BLOCKED')
         ) {
           await supabaseAdmin.from('bot_logs').insert({
-            user_id: body.userId || userId,
+            user_id: postingUserId,
             action: 'user_blocked_or_banned',
             status: 'warning',
             subreddit,
@@ -454,7 +471,7 @@ export async function POST(req: Request) {
           );
 
           await supabaseAdmin.from('bot_logs').insert({
-            user_id: body.userId || userId,
+            user_id: postingUserId,
             action: 'rate_limited',
             status: 'warning',
             subreddit,
@@ -464,9 +481,13 @@ export async function POST(req: Request) {
           return NextResponse.json(
             {
               error: 'rate_limited',
-              accountId: account.id,
-              accountUsername: account.username,
-              cooldownInfo: cooldownInfo,
+              ...(internal
+                ? {
+                    accountId: account.id,
+                    accountUsername: account.username,
+                    cooldownInfo,
+                  }
+                : {}),
               rateLimitMessage: msg,
             },
             { status: 429 }
@@ -480,7 +501,7 @@ export async function POST(req: Request) {
         );
 
         await supabaseAdmin.from('bot_logs').insert({
-          user_id: body.userId || userId,
+          user_id: postingUserId,
           action: 'reddit_api_error',
           status: 'error',
           subreddit,
@@ -490,8 +511,12 @@ export async function POST(req: Request) {
         return NextResponse.json(
           {
             error: 'reddit_comment_failed',
-            accountId: account.id,
-            accountUsername: account.username,
+            ...(internal
+              ? {
+                  accountId: account.id,
+                  accountUsername: account.username,
+                }
+              : {}),
             errorMessage: msg,
             fullError: err,
           },
