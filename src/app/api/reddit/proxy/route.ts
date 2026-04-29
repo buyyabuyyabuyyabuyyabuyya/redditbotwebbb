@@ -25,6 +25,277 @@ function getRandomUserAgent(): string {
   return userAgents[Math.floor(Math.random() * userAgents.length)];
 }
 
+function normalizeSubredditName(subreddit: string | null | undefined): string {
+  return (subreddit || '')
+    .trim()
+    .replace(/^https?:\/\/(www\.)?reddit\.com\/r\//i, '')
+    .replace(/^\/?r\//i, '')
+    .replace(/\/.*$/, '')
+    .toLowerCase();
+}
+
+function getSubredditRotation(
+  websiteConfig: any,
+  requestedSubreddit: string
+): string[] {
+  const configured = getWebsiteConfigSubreddits(websiteConfig)
+    .map(normalizeSubredditName)
+    .filter(Boolean);
+
+  if (configured.length > 0) {
+    return Array.from(new Set(configured));
+  }
+
+  const fallback = normalizeSubredditName(requestedSubreddit);
+  return fallback ? [fallback] : [];
+}
+
+async function updateSubredditRotation(
+  supabaseAdmin: any,
+  configId: string | undefined,
+  subredditRotation: string[],
+  nextIndex: number,
+  reason: string,
+  extraUpdates: Record<string, any> = {}
+) {
+  if (!configId || subredditRotation.length === 0) return;
+
+  const normalizedIndex =
+    ((nextIndex % subredditRotation.length) + subredditRotation.length) %
+    subredditRotation.length;
+  const nextSubreddit = subredditRotation[normalizedIndex];
+
+  const { error } = await supabaseAdmin
+    .from('auto_poster_configs')
+    .update({
+      current_subreddit_index: normalizedIndex,
+      last_subreddit_used: nextSubreddit,
+      ...extraUpdates,
+    })
+    .eq('id', configId);
+
+  if (error) {
+    console.error(
+      `[REDDIT_PROXY] Failed to update subreddit rotation after ${reason}:`,
+      error
+    );
+    return;
+  }
+
+  console.log(
+    `[REDDIT_PROXY] Rotation updated after ${reason}: next r/${nextSubreddit} (index ${normalizedIndex})`
+  );
+}
+
+async function getStartingSubredditIndex(
+  supabaseAdmin: any,
+  configId: string | undefined,
+  subredditRotation: string[],
+  requestedSubreddit: string
+): Promise<number> {
+  if (subredditRotation.length === 0) return 0;
+
+  const requestedIndex = subredditRotation.indexOf(
+    normalizeSubredditName(requestedSubreddit)
+  );
+  if (requestedIndex >= 0) return requestedIndex;
+
+  if (!configId) return 0;
+
+  const { data: currentConfig } = await supabaseAdmin
+    .from('auto_poster_configs')
+    .select('current_subreddit_index')
+    .eq('id', configId)
+    .single();
+
+  const storedIndex = currentConfig?.current_subreddit_index;
+  if (
+    typeof storedIndex === 'number' &&
+    storedIndex >= 0 &&
+    storedIndex < subredditRotation.length
+  ) {
+    return storedIndex;
+  }
+
+  return 0;
+}
+
+async function fetchSubredditDiscussions({
+  subreddit,
+  query,
+  limit,
+  paginationManager,
+}: {
+  subreddit: string;
+  query: string;
+  limit: number;
+  paginationManager: RedditPaginationManagerServer;
+}) {
+  const {
+    url: redditUrl,
+    isReset,
+    state: paginationState,
+  } = await paginationManager.getSmartPaginationUrl(subreddit, limit);
+
+  console.log(
+    `[REDDIT_PROXY] Pagination state for r/${subreddit}:`,
+    paginationState
+      ? `after=${paginationState.after}, total_fetched=${paginationState.total_fetched}, pages=${paginationState.pages_processed}`
+      : 'first fetch'
+  );
+
+  let discussions: any[] = [];
+  let afterToken: string | null = null;
+  let beforeToken: string | null = null;
+  let rawFetched = 0;
+
+  try {
+    const PROXY_WORKER_URL = 'https://redditprxy.devappshowcase.workers.dev/';
+    const proxyUrl = `${PROXY_WORKER_URL}?url=${encodeURIComponent(redditUrl)}`;
+
+    console.log(`[REDDIT_SERVICE] Fetching via Cloudflare Proxy: ${proxyUrl}`);
+
+    const response = await fetch(proxyUrl, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': getRandomUserAgent(),
+      },
+    });
+
+    if (!response.ok) {
+      if (response.status === 403 || response.status === 429) {
+        throw new Error(`REDDIT_BLOCK_${response.status}`);
+      }
+      throw new Error(`Reddit API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const children = data?.data?.children || [];
+    rawFetched = children.length;
+
+    if (children.length === 0) {
+      console.log(
+        '[REDDIT_PROXY] WARNING: Received 200 OK but no posts found. Raw data sample:',
+        JSON.stringify(data).substring(0, 500)
+      );
+    }
+
+    console.log(
+      `[REDDIT_PROXY] Raw fetch returned ${children.length} discussions from r/${subreddit}`
+    );
+
+    afterToken = data.data?.after || null;
+    beforeToken = data.data?.before || null;
+
+    const skipped = {
+      missingFields: 0,
+      stickied: 0,
+      removed: 0,
+    };
+
+    discussions = children
+      .filter((post: any) => {
+        const postData = post?.data;
+        if (!postData?.id || !postData?.title) {
+          skipped.missingFields += 1;
+          return false;
+        }
+
+        if (postData.stickied) {
+          skipped.stickied += 1;
+          return false;
+        }
+
+        if (postData.removed_by_category || postData.banned_by) {
+          skipped.removed += 1;
+          return false;
+        }
+
+        return true;
+      })
+      .map((post: any) => ({
+        id: post.data.id,
+        title: post.data.title,
+        content: post.data.selftext || '',
+        description: post.data.selftext || post.data.title,
+        url: `https://reddit.com${post.data.permalink}`,
+        subreddit: post.data.subreddit,
+        author: post.data.author,
+        score: post.data.score,
+        num_comments: post.data.num_comments,
+        created_utc: post.data.created_utc,
+        raw_comment: post.data.selftext || post.data.title,
+        is_self: post.data.is_self,
+        over_18: post.data.over_18,
+        stickied: post.data.stickied,
+      }));
+
+    console.log(
+      `[REDDIT_PROXY] Candidate filter kept ${discussions.length}/${rawFetched} posts for r/${subreddit}; skipped=${JSON.stringify(skipped)}`
+    );
+  } catch (error: any) {
+    if (error.message && error.message.includes('REDDIT_BLOCK')) {
+      console.warn(
+        `[REDDIT_PROXY] JSON API blocked (${error.message}), switching to HTML scraping fallback...`
+      );
+
+      const htmlDiscussions = await scrapeRedditHTML(subreddit, query);
+      console.log(
+        `[REDDIT_PROXY] HTML scraping fallback found ${htmlDiscussions.length} discussions`
+      );
+
+      if (htmlDiscussions.length === 0) {
+        throw new Error(
+          `Reddit API blocked and HTML fallback returned 0 results`
+        );
+      }
+
+      discussions = htmlDiscussions;
+      rawFetched = htmlDiscussions.length;
+    } else {
+      throw error;
+    }
+  }
+
+  return {
+    discussions,
+    rawFetched,
+    afterToken,
+    beforeToken,
+    isReset,
+  };
+}
+
+async function checkAlreadyPostedDiscussions(
+  supabaseAdmin: any,
+  postIds: string[],
+  websiteConfigId?: string
+): Promise<string[]> {
+  if (postIds.length === 0) return [];
+
+  let query = supabaseAdmin
+    .from('posted_reddit_discussions')
+    .select('reddit_post_id')
+    .in('reddit_post_id', postIds);
+
+  if (websiteConfigId) {
+    query = query.eq('website_config_id', websiteConfigId);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error(
+      '[REDDIT_PROXY] Error checking posted discussions:',
+      error
+    );
+    return [];
+  }
+
+  return data?.map((row: any) => row.reddit_post_id) || [];
+}
+
 // Main auto-poster endpoint (primary, not backup)
 export async function POST(req: Request): Promise<NextResponse> {
   try {
@@ -91,149 +362,128 @@ export async function POST(req: Request): Promise<NextResponse> {
       process.env.SUPABASE_SERVICE_ROLE_KEY || ''
     );
 
-    // Initialize pagination manager for this user/config
-    const paginationManager = new RedditPaginationManagerServer(
-      userId,
-      configId
+    const subredditRotation = getSubredditRotation(
+      safeWebsiteConfig,
+      subreddit
     );
 
-    // Get smart pagination URL (auto-decides reset vs continue)
-    const {
-      url: redditUrl,
-      isReset,
-      state: paginationState,
-    } = await paginationManager.getSmartPaginationUrl(subreddit, limit || 10);
+    if (subredditRotation.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'No subreddits configured' },
+        { status: 400 }
+      );
+    }
+
+    const startingIndex = await getStartingSubredditIndex(
+      supabaseAdmin,
+      configId,
+      subredditRotation,
+      subreddit
+    );
+    const attemptedSubreddits: string[] = [];
+    let lastPayload: any = null;
+
     console.log(
-      `[REDDIT_PROXY] Pagination state for r/${subreddit}:`,
-      paginationState
-        ? `after=${paginationState.after}, total_fetched=${paginationState.total_fetched}, pages=${paginationState.pages_processed}`
-        : 'first fetch'
+      `[REDDIT_PROXY] Exhaustive run starting at index ${startingIndex}; configured subreddits=${subredditRotation.join(', ')}`
     );
 
-    let discussions: any[] = [];
-    let afterToken: string | null = null;
-    let beforeToken: string | null = null;
-
-    try {
-      // Step 1: Fetch Reddit discussions via Cloudflare Worker Proxy
-      const PROXY_WORKER_URL = 'https://redditprxy.devappshowcase.workers.dev/';
-      const proxyUrl = `${PROXY_WORKER_URL}?url=${encodeURIComponent(redditUrl)}`;
+    for (let offset = 0; offset < subredditRotation.length; offset++) {
+      const currentIndex = (startingIndex + offset) % subredditRotation.length;
+      const activeSubreddit = subredditRotation[currentIndex];
+      const nextIndex = (currentIndex + 1) % subredditRotation.length;
+      attemptedSubreddits.push(activeSubreddit);
 
       console.log(
-        `[REDDIT_SERVICE] Fetching via Cloudflare Proxy: ${proxyUrl}`
+        `[REDDIT_PROXY] Attempt ${offset + 1}/${subredditRotation.length}: searching r/${activeSubreddit}`
       );
 
-      // The Worker sets the User-Agent and other headers for the outgoing request to Reddit
-      const response = await fetch(proxyUrl, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-        },
-      });
+      try {
+        const paginationManager = new RedditPaginationManagerServer(
+          userId,
+          configId
+        );
+        const {
+          discussions,
+          rawFetched,
+          afterToken,
+          beforeToken,
+          isReset,
+        } = await fetchSubredditDiscussions({
+          subreddit: activeSubreddit,
+          query,
+          limit: limit || 10,
+          paginationManager,
+        });
 
-      if (!response.ok) {
-        if (response.status === 403 || response.status === 429) {
-          throw new Error(`REDDIT_BLOCK_${response.status}`);
+        const response = await processDiscussions(
+          discussions,
+          userId,
+          safeWebsiteConfig,
+          configId,
+          paginationManager,
+          supabaseAdmin,
+          activeSubreddit,
+          isReset,
+          afterToken,
+          beforeToken,
+          rawFetched,
+          attemptedSubreddits
+        );
+
+        const payload = await response
+          .clone()
+          .json()
+          .catch(() => null);
+        lastPayload = payload;
+
+        if (payload?.posted) {
+          return response;
         }
-        throw new Error(`Reddit API error: ${response.status}`);
-      }
 
-      const data = await response.json();
-
-      if (!data?.data?.children || data.data.children.length === 0) {
-        console.log(
-          '[REDDIT_PROXY] WARNING: Received 200 OK but no posts found. Raw data sample:',
-          JSON.stringify(data).substring(0, 500)
-        );
-      }
-
-      console.log(
-        `[REDDIT_PROXY] Fetched ${data?.data?.children?.length || 0} discussions from r/${subreddit}`
-      );
-
-      afterToken = data.data?.after || null;
-      beforeToken = data.data?.before || null;
-
-      // Parse discussions from JSON response
-      discussions =
-        data.data?.children
-          ?.filter((post: any) => {
-            const title = post.data.title.toLowerCase();
-            const content = (post.data.selftext || '').toLowerCase();
-            const queryLower = query.toLowerCase();
-
-            // Split query into keywords for flexible matching
-            const keywords = queryLower
-              .split(' ')
-              .filter((k: string) => k.length > 3);
-
-            // If no specific keywords (short query), revert to simple check
-            if (keywords.length === 0) {
-              return title.includes(queryLower) || content.includes(queryLower);
-            }
-
-            // Check if ANY keyword matches (OR logic)
-            return keywords.some(
-              (k: string) => title.includes(k) || content.includes(k)
-            );
-          })
-          ?.map((post: any) => ({
-            id: post.data.id,
-            title: post.data.title,
-            content: post.data.selftext || '',
-            description: post.data.selftext || post.data.title,
-            url: `https://reddit.com${post.data.permalink}`,
-            subreddit: post.data.subreddit,
-            author: post.data.author,
-            score: post.data.score,
-            num_comments: post.data.num_comments,
-            created_utc: post.data.created_utc,
-            raw_comment: post.data.selftext || post.data.title,
-            is_self: post.data.is_self,
-          })) || [];
-    } catch (error: any) {
-      if (error.message && error.message.includes('REDDIT_BLOCK')) {
-        console.warn(
-          `[REDDIT_PROXY] JSON API blocked (${error.message}), switching to HTML scraping fallback...`
-        );
-        // Fallback to HTML scraping
-        const htmlDiscussions = await scrapeRedditHTML(subreddit, query);
-        console.log(
-          `[REDDIT_PROXY] HTML scraping fallback found ${htmlDiscussions.length} discussions`
+        await updateSubredditRotation(
+          supabaseAdmin,
+          configId,
+          subredditRotation,
+          nextIndex,
+          `attempt on r/${activeSubreddit}`
         );
 
-        if (htmlDiscussions.length === 0) {
-          throw new Error(
-            `Reddit API blocked and HTML fallback returned 0 results`
-          );
+        // Account/network errors are not subreddit-specific, so retrying every
+        // subreddit would only burn time and API calls.
+        if (!response.ok && response.status >= 500) {
+          return response;
         }
-        discussions = htmlDiscussions;
-        // HTML scraping does not support standard pagination tokens
-      } else {
-        throw error;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        lastPayload = {
+          success: false,
+          error: message,
+          subreddit: activeSubreddit,
+        };
+        console.error(
+          `[REDDIT_PROXY] Attempt failed for r/${activeSubreddit}:`,
+          error
+        );
+
+        await updateSubredditRotation(
+          supabaseAdmin,
+          configId,
+          subredditRotation,
+          nextIndex,
+          `failed attempt on r/${activeSubreddit}`
+        );
       }
     }
 
-    console.log(
-      `[REDDIT_PROXY] Fetched ${discussions.length} discussions from r/${subreddit}`
-    );
-
-    // Delegate processing to helper function
-    return await processDiscussions(
-      discussions,
-      req,
-      userId,
-      safeWebsiteConfig,
-      configId,
-      paginationManager,
-      supabaseAdmin,
-      subreddit,
-      query,
-      isReset,
-      afterToken,
-      beforeToken,
-      limit
-    );
+    return NextResponse.json({
+      success: true,
+      message:
+        'No post was published after checking every configured subreddit once',
+      posted: false,
+      attemptedSubreddits,
+      checkedSubreddits: attemptedSubreddits.length,
+      lastResult: lastPayload,
+    });
   } catch (error) {
     console.error('[REDDIT_PROXY] Error:', error);
     return NextResponse.json(
@@ -249,35 +499,35 @@ export async function POST(req: Request): Promise<NextResponse> {
 // Helper function to process discussions (filter, score, post) to avoid code duplication between JSON and HTML paths
 async function processDiscussions(
   discussions: any[],
-  req: Request,
   userId: string,
   websiteConfig: any,
   configId: string,
   paginationManager: any,
   supabaseAdmin: any,
   subreddit: string,
-  query: string,
   isReset: boolean,
   afterToken: string | null,
   beforeToken: string | null,
-  limit: number
+  rawFetched: number,
+  attemptedSubreddits: string[]
 ): Promise<NextResponse> {
-  // Check if we've already posted to these discussions
+  // Check if we've already posted to these discussions for this website config.
+  // Important: websiteConfig.id is not the same as auto_poster_configs.id.
   const postIds = discussions.map((d: any) => d.id);
-  const alreadyPostedIds = await paginationManager.checkAlreadyPosted(postIds);
+  const alreadyPostedIds = await checkAlreadyPostedDiscussions(
+    supabaseAdmin,
+    postIds,
+    websiteConfig.id
+  );
 
-  // If ALL posts on this page are already processed, skip to next page
-  // Only applicable if we have pagination tokens (JSON API)
-  if (
-    alreadyPostedIds.length === discussions.length &&
-    discussions.length > 0 &&
-    afterToken
-  ) {
+  // If all candidates were already posted, advance pagination and let the caller
+  // rotate to the next configured subreddit. Do not recurse here; the run is
+  // bounded by one pass over configured subreddits.
+  if (alreadyPostedIds.length === discussions.length && discussions.length > 0) {
     console.log(
-      `[REDDIT_PROXY] All ${discussions.length} posts already processed, skipping to next page...`
+      `[REDDIT_PROXY] All ${discussions.length} candidate posts were already posted for this website config`
     );
 
-    // Update pagination to next page and recursively call
     await paginationManager.updatePaginationState(
       subreddit,
       afterToken,
@@ -286,54 +536,46 @@ async function processDiscussions(
       isReset
     );
 
-    // Recursively fetch next page (with safety limit)
-    const recursionDepth = (req as any).recursionDepth || 0;
-    if (recursionDepth < 3) {
-      // Max 3 recursive calls to avoid infinite loops
-      console.log(
-        `[REDDIT_PROXY] Recursively fetching next page (depth: ${recursionDepth + 1})`
-      );
-      const modifiedReq = new Request(req.url, {
-        method: req.method,
-        headers: req.headers,
-        body: JSON.stringify({
-          query,
-          subreddit,
-          limit,
-          userId,
-          websiteConfig,
-          configId,
-        }),
-      });
-      (modifiedReq as any).recursionDepth = recursionDepth + 1;
-      return POST(modifiedReq);
-    }
+    return NextResponse.json({
+      success: true,
+      posted: false,
+      message: 'All fetched discussions were already posted',
+      subreddit,
+      discussions: [],
+      total: 0,
+      rawFetched,
+      attemptedSubreddits,
+    });
   }
 
-  // Update pagination state after successful fetch
+  // Update pagination state after successful fetch.
   if (discussions.length > 0) {
     await paginationManager.updatePaginationState(
       subreddit,
-      afterToken, // might be null for HTML fallback
-      beforeToken, // might be null for HTML fallback
+      afterToken,
+      beforeToken,
       discussions.length,
       isReset
     );
     console.log(
-      `[REDDIT_PROXY] Updated pagination state: fetched ${discussions.length} posts`
+      `[REDDIT_PROXY] Updated pagination state for r/${subreddit}: candidates=${discussions.length}, rawFetched=${rawFetched}`
     );
   }
 
   if (!discussions || discussions.length === 0) {
     return NextResponse.json({
       success: true,
+      posted: false,
       message: 'No discussions found',
+      subreddit,
       discussions: [],
       total: 0,
+      rawFetched,
+      attemptedSubreddits,
     });
   }
 
-  // Step 2: Filter out already posted discussions
+  // Step 2: Filter out already posted discussions.
   const newDiscussions = discussions.filter(
     (d: any) => !alreadyPostedIds.includes(d.id)
   );
@@ -347,13 +589,17 @@ async function processDiscussions(
   if (newDiscussions.length === 0) {
     return NextResponse.json({
       success: true,
+      posted: false,
       message: 'All discussions already processed',
+      subreddit,
       discussions: [],
       total: 0,
+      rawFetched,
+      attemptedSubreddits,
     });
   }
 
-  // Step 3: Apply relevance filtering with Gemini AI scoring
+  // Step 3: Apply relevance filtering with Gemini AI scoring.
   const relevantDiscussions = await filterRelevantDiscussions(
     newDiscussions,
     websiteConfig,
@@ -365,41 +611,20 @@ async function processDiscussions(
   );
 
   if (relevantDiscussions.length === 0) {
-    // Rotate to next subreddit since current one has no relevant posts
-    if (configId) {
-      const { data: currentConfig } = await supabaseAdmin
-        .from('auto_poster_configs')
-        .select('current_subreddit_index')
-        .eq('id', configId)
-        .single();
-
-      const subredditRotation = getWebsiteConfigSubreddits(websiteConfig);
-      const currentIndex = currentConfig?.current_subreddit_index || 0;
-      const nextIndex = (currentIndex + 1) % subredditRotation.length;
-
-      await supabaseAdmin
-        .from('auto_poster_configs')
-        .update({
-          current_subreddit_index: nextIndex,
-          last_subreddit_used: subredditRotation[nextIndex],
-        })
-        .eq('id', configId);
-
-      console.log(
-        `[REDDIT_PROXY] No relevant discussions - rotated to next subreddit: ${subredditRotation[nextIndex]}`
-      );
-    }
-
     return NextResponse.json({
       success: true,
+      posted: false,
       message: 'No relevant discussions after filtering',
+      subreddit,
       discussions: [],
       total: 0,
       filtered: discussions.length,
+      rawFetched,
+      attemptedSubreddits,
     });
   }
 
-  // Step 4: Get available Reddit account
+  // Step 4: Get available Reddit account.
   const { data: availableAccounts } = await supabaseAdmin
     .from('reddit_accounts')
     .select('*')
@@ -408,18 +633,16 @@ async function processDiscussions(
     .eq('status', 'active')
     .order('last_used_at', { ascending: true, nullsFirst: true });
 
-  // Filter accounts that are actually available (not in cooldown)
+  // Filter accounts that are actually available (not in cooldown).
   const now = new Date();
   const availableAccountsFiltered =
     availableAccounts?.filter((account: any) => {
       if (account.is_available) return true;
 
-      // Check if cooldown has expired despite is_available being false
       if (account.current_cooldown_until) {
         return now >= new Date(account.current_cooldown_until);
       }
 
-      // Fallback to last_used_at + cooldown_minutes
       if (account.last_used_at) {
         const lastUsed = new Date(account.last_used_at);
         const cooldownMinutes = account.cooldown_minutes || 30;
@@ -457,21 +680,18 @@ async function processDiscussions(
     `[REDDIT_PROXY] Using Reddit account: ${redditAccount.username} (Available since ${formatToPacificTime(redditAccount.current_cooldown_until || redditAccount.last_used_at)})`
   );
 
-  // Step 5: Process discussions with Gemini AI and post replies
-  // Add a small 2s pause here to let TPM limits cool down after the scoring batch
+  // Step 5: Process relevant discussions until one comment succeeds.
   await new Promise((resolve) => setTimeout(resolve, 2000));
 
   let posted = false;
   let postResult = null;
 
-  for (const { discussion, scores } of relevantDiscussions.slice(0, 1)) {
-    // Process only top discussion
+  for (const { discussion, scores } of relevantDiscussions) {
     console.log(
       `[REDDIT_PROXY] Processing discussion ${discussion.id} (score: ${scores.finalScore})`
     );
 
     try {
-      // Use redditReplyService for Gemini-powered reply generation and posting
       const result = await redditReplyService.generateAndPostReply(
         {
           id: discussion.id,
@@ -496,11 +716,10 @@ async function processDiscussions(
           `[REDDIT_PROXY] Successfully posted reply to discussion ${discussion.id}`
         );
 
-        // Record the posted discussion
         const { error: insertError } = await supabaseAdmin
           .from('posted_reddit_discussions')
           .insert({
-            website_config_id: websiteConfig.id, // Use the correct Website Config UUID, not the Auto-Poster Config ID
+            website_config_id: websiteConfig.id,
             reddit_post_id: discussion.id,
             reddit_account_id: redditAccount.id,
             subreddit: discussion.subreddit,
@@ -522,36 +741,36 @@ async function processDiscussions(
           );
         }
 
-        // Update config post count and rotate subreddit
         if (configId) {
-          // Get current config to determine next subreddit index
           const { data: currentConfig } = await supabaseAdmin
             .from('auto_poster_configs')
             .select('current_subreddit_index, posts_today')
             .eq('id', configId)
             .single();
 
-          const subredditRotation = getWebsiteConfigSubreddits(websiteConfig);
+          const subredditRotation = getSubredditRotation(websiteConfig, subreddit);
           const currentIndex = currentConfig?.current_subreddit_index || 0;
           const nextIndex = (currentIndex + 1) % subredditRotation.length;
 
-          await supabaseAdmin
-            .from('auto_poster_configs')
-            .update({
+          await updateSubredditRotation(
+            supabaseAdmin,
+            configId,
+            subredditRotation,
+            nextIndex,
+            `successful post on r/${subreddit}`,
+            {
               posts_today: (currentConfig?.posts_today || 0) + 1,
               last_posted_at: new Date().toISOString(),
-              current_subreddit_index: nextIndex,
-              last_subreddit_used: subredditRotation[nextIndex],
-            })
-            .eq('id', configId);
+            }
+          );
         }
 
         posted = true;
         postResult = result;
-        break; // Only post one reply per run
-      } else {
-        console.log(`[REDDIT_PROXY] Failed to post reply: ${result.error}`);
+        break;
       }
+
+      console.log(`[REDDIT_PROXY] Failed to post reply: ${result.error}`);
     } catch (error) {
       console.error(
         `[REDDIT_PROXY] Error processing discussion ${discussion.id}:`,
@@ -562,11 +781,14 @@ async function processDiscussions(
 
   return NextResponse.json({
     success: true,
-    discussions: discussions,
-    total: discussions.length, // approximation for now
+    discussions,
+    total: discussions.length,
     filtered: discussions.length,
+    rawFetched,
     relevant: relevantDiscussions.length,
-    posted: posted,
-    postResult: postResult,
+    posted,
+    postResult,
+    subreddit,
+    attemptedSubreddits,
   });
 }

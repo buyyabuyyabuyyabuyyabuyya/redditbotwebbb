@@ -45,6 +45,8 @@ interface AutoPosterManagerProps {
   onRefreshConfigs?: () => void;
 }
 
+const SERVER_POLL_INTERVAL_MS = 5 * 60 * 1000;
+
 export default function AutoPosterManager({
   websiteConfigs,
   onRefreshConfigs,
@@ -63,6 +65,7 @@ export default function AutoPosterManager({
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
   const [stoppingConfigId, setStoppingConfigId] = useState<string | null>(null);
+  const [nowMs, setNowMs] = useState(() => Date.now());
 
   const hasActiveConfigs = activeConfigs.length > 0;
 
@@ -171,10 +174,16 @@ export default function AutoPosterManager({
           void fetchRecentPosts(selectedConfigId);
         }
       },
-      hasActiveConfigs ? 5000 : 10000
+      SERVER_POLL_INTERVAL_MS
     );
     return () => window.clearInterval(interval);
   }, [selectedConfigId, hasActiveConfigs]);
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setNowMs(Date.now());
+    }, 1000);
+    return () => window.clearInterval(interval);
+  }, []);
 
   const handleStart = async () => {
     if (!selectedConfigId)
@@ -233,12 +242,15 @@ export default function AutoPosterManager({
 
   const formatNextPostTime = (nextPostTime: Date | null) => {
     if (!nextPostTime) return 'Not scheduled';
-    const diff = nextPostTime.getTime() - Date.now();
+    const diff = nextPostTime.getTime() - nowMs;
     if (diff <= 0) return 'Now';
     const minutes = Math.floor(diff / 60000);
     const seconds = Math.floor((diff % 60000) / 1000);
     return `${minutes}m ${seconds}s`;
   };
+
+  const formatNextPostValue = (nextPostTime: string | null) =>
+    nextPostTime ? formatNextPostTime(new Date(nextPostTime)) : 'not scheduled';
 
   const selectedConfig = useMemo(
     () =>
@@ -359,9 +371,7 @@ export default function AutoPosterManager({
                     <div className="mt-1 text-sm text-zinc-500">
                       {config.postsToday} posts today • {config.totalPosts}{' '}
                       total • next run{' '}
-                      {config.nextPostTime
-                        ? new Date(config.nextPostTime).toLocaleString()
-                        : 'not scheduled'}
+                      {formatNextPostValue(config.nextPostTime)}
                     </div>
                   </div>
                   <div className="flex gap-2">

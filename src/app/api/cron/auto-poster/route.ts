@@ -376,6 +376,18 @@ export async function POST(req: Request) {
             console.log(
               `[CRON] Proxy completed but no post made for config ${config.id}`
             );
+
+            // The proxy has already exhausted this config's subreddit rotation
+            // for this run. Schedule the next normal interval instead of
+            // retrying the same config on the next cron tick.
+            await supabaseAdmin
+              .from('auto_poster_configs')
+              .update({
+                next_post_at: new Date(
+                  Date.now() + config.interval_minutes * 60 * 1000
+                ).toISOString(),
+              })
+              .eq('id', config.id);
           }
 
           continue; // Move to next config
