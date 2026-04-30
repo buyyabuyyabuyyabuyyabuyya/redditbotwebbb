@@ -97,13 +97,26 @@ export async function POST(req: Request) {
       );
     }
 
-    // Get discussion posting accounts
+    // AUTO-CLEANUP: Reset any accounts whose cooldown has expired
+    const nowIso = new Date().toISOString();
+    await supabase
+      .from('reddit_accounts')
+      .update({
+        is_available: true,
+        current_cooldown_until: null
+      })
+      .eq('user_id', userId)
+      .eq('is_available', false)
+      .lte('current_cooldown_until', nowIso);
+
+    // Get ONLY available discussion posting accounts
     const { data: discussionAccounts, error: accountsError } = await supabase
       .from('reddit_accounts')
       .select('*')
       .eq('user_id', userId)
       .eq('is_discussion_poster', true)
-      .eq('is_validated', true);
+      .eq('is_validated', true)
+      .eq('is_available', true);
 
     if (accountsError) {
       throw new Error('Failed to fetch discussion accounts');

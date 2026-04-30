@@ -83,6 +83,17 @@ export async function GET(req: Request) {
 
     const supabaseAdmin = createAdmin();
 
+    // AUTO-CLEANUP: Before doing anything, reset any accounts whose cooldown has expired
+    const nowIso = new Date().toISOString();
+    await supabaseAdmin
+      .from('reddit_accounts')
+      .update({
+        is_available: true,
+        current_cooldown_until: null
+      })
+      .eq('is_available', false)
+      .lte('current_cooldown_until', nowIso);
+
     if (!isInternalCall) {
       const poolStatus = await getPoolStatus(supabaseAdmin);
       return NextResponse.json(poolStatus);

@@ -373,11 +373,6 @@ export async function POST(req: Request) {
           .update({ message_count: (userRow?.message_count ?? 0) + 1 })
           .eq('id', postingUserId);
 
-        await supabaseAdmin
-          .from('reddit_accounts')
-          .update({ total_posts_made: (account.total_posts_made ?? 0) + 1 })
-          .eq('id', account.id);
-
         if (websiteConfigId) {
           const { data: ownedConfig } = await supabaseAdmin
             .from('website_configs')
