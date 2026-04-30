@@ -372,6 +372,10 @@ export async function POST(req: Request) {
                 ).toISOString(),
               })
               .eq('id', config.id);
+          } else if (proxyData.success && proxyData.handoff) {
+            console.log(
+              `[CRON] Proxy handed config ${config.id} from r/${proxyData.currentSubreddit} to r/${proxyData.nextSubreddit}`
+            );
           } else {
             console.log(
               `[CRON] Proxy completed but no post made for config ${config.id}`

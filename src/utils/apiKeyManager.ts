@@ -30,7 +30,7 @@ interface ApiKey {
 export class ApiKeyManager {
   private static instance: ApiKeyManager;
   private lastRequestTime: number = 0;
-  private minRequestInterval: number = 5000; // 5 seconds between requests
+  private minRequestInterval: number = 0; // Do not serialize parallel key acquisition.
 
   static getInstance(): ApiKeyManager {
     if (!ApiKeyManager.instance) {
@@ -43,6 +43,8 @@ export class ApiKeyManager {
    * Throttle requests to prevent IP-based rate limiting
    */
   private async throttleRequest(userId: string): Promise<void> {
+    if (this.minRequestInterval <= 0) return;
+
     const now = Date.now();
     const timeSinceLastRequest = now - this.lastRequestTime;
 
@@ -62,82 +64,73 @@ export class ApiKeyManager {
    * @returns API key string or null if none available
    */
   async acquireApiKey(userId: string, provider: string = 'gemini'): Promise<string | null> {
-    // Throttle requests to prevent IP-based rate limiting
+    // Do not throttle key acquisition by default. Parallel scoring needs to
+    // reserve different keys concurrently; the atomic WHERE being_used=false
+    // update below prevents duplicate checkout.
     await this.throttleRequest(userId);
     try {
       console.log(`[${userId}] Acquiring API key for provider: ${provider}`);
 
-      // Retrieve a pool of available keys that are not rate-limited
-      // NOTE: being_used check commented out - using single API key for all requests
-      const { data: availableKeys, error } = await supabaseAdmin
-        .from('api_keys')
-        .select('*')
-        .eq('provider', provider)
-        .eq('is_active', true)
-        // .eq('being_used', false)  // COMMENTED OUT: Single key usage
-        .or(`rate_limit_reset.is.null,rate_limit_reset.lt.${new Date().toISOString()}`)
-        // Limit the candidate set to keep the payload small (adjust as needed)
-        .limit(100);
+      for (let attempt = 1; attempt <= 5; attempt++) {
+        const { data: availableKeys, error } = await supabaseAdmin
+          .from('api_keys')
+          .select('*')
+          .eq('provider', provider)
+          .eq('is_active', true)
+          .eq('being_used', false)
+          .or(`rate_limit_reset.is.null,rate_limit_reset.lt.${new Date().toISOString()}`)
+          .limit(100);
 
-      if (error) {
-        console.error(`[${userId}] Error fetching available API keys:`, error);
-        return null;
+        if (error) {
+          console.error(`[${userId}] Error fetching available API keys:`, error);
+          return null;
+        }
+
+        if (!availableKeys || availableKeys.length === 0) {
+          console.log(`[${userId}] No available API keys found`);
+          return null;
+        }
+
+        const randomIndex = Math.floor(Math.random() * availableKeys.length);
+        const apiKey = availableKeys[randomIndex] as ApiKey;
+        const nowIso = new Date().toISOString();
+
+        // Atomic reservation: only one parallel request can flip this row from
+        // being_used=false to true. If another request wins the race, updateData
+        // is empty and we retry with a fresh candidate set.
+        const { data: updateData, error: updateError } = await supabaseAdmin
+          .from('api_keys')
+          .update({
+            being_used: true,
+            last_used: nowIso,
+            usage_count: (apiKey.usage_count || 0) + 1,
+            updated_at: nowIso
+          })
+          .eq('id', apiKey.id)
+          .eq('being_used', false)
+          .select();
+
+        if (updateError) {
+          console.error(`[${userId}] Error marking API key as being used:`, updateError);
+          return null;
+        }
+
+        if (!updateData || updateData.length === 0) {
+          console.log(`[${userId}] API key was already taken, retrying reservation (${attempt}/5)...`);
+          await new Promise(resolve => setTimeout(resolve, 50 * attempt));
+          continue;
+        }
+
+        const reservedKey = updateData[0] as ApiKey;
+        const keyPrefix = reservedKey.key.substring(0, 6);
+        const keySuffix = reservedKey.key.substring(reservedKey.key.length - 4);
+        console.log(`[${userId}] Acquired API key: ${keyPrefix}...${keySuffix} (ID: ${reservedKey.id})`);
+
+        return reservedKey.key;
       }
 
-      if (!availableKeys || availableKeys.length === 0) {
-        console.log(`[${userId}] No available API keys found`);
-        return null;
-      }
-
-      // Randomly choose one key from the available pool so that the same
-      // key is not always picked first.
-      const randomIndex = Math.floor(Math.random() * availableKeys.length);
-      const apiKey = availableKeys[randomIndex] as ApiKey;
-
-      // Mark the key as being used (single key usage)
-      const { data: updateData, error: updateError } = await supabaseAdmin
-        .from('api_keys')
-        .update({
-          being_used: true,
-          last_used: new Date().toISOString(),
-          usage_count: apiKey.usage_count + 1,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', apiKey.id)
-        .eq('being_used', false) // Ensure it's still not being used (atomic check)
-        .select();
-
-      if (updateError) {
-        console.error(`[${userId}] Error marking API key as being used:`, updateError);
-        return null;
-      }
-
-      // Check if the update actually affected any rows
-      if (!updateData || updateData.length === 0) {
-        console.log(`[${userId}] API key was already taken by another request, trying again...`);
-        // Recursively try to get another key
-        return this.acquireApiKey(userId, provider);
-      }
-
-      console.log(`[${userId}] Successfully marked API key as being_used = true`);
-
-      /*
-      // Update usage stats without locking the key - REPLACED BY ABOVE
-      await supabaseAdmin
-        .from('api_keys')
-        .update({
-          last_used: new Date().toISOString(),
-          usage_count: apiKey.usage_count + 1,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', apiKey.id);
-      */
-
-      const keyPrefix = apiKey.key.substring(0, 6);
-      const keySuffix = apiKey.key.substring(apiKey.key.length - 4);
-      console.log(`[${userId}] Acquired API key: ${keyPrefix}...${keySuffix} (ID: ${apiKey.id})`);
-
-      return apiKey.key;
+      console.log(`[${userId}] Could not reserve an API key after retries`);
+      return null;
     } catch (error) {
       console.error(`[${userId}] Error in acquireApiKey:`, error);
       return null;

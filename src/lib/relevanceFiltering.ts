@@ -1,5 +1,7 @@
 import { RedditDiscussion } from './redditService';
 
+const MAX_CONCURRENT_SCORING = 3;
+
 export interface RelevanceScores {
   intentScore: number;
   contextMatchScore: number;
@@ -35,95 +37,128 @@ export async function filterRelevantDiscussions(
   websiteConfig: WebsiteConfig,
   postedDiscussions: string[] = []
 ): Promise<{ discussion: RedditDiscussion; scores: RelevanceScores }[]> {
-  const unpostedDiscussions = discussions.filter(discussion =>
-    !postedDiscussions.includes(discussion.id)
+  const unpostedDiscussions = discussions.filter(
+    (discussion) => !postedDiscussions.includes(discussion.id)
   );
 
-  const scoredDiscussions = [];
+  const scoredDiscussions: {
+    discussion: RedditDiscussion;
+    scores: RelevanceScores;
+  }[] = [];
 
-  console.log(`[GEMINI_FILTERING] Starting comprehensive Gemini scoring for ${unpostedDiscussions.length} discussions`);
+  console.log(
+    `[GEMINI_FILTERING] Starting comprehensive Gemini scoring for ${unpostedDiscussions.length} discussions with concurrency=${MAX_CONCURRENT_SCORING}`
+  );
 
+  for (let i = 0; i < unpostedDiscussions.length; i += MAX_CONCURRENT_SCORING) {
+    const chunk = unpostedDiscussions.slice(i, i + MAX_CONCURRENT_SCORING);
+    console.log(
+      `[GEMINI_FILTERING] Scoring chunk ${Math.floor(i / MAX_CONCURRENT_SCORING) + 1}: ${chunk
+        .map((discussion) => discussion.id)
+        .join(', ')}`
+    );
 
-  for (const discussion of unpostedDiscussions) {
-    let scores: RelevanceScores;
-
-    // Use Gemini AI for comprehensive relevance scoring - retry with truncation if TPM limit hit
-    let attempts = 0;
-    const maxAttempts = 5;
-    let currentCharLimit = 3500; // Start with our default limit
-
-    while (attempts < maxAttempts) {
-      try {
-        scores = await getGeminiRelevanceScore(discussion, websiteConfig, currentCharLimit);
-        break; // Success, exit retry loop
-      } catch (error: any) {
-        attempts++;
-
-        // Check if this is a TPM error that we can fix by truncating
-        const isTPMError = error.message?.includes('tokens per minute (TPM)');
-
-        if (isTPMError && currentCharLimit > 500) {
-          // Parse the error to understand how many tokens we need to save
-          const tpmMatch = error.message.match(/Requested\s+(\d+)/);
-          const usedMatch = error.message.match(/Used\s+(\d+)/);
-          const limitMatch = error.message.match(/Limit\s+(\d+)/);
-
-          if (tpmMatch && usedMatch && limitMatch) {
-            const requested = parseInt(tpmMatch[1]);
-            const used = parseInt(usedMatch[1]);
-            const limit = parseInt(limitMatch[1]);
-            const available = limit - used;
-
-            // Calculate a new safe character limit (rough estimate: 1 token ≈ 4 characters)
-            const safeTokens = Math.floor(available * 0.8); // 80% of available for safety
-            currentCharLimit = Math.max(500, Math.floor(safeTokens * 4));
-
-            console.log(`[GEMINI_FILTERING] TPM limit hit for ${discussion.id}. Requested: ${requested}, Available: ${available}. Reducing char limit from 3500 to ${currentCharLimit}`);
-
-            // DON'T wait - retry immediately with truncated content
-            continue;
-          }
-        }
-
-        console.log(`[GEMINI_FILTERING] Attempt ${attempts} failed for discussion ${discussion.id}, trying different API key...`);
-
-        if (attempts >= maxAttempts) {
-          console.error(`[GEMINI_FILTERING] All ${maxAttempts} attempts failed for discussion ${discussion.id}, skipping...`);
-          continue; // Skip this discussion entirely
-        }
-
-        // Wait a bit before trying next API key - increase to 3s to avoid TPM limits
-        let waitTime = 3000;
-
-        // Try to extract a specific wait time from Groq error if available
-        if (error.message?.includes('Please try again in')) {
-          const match = error.message.match(/Please try again in ([\d.]+)s/);
-          if (match && match[1]) {
-            waitTime = (parseFloat(match[1]) + 0.5) * 1000; // Add extra 0.5s buffer
-            console.log(`[GEMINI_FILTERING] Groq requested wait: ${match[1]}s. Pausing for ${waitTime / 1000}s...`);
-          }
-        }
-
-        await new Promise(resolve => setTimeout(resolve, waitTime));
-      }
-    }
-
-    // If we couldn't score this discussion, skip it
-    if (!scores!) {
-      console.log(`[GEMINI_FILTERING] Skipping discussion ${discussion.id} - no score obtained`);
-      continue;
-    }
-
-    scoredDiscussions.push({ discussion, scores });
+    const chunkResults = await Promise.all(
+      chunk.map((discussion) => scoreDiscussionWithRetries(discussion, websiteConfig))
+    );
+    scoredDiscussions.push(
+      ...chunkResults.filter(
+        (
+          item
+        ): item is { discussion: RedditDiscussion; scores: RelevanceScores } =>
+          item !== null
+      )
+    );
   }
 
   const relevantDiscussions = scoredDiscussions
-    .filter(item => item.scores.finalScore >= websiteConfig.relevance_threshold)
+    .filter((item) => item.scores.finalScore >= websiteConfig.relevance_threshold)
     .sort((a, b) => b.scores.finalScore - a.scores.finalScore);
 
-  console.log(`[GEMINI_FILTERING] Found ${relevantDiscussions.length} relevant discussions out of ${scoredDiscussions.length} scored (threshold: ${websiteConfig.relevance_threshold}%)`);
+  console.log(
+    `[GEMINI_FILTERING] Found ${relevantDiscussions.length} relevant discussions out of ${scoredDiscussions.length} scored (threshold: ${websiteConfig.relevance_threshold}%)`
+  );
 
   return relevantDiscussions;
+}
+
+async function scoreDiscussionWithRetries(
+  discussion: RedditDiscussion,
+  websiteConfig: WebsiteConfig
+): Promise<{ discussion: RedditDiscussion; scores: RelevanceScores } | null> {
+  let scores: RelevanceScores | null = null;
+  let attempts = 0;
+  const maxAttempts = 5;
+  let currentCharLimit = 3500;
+
+  while (attempts < maxAttempts) {
+    try {
+      scores = await getGeminiRelevanceScore(
+        discussion,
+        websiteConfig,
+        currentCharLimit
+      );
+      break;
+    } catch (error: any) {
+      attempts++;
+
+      const isTPMError = error.message?.includes('tokens per minute (TPM)');
+
+      if (isTPMError && currentCharLimit > 500) {
+        const tpmMatch = error.message.match(/Requested\s+(\d+)/);
+        const usedMatch = error.message.match(/Used\s+(\d+)/);
+        const limitMatch = error.message.match(/Limit\s+(\d+)/);
+
+        if (tpmMatch && usedMatch && limitMatch) {
+          const requested = parseInt(tpmMatch[1]);
+          const used = parseInt(usedMatch[1]);
+          const limit = parseInt(limitMatch[1]);
+          const available = limit - used;
+          const safeTokens = Math.floor(available * 0.8);
+          currentCharLimit = Math.max(500, Math.floor(safeTokens * 4));
+
+          console.log(
+            `[GEMINI_FILTERING] TPM limit hit for ${discussion.id}. Requested: ${requested}, Available: ${available}. Reducing char limit to ${currentCharLimit}`
+          );
+          continue;
+        }
+      }
+
+      console.log(
+        `[GEMINI_FILTERING] Attempt ${attempts} failed for discussion ${discussion.id}, trying different API key...`
+      );
+
+      if (attempts >= maxAttempts) {
+        console.error(
+          `[GEMINI_FILTERING] All ${maxAttempts} attempts failed for discussion ${discussion.id}, skipping...`
+        );
+        break;
+      }
+
+      let waitTime = 3000;
+
+      if (error.message?.includes('Please try again in')) {
+        const match = error.message.match(/Please try again in ([\d.]+)s/);
+        if (match && match[1]) {
+          waitTime = (parseFloat(match[1]) + 0.5) * 1000;
+          console.log(
+            `[GEMINI_FILTERING] Groq requested wait: ${match[1]}s. Pausing for ${waitTime / 1000}s...`
+          );
+        }
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
+    }
+  }
+
+  if (!scores) {
+    console.log(
+      `[GEMINI_FILTERING] Skipping discussion ${discussion.id} - no score obtained`
+    );
+    return null;
+  }
+
+  return { discussion, scores };
 }
 
 async function getGeminiRelevanceScore(

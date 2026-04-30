@@ -296,6 +296,99 @@ async function checkAlreadyPostedDiscussions(
   return data?.map((row: any) => row.reddit_post_id) || [];
 }
 
+function getSiteUrl(req: Request): string {
+  const configured =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXTAUTH_URL ||
+    process.env.VERCEL_URL;
+
+  if (configured) {
+    return configured.startsWith('http') ? configured : `https://${configured}`;
+  }
+
+  return new URL(req.url).origin;
+}
+
+async function triggerSubredditHandoff({
+  req,
+  query,
+  nextSubreddit,
+  limit,
+  userId,
+  websiteConfig,
+  configId,
+  attemptedSubreddits,
+}: {
+  req: Request;
+  query: string;
+  nextSubreddit: string;
+  limit: number;
+  userId: string;
+  websiteConfig: any;
+  configId: string;
+  attemptedSubreddits: string[];
+}) {
+  const destination = `${getSiteUrl(req)}/api/reddit/proxy`;
+  const body = {
+    query,
+    subreddit: nextSubreddit,
+    limit,
+    userId,
+    websiteConfig,
+    configId,
+    attemptedSubreddits,
+    handoff: true,
+  };
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${process.env.CRON_SECRET}`,
+  };
+
+  if (process.env.QSTASH_TOKEN) {
+    const qstashBaseUrl = process.env.QSTASH_URL || 'https://qstash.upstash.io';
+    const publishUrl = `${qstashBaseUrl}/v2/publish/${destination}`;
+    const response = await fetch(publishUrl, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.QSTASH_TOKEN}`,
+        'Content-Type': 'application/json',
+        'Upstash-Retries': '1',
+        'Upstash-Forward-Content-Type': 'application/json',
+        'Upstash-Forward-Authorization': `Bearer ${process.env.CRON_SECRET}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`QStash handoff failed: ${response.status} ${errorText}`);
+    }
+
+    const data = await response.json().catch(() => null);
+    console.log(
+      `[REDDIT_PROXY] Queued QStash handoff to r/${nextSubreddit}: ${data?.messageId || 'message accepted'}`
+    );
+    return;
+  }
+
+  // Local/dev fallback. QStash should be used in production because serverless
+  // runtimes may freeze fire-and-forget work after the response is returned.
+  void fetch(destination, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+    cache: 'no-store',
+  }).catch((error) => {
+    console.error(
+      `[REDDIT_PROXY] Fire-and-forget handoff failed for r/${nextSubreddit}:`,
+      error
+    );
+  });
+  console.log(
+    `[REDDIT_PROXY] Started local fire-and-forget handoff to r/${nextSubreddit}`
+  );
+}
+
 // Main auto-poster endpoint (primary, not backup)
 export async function POST(req: Request): Promise<NextResponse> {
   try {
@@ -307,8 +400,15 @@ export async function POST(req: Request): Promise<NextResponse> {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { query, subreddit, limit, userId, websiteConfig, configId } =
-      await req.json();
+    const {
+      query,
+      subreddit,
+      limit,
+      userId,
+      websiteConfig,
+      configId,
+      attemptedSubreddits: previousAttemptedSubreddits = [],
+    } = await req.json();
 
     if (!query || !subreddit) {
       return NextResponse.json(
@@ -336,7 +436,6 @@ export async function POST(req: Request): Promise<NextResponse> {
       });
     }
 
-    // Ensure websiteConfig has required properties with fallbacks
     const decodedCollections = decodeWebsiteConfigCollections(
       websiteConfig?.business_context_terms || []
     );
@@ -353,10 +452,9 @@ export async function POST(req: Request): Promise<NextResponse> {
     };
 
     console.log(
-      `[REDDIT_PROXY] Starting complete auto-poster flow for r/${subreddit} with query: ${query}`
+      `[REDDIT_PROXY] Starting single-subreddit auto-poster flow for r/${subreddit} with query: ${query}`
     );
 
-    // Initialize Supabase
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY || ''
@@ -380,110 +478,148 @@ export async function POST(req: Request): Promise<NextResponse> {
       subredditRotation,
       subreddit
     );
-    const attemptedSubreddits: string[] = [];
-    let lastPayload: any = null;
+    const activeSubreddit = subredditRotation[startingIndex];
+    const nextIndex = (startingIndex + 1) % subredditRotation.length;
+    const nextSubreddit = subredditRotation[nextIndex];
+    const normalizedPreviousAttempts = Array.isArray(previousAttemptedSubreddits)
+      ? previousAttemptedSubreddits.map(normalizeSubredditName).filter(Boolean)
+      : [];
+
+    if (
+      normalizedPreviousAttempts.includes(activeSubreddit) &&
+      normalizedPreviousAttempts.length >= subredditRotation.length
+    ) {
+      return NextResponse.json({
+        success: true,
+        posted: false,
+        message: 'Every configured subreddit has already been checked in this run',
+        attemptedSubreddits: normalizedPreviousAttempts,
+        checkedSubreddits: normalizedPreviousAttempts.length,
+      });
+    }
+
+    const attemptedSubreddits = Array.from(
+      new Set([...normalizedPreviousAttempts, activeSubreddit])
+    );
+    const checkedEverySubreddit =
+      attemptedSubreddits.length >= subredditRotation.length;
 
     console.log(
-      `[REDDIT_PROXY] Exhaustive run starting at index ${startingIndex}; configured subreddits=${subredditRotation.join(', ')}`
+      `[REDDIT_PROXY] Searching r/${activeSubreddit}; checked=${attemptedSubreddits.length}/${subredditRotation.length}`
     );
 
-    for (let offset = 0; offset < subredditRotation.length; offset++) {
-      const currentIndex = (startingIndex + offset) % subredditRotation.length;
-      const activeSubreddit = subredditRotation[currentIndex];
-      const nextIndex = (currentIndex + 1) % subredditRotation.length;
-      attemptedSubreddits.push(activeSubreddit);
+    let response: NextResponse | null = null;
+    let payload: any = null;
 
-      console.log(
-        `[REDDIT_PROXY] Attempt ${offset + 1}/${subredditRotation.length}: searching r/${activeSubreddit}`
+    try {
+      const paginationManager = new RedditPaginationManagerServer(
+        userId,
+        configId
+      );
+      const {
+        discussions,
+        rawFetched,
+        afterToken,
+        beforeToken,
+        isReset,
+      } = await fetchSubredditDiscussions({
+        subreddit: activeSubreddit,
+        query,
+        limit: limit || 10,
+        paginationManager,
+      });
+
+      response = await processDiscussions(
+        discussions,
+        userId,
+        safeWebsiteConfig,
+        configId,
+        paginationManager,
+        supabaseAdmin,
+        activeSubreddit,
+        isReset,
+        afterToken,
+        beforeToken,
+        rawFetched,
+        attemptedSubreddits
       );
 
-      try {
-        const paginationManager = new RedditPaginationManagerServer(
-          userId,
-          configId
-        );
-        const {
-          discussions,
-          rawFetched,
-          afterToken,
-          beforeToken,
-          isReset,
-        } = await fetchSubredditDiscussions({
-          subreddit: activeSubreddit,
-          query,
-          limit: limit || 10,
-          paginationManager,
-        });
+      payload = await response
+        .clone()
+        .json()
+        .catch(() => null);
 
-        const response = await processDiscussions(
-          discussions,
-          userId,
-          safeWebsiteConfig,
-          configId,
-          paginationManager,
-          supabaseAdmin,
-          activeSubreddit,
-          isReset,
-          afterToken,
-          beforeToken,
-          rawFetched,
-          attemptedSubreddits
-        );
-
-        const payload = await response
-          .clone()
-          .json()
-          .catch(() => null);
-        lastPayload = payload;
-
-        if (payload?.posted) {
-          return response;
-        }
-
-        await updateSubredditRotation(
-          supabaseAdmin,
-          configId,
-          subredditRotation,
-          nextIndex,
-          `attempt on r/${activeSubreddit}`
-        );
-
-        // Account/network errors are not subreddit-specific, so retrying every
-        // subreddit would only burn time and API calls.
-        if (!response.ok && response.status >= 500) {
-          return response;
-        }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        lastPayload = {
-          success: false,
-          error: message,
-          subreddit: activeSubreddit,
-        };
-        console.error(
-          `[REDDIT_PROXY] Attempt failed for r/${activeSubreddit}:`,
-          error
-        );
-
-        await updateSubredditRotation(
-          supabaseAdmin,
-          configId,
-          subredditRotation,
-          nextIndex,
-          `failed attempt on r/${activeSubreddit}`
-        );
+      if (payload?.posted) {
+        return response;
       }
+
+      await updateSubredditRotation(
+        supabaseAdmin,
+        configId,
+        subredditRotation,
+        nextIndex,
+        `attempt on r/${activeSubreddit}`
+      );
+
+      if (!response.ok && response.status >= 500) {
+        return response;
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      payload = {
+        success: false,
+        error: message,
+        subreddit: activeSubreddit,
+      };
+      console.error(
+        `[REDDIT_PROXY] Attempt failed for r/${activeSubreddit}:`,
+        error
+      );
+
+      await updateSubredditRotation(
+        supabaseAdmin,
+        configId,
+        subredditRotation,
+        nextIndex,
+        `failed attempt on r/${activeSubreddit}`
+      );
     }
+
+    if (checkedEverySubreddit) {
+      return NextResponse.json({
+        success: true,
+        message:
+          'No post was published after checking every configured subreddit once',
+        posted: false,
+        attemptedSubreddits,
+        checkedSubreddits: attemptedSubreddits.length,
+        lastResult: payload,
+      });
+    }
+
+    await triggerSubredditHandoff({
+      req,
+      query,
+      nextSubreddit,
+      limit: limit || 10,
+      userId,
+      websiteConfig: safeWebsiteConfig,
+      configId,
+      attemptedSubreddits,
+    });
 
     return NextResponse.json({
       success: true,
-      message:
-        'No post was published after checking every configured subreddit once',
       posted: false,
+      handoff: true,
+      message: 'Handed off to next subreddit',
+      currentSubreddit: activeSubreddit,
+      nextSubreddit,
       attemptedSubreddits,
       checkedSubreddits: attemptedSubreddits.length,
-      lastResult: lastPayload,
+      lastResult: payload,
     });
+
   } catch (error) {
     console.error('[REDDIT_PROXY] Error:', error);
     return NextResponse.json(
