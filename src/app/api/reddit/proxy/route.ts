@@ -842,6 +842,7 @@ async function processDiscussions(
           tone: 'pseudo-advice marketing',
           maxLength: 500,
           keywords: websiteConfig.target_keywords || [],
+          websiteConfig,
           accountId: redditAccount.id,
           userId: userId,
         }

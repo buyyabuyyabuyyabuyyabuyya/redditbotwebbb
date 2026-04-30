@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs';
 import { createClient } from '@supabase/supabase-js';
 import { apiKeyManager } from '../../../../utils/apiKeyManager';
+import { buildBridgeReplyPrompt } from '../../../../lib/redditReplyPrompt';
 
 // Create a Supabase admin client with service role key for bypassing RLS
 const supabaseAdmin = createClient(
@@ -34,8 +34,7 @@ async function getValidApiKey(userId: string): Promise<string> {
 export async function POST(req: Request) {
   try {
     // TEMPORARILY COMMENTED OUT AUTHENTICATION CHECK
-    const isInternalRequest = req.headers.get('X-Internal-API') === 'true';
-    let userId = 'temp_user_id'; // Temporary hardcoded user ID to bypass auth
+    const userId = 'temp_user_id'; // Temporary hardcoded user ID to bypass auth
 
     console.log('AUTHENTICATION TEMPORARILY DISABLED - Using placeholder user ID');
 
@@ -46,7 +45,8 @@ export async function POST(req: Request) {
       subreddit,
       tone = 'pseudo-advice marketing',
       maxLength = 500,
-      keywords = []
+      keywords = [],
+      websiteConfig = {}
     } = await req.json();
 
     // Proactively truncate post content to stay under TPM limits
@@ -78,41 +78,16 @@ export async function POST(req: Request) {
           throw new Error('No API keys available');
         }
 
-        // Prepare the prompt for generating Reddit replies
-        const prompt = `
-You are an expert at writing engaging Reddit comments that add value to discussions. Generate a thoughtful reply to the following Reddit post.
-
-Post Title: ${postTitle}
-
-Post Content: ${truncatedPostContent}
-
-Subreddit: r/${subreddit || 'unknown'}
-
-${keywords.length > 0 ? `Keywords to incorporate naturally: ${keywords.join(', ')}` : ''}
-
-Reply Guidelines:
-- Tone: ${tone} (adjust your writing style accordingly)
-- Maximum length: ${maxLength} characters
-- Be authentic and conversational
-- Add genuine value to the discussion
-- Avoid being overly promotional or spammy
-- Use Reddit-appropriate language and formatting
-- Include relevant insights, questions, or experiences
-- Be respectful and constructive
-
-IMPORTANT: You must respond with ONLY a raw JSON object and nothing else. Do NOT use markdown formatting, code blocks, or any explanatory text. The response must be directly parseable by JSON.parse().
-
-JSON response structure:
-{
-  "reply": string, // the generated Reddit comment text
-  "confidence": number, // between 0 and 1, indicating confidence in the reply quality
-  "tone_used": string, // the actual tone reflected in the reply
-  "character_count": number, // length of the generated reply
-  "keywords_used": [string] // list of keywords that were naturally incorporated
-}
-
-REMINDER: Return ONLY the raw JSON. No markdown, no code blocks, no explanations.
-      `;
+        const prompt = buildBridgeReplyPrompt({
+          postTitle,
+          postContent: truncatedPostContent,
+          subreddit,
+          tone,
+          maxLength,
+          keywords,
+          websiteConfig,
+          outputFormat: 'json',
+        });
 
         // Show the key being used in the console (partial for security)
         const keyPrefix = apiKey.substring(0, 6);

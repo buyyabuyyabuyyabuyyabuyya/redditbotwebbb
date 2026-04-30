@@ -16,10 +16,24 @@ interface AIReplyResponse {
   keywords_used: string[];
 }
 
+interface WebsiteReplyContext {
+  name?: string;
+  website_name?: string;
+  url?: string;
+  website_url?: string;
+  description?: string;
+  website_description?: string;
+  ai_description?: string;
+  target_keywords?: string[];
+  customer_segments?: string[];
+  business_context_terms?: string[];
+}
+
 interface RedditReplyOptions {
   tone?: 'pseudo-advice marketing' | 'casual' | 'professional' | 'enthusiastic' | 'informative';
   maxLength?: number;
   keywords?: string[];
+  websiteConfig?: WebsiteReplyContext;
   accountId: string;
   userId?: string;
 }
@@ -65,6 +79,7 @@ export class RedditReplyService {
           tone: options.tone || 'pseudo-advice marketing',
           maxLength: options.maxLength || 500,
           keywords: options.keywords || [],
+          websiteConfig: options.websiteConfig || {},
         }),
       });
 

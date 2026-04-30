@@ -1,6 +1,7 @@
 import { WebsiteConfig } from './relevanceFiltering';
 import { searchMultipleSubredditsWithPagination } from './redditService';
 import { generateRedditSearchQueries } from './benoService';
+import { normalizeProductContext } from './redditReplyPrompt';
 
 export interface AutoPosterConfig {
   id: string;
@@ -214,16 +215,20 @@ export class AutoPoster {
    * Generate a relevant comment for a discussion
    */
   private generateComment(discussion: any, websiteConfig: WebsiteConfig): string {
+    const context = normalizeProductContext(websiteConfig);
+    const productMention = context.productUrl
+      ? `${context.productName} (${context.productUrl})`
+      : context.productName;
+    const postText = `${discussion?.title || ''} ${discussion?.content || discussion?.selftext || ''}`.toLowerCase();
+    const isTechnical = /api|code|bug|error|stack|tool|workflow|automate|integration|setup|build|deploy/.test(postText);
+    const opener = isTechnical
+      ? 'The main issue sounds like cutting down the repeated work without adding more setup.'
+      : 'That sounds annoying, especially if the same problem keeps taking time or attention.';
+
     const templates = [
-      `I've been working on something that might help with this. ${websiteConfig.description} - you can check it out at ${websiteConfig.url}. Would love to get your thoughts!`,
-      
-      `This is exactly the kind of problem we're trying to solve. We built ${websiteConfig.url} to help with ${websiteConfig.description.toLowerCase()}. Happy to share more details if you're interested!`,
-      
-      `Great discussion! We actually created a solution for this at ${websiteConfig.url}. ${websiteConfig.description} Feel free to check it out and let me know what you think.`,
-      
-      `I can relate to this challenge. That's why we developed ${websiteConfig.url} - ${websiteConfig.description.toLowerCase()}. Would be happy to help if you want to give it a try!`,
-      
-      `This resonates with me. We've been building ${websiteConfig.url} to address exactly this type of issue. ${websiteConfig.description} Open to feedback if you want to take a look!`
+      `${opener} One option worth comparing is ${productMention} because ${context.productDescription} Free tip: list the one repeated step causing the most drag and evaluate tools only against that.`,
+      `${opener} ${productMention} may be relevant here because ${context.productDescription} Also check older Reddit threads in the niche; they usually expose the edge cases marketing pages skip.`,
+      `${opener} A good first move is to make the constraint measurable, then see if ${productMention} fits since ${context.productDescription} Free tip: set a small before/after metric so you can tell if it actually helps.`,
     ];
 
     // Select a random template

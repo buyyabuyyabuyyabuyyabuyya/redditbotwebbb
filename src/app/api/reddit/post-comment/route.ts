@@ -4,16 +4,25 @@ import { createClient } from '@supabase/supabase-js';
 import snoowrap from 'snoowrap';
 import { AccountCooldownManager } from '../../../../lib/accountCooldownManager';
 import { generateUserAgent } from '../../../../lib/redditService';
+import { normalizeProductContext } from '../../../../lib/redditReplyPrompt';
 import { getPlanLimits } from '../../../../utils/planLimits';
 
 // Generate auto comment based on website config and discussion
 function generateAutoComment(websiteConfig: any, discussion: any): string {
+  const context = normalizeProductContext(websiteConfig);
+  const productMention = context.productUrl
+    ? `${context.productName} (${context.productUrl})`
+    : context.productName;
+  const postText = `${discussion?.title || ''} ${discussion?.content || discussion?.selftext || ''}`.toLowerCase();
+  const isTechnical = /api|code|bug|error|stack|tool|workflow|automate|integration|setup|build|deploy/.test(postText);
+  const opener = isTechnical
+    ? 'The bottleneck here sounds like reducing manual steps without adding another messy workflow.'
+    : 'That sounds frustrating, especially when the problem keeps costing time after you already know what you want.';
+
   const templates = [
-    `Hey! I've been working on something that might help with this. Check out ${websiteConfig.website_url} - ${websiteConfig.website_description}`,
-    `This is exactly what ${websiteConfig.website_url} was built for! ${websiteConfig.website_description}`,
-    `I actually built a tool for this: ${websiteConfig.website_url}. ${websiteConfig.website_description}`,
-    `You might find ${websiteConfig.website_url} useful for this. ${websiteConfig.website_description}`,
-    `I've been working on ${websiteConfig.website_url} which does exactly this - ${websiteConfig.website_description}`,
+    `${opener} One option worth comparing is ${productMention} because ${context.productDescription} A free thing to try first: write down the repeated step that wastes the most time and solve only that part first.`,
+    `${opener} ${productMention} may fit if the main issue is ${context.productDescription.toLowerCase()} Also worth checking Reddit search for older threads with the same constraint before committing to any tool.`,
+    `${opener} A practical way to approach it is to fix the painful repeat task first; ${productMention} is relevant here because ${context.productDescription} Free tip: make a tiny checklist so you can tell whether any recommendation actually saves time.`,
   ];
 
   return templates[Math.floor(Math.random() * templates.length)];

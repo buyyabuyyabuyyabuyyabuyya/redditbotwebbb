@@ -498,7 +498,13 @@ function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFoun
         const result = await redditReplyService.generateReply(post, {
           tone: 'pseudo-advice marketing',
           maxLength: 300,
-          keywords: selectedSegments // Use selected segments as keywords
+          keywords: selectedSegments, // Use selected segments as keywords
+          websiteConfig: {
+            name: description?.name,
+            url,
+            description: description?.description,
+            customer_segments: selectedSegments,
+          },
         });
 
         if (result.success && result.reply) {

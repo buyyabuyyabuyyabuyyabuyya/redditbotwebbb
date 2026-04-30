@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { callGroqForText } from '../../../../utils/groqTextGeneration';
+import { buildBridgeReplyPrompt } from '../../../../lib/redditReplyPrompt';
 import snoowrap from 'snoowrap';
 
 const createSupabaseServerClient = () => {
@@ -210,26 +211,23 @@ export async function POST(req: Request) {
                   ];
 
                 // Generate AI reply content
-                const aiReplyPrompt = `You are an expert at providing helpful, non-promotional responses to Reddit discussions.
-
-PRODUCT DESCRIPTION:
-${product.ai_description}
-
-CUSTOMER SEGMENTS:
-${product.customer_segments?.join('\n') || 'Not specified'}
-
-REDDIT POST:
-Title: ${post.title}
-Content: ${post.selftext || 'No content'}
-
-TASK: Generate a helpful, genuine response that provides value to this discussion. Your response should:
-- Be genuinely helpful and relevant to the post
-- NOT be promotional or spammy
-- Show expertise and knowledge
-- Naturally mention your product only if it's genuinely relevant
-- Be conversational and Reddit-appropriate
-
-Return only the response text, no additional formatting:`;
+                const aiReplyPrompt = buildBridgeReplyPrompt({
+                  postTitle: post.title,
+                  postContent: post.selftext || 'No content',
+                  subreddit,
+                  tone: 'helpful, conversational, Reddit-native',
+                  maxLength: 500,
+                  keywords,
+                  websiteConfig: {
+                    name: product.name,
+                    url: product.url,
+                    description: product.description,
+                    ai_description: product.ai_description,
+                    customer_segments: product.customer_segments,
+                    target_keywords: product.target_keywords,
+                  },
+                  outputFormat: 'text',
+                });
 
                 const aiReplyResponse = await callGroqForText(aiReplyPrompt, {
                   userId: 'system',
