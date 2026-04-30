@@ -20,6 +20,7 @@ export interface WebsiteConfig {
   customer_segments: string[];
   keywords: string[];
   target_keywords?: string[];
+  target_subreddits?: string[];
   negative_keywords: string[];
   business_context_terms: string[];
   relevance_threshold: number;

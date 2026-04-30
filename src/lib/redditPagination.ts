@@ -10,9 +10,15 @@ export interface PaginationState {
 
 export class RedditPaginationManager {
   private userId: string;
+  private configId?: string;
 
-  constructor(userId: string) {
+  constructor(userId: string, configId?: string) {
     this.userId = userId;
+    this.configId = configId;
+  }
+
+  private getConfigQueryParam(): string {
+    return this.configId ? `&configId=${encodeURIComponent(this.configId)}` : '';
   }
 
   /**
@@ -20,7 +26,9 @@ export class RedditPaginationManager {
    */
   async getPaginationState(subreddit: string): Promise<PaginationState | null> {
     try {
-      const response = await fetch(`/api/reddit/pagination?userId=${this.userId}&subreddit=${subreddit}`);
+      const response = await fetch(
+        `/api/reddit/pagination?action=get&subreddit=${subreddit}${this.getConfigQueryParam()}`
+      );
       if (response.ok) {
         const data = await response.json();
         return data.state || null;
@@ -49,7 +57,8 @@ export class RedditPaginationManager {
           subreddit,
           after,
           before,
-          incrementFetched
+          incrementFetched,
+          configId: this.configId,
         })
       });
       return response.ok;
@@ -67,7 +76,7 @@ export class RedditPaginationManager {
       const response = await fetch('/api/reddit/pagination', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: this.userId, subreddit })
+        body: JSON.stringify({ userId: this.userId, subreddit, configId: this.configId })
       });
       return response.ok;
     } catch (error) {
@@ -81,7 +90,9 @@ export class RedditPaginationManager {
    */
   async getAllPaginationStates(): Promise<PaginationState[]> {
     try {
-      const response = await fetch(`/api/reddit/pagination?userId=${this.userId}&action=all`);
+      const response = await fetch(
+        `/api/reddit/pagination?action=all${this.getConfigQueryParam()}`
+      );
       if (response.ok) {
         const data = await response.json();
         return data.states || [];
@@ -97,7 +108,7 @@ export class RedditPaginationManager {
    */
   async cleanupOldStates(): Promise<boolean> {
     try {
-      const response = await fetch(`/api/reddit/pagination?userId=${this.userId}&action=cleanup`, {
+      const response = await fetch(`/api/reddit/pagination?action=cleanup${this.getConfigQueryParam()}`, {
         method: 'DELETE'
       });
       return response.ok;

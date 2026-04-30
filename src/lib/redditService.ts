@@ -309,32 +309,32 @@ function parseRedditRSS(rssText: string, query: string, subreddit: string): Redd
 }
 
 
-// Search multiple subreddits relevant to business/marketing
-export const BUSINESS_SUBREDDITS = [
-  'entrepreneur',
-  'startups',
-  'smallbusiness',
-  'marketing',
-  'business',
-  'SaaS',
-  'productivity',
-  'freelance',
-  'webdev',
-  'technology'
-];
-
 export async function searchMultipleSubredditsWithPagination(
   query: string,
   userId: string,
-  subreddits: string[] = BUSINESS_SUBREDDITS,
+  subreddits: string[],
   limitPerSubreddit: number = 10,
   websiteConfig?: WebsiteConfig,
   usePagination: boolean = true
 ): Promise<RedditDiscussion[]> {
   const allDiscussions: RedditDiscussion[] = [];
-  const paginationManager = usePagination ? new RedditPaginationManager(userId) : null;
+  const paginationManager = usePagination
+    ? new RedditPaginationManager(userId, websiteConfig?.id)
+    : null;
+  const configuredSubreddits = Array.from(
+    new Set(
+      subreddits
+        .map((subreddit) => subreddit.trim().replace(/^r\//i, ''))
+        .filter(Boolean)
+    )
+  );
 
-  for (const subreddit of subreddits.slice(0, 10)) {
+  if (configuredSubreddits.length === 0) {
+    console.warn('[REDDIT_SERVICE] No user-configured subreddits supplied; skipping search');
+    return [];
+  }
+
+  for (const subreddit of configuredSubreddits.slice(0, 10)) {
     try {
       let redditUrl: string;
       let paginationState = null;
@@ -454,14 +454,26 @@ export async function searchMultipleSubredditsWithPagination(
 
 export async function searchMultipleSubreddits(
   query: string,
-  subreddits: string[] = BUSINESS_SUBREDDITS,
+  subreddits: string[],
   limitPerSubreddit: number = 10,
   websiteConfig?: WebsiteConfig
 ): Promise<RedditDiscussion[]> {
   const allDiscussions: RedditDiscussion[] = [];
+  const configuredSubreddits = Array.from(
+    new Set(
+      subreddits
+        .map((subreddit) => subreddit.trim().replace(/^r\//i, ''))
+        .filter(Boolean)
+    )
+  );
+
+  if (configuredSubreddits.length === 0) {
+    console.warn('[REDDIT_SERVICE] No user-configured subreddits supplied; skipping search');
+    return [];
+  }
 
   // Search each subreddit
-  for (const subreddit of subreddits.slice(0, 10)) { // Limit to 10 subreddits to avoid rate limits
+  for (const subreddit of configuredSubreddits.slice(0, 10)) { // Limit to 10 subreddits to avoid rate limits
     try {
       const result = await getRedditDiscussions(query, subreddit, limitPerSubreddit);
       allDiscussions.push(...result.items);

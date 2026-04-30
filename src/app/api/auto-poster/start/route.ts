@@ -85,6 +85,17 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const subredditRotation = getWebsiteConfigSubreddits(config);
+    if (subredditRotation.length === 0) {
+      return NextResponse.json(
+        {
+          error: 'no_subreddits_configured',
+          message: 'Add at least one target subreddit to this website config before starting the auto-poster.',
+        },
+        { status: 400 }
+      );
+    }
+
     // Update the config to enable auto-posting
     const { error: updateError } = await supabaseAdmin
       .from('website_configs')
@@ -119,8 +130,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    const subredditRotation = getWebsiteConfigSubreddits(config);
 
     // Create auto-poster config entry
     const autoPosterPayload = {

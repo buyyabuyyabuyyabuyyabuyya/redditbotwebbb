@@ -219,6 +219,12 @@ export async function POST(req: Request) {
                 .maybeSingle();
               const activeSubreddits =
                 getWebsiteConfigSubreddits(activeWebsiteConfig);
+              if (activeSubreddits.length === 0) {
+                console.warn(
+                  `[CRON] Active config ${activeConfig.id} has no user-configured subreddits; skipping rotation`
+                );
+                continue;
+              }
               const nextIndex =
                 ((activeConfig.current_subreddit_index || 0) + 1) %
                 activeSubreddits.length;
@@ -261,6 +267,22 @@ export async function POST(req: Request) {
 
         // Get current subreddit rotation index
         const subredditRotation = getWebsiteConfigSubreddits(websiteConfig);
+        if (subredditRotation.length === 0) {
+          console.error(
+            `[CRON] Website config ${configId} has no user-configured subreddits; skipping auto-poster run`
+          );
+          totalErrors++;
+          await supabaseAdmin
+            .from('auto_poster_configs')
+            .update({
+              next_post_at: new Date(
+                Date.now() + config.interval_minutes * 60 * 1000
+              ).toISOString(),
+            })
+            .eq('id', config.id);
+          continue;
+        }
+
         const currentIndex = config.current_subreddit_index || 0;
         const targetSubreddit =
           subredditRotation[currentIndex % subredditRotation.length];

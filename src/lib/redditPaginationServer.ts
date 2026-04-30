@@ -31,34 +31,18 @@ export class RedditPaginationManagerServer {
 
   /**
    * Check if pagination should reset to page 1
-   * Resets if: no token, 5+ pages processed, >1 hour since reset, or manual flag
+   * Resets only if there is no persisted token (first run/end reached) or a
+   * manual reset flag is set. Do not reset based on age/depth; auto-posters
+   * must continue from the next page even across multi-day gaps.
    */
   private shouldResetPagination(state: PaginationState | null): boolean {
     if (!state || !state.after) {
-      return true; // No state or no token = first run
+      return true; // No state or no token = first run or end reached
     }
 
     // Check if manual reset flag is set
     if (state.should_reset) {
       return true;
-    }
-
-    // Check if we've gone too deep (5+ pages)
-    if (state.pages_processed && state.pages_processed >= 5) {
-      console.log('[PAGINATION_SERVER] Reset: Reached max depth (5 pages)');
-      return true;
-    }
-
-    // Check if it's been more than 1 hour since last reset
-    if (state.last_reset_at) {
-      const lastReset = new Date(state.last_reset_at);
-      const now = new Date();
-      const hoursSinceReset = (now.getTime() - lastReset.getTime()) / (1000 * 60 * 60);
-
-      if (hoursSinceReset >= 1) {
-        console.log(`[PAGINATION_SERVER] Reset: 1 hour passed since last reset (${hoursSinceReset.toFixed(2)}h)`);
-        return true;
-      }
     }
 
     return false;

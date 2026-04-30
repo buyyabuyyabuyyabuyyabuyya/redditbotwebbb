@@ -34,10 +34,7 @@ function normalizeSubredditName(subreddit: string | null | undefined): string {
     .toLowerCase();
 }
 
-function getSubredditRotation(
-  websiteConfig: any,
-  requestedSubreddit: string
-): string[] {
+function getSubredditRotation(websiteConfig: any): string[] {
   const configured = getWebsiteConfigSubreddits(websiteConfig)
     .map(normalizeSubredditName)
     .filter(Boolean);
@@ -46,8 +43,7 @@ function getSubredditRotation(
     return Array.from(new Set(configured));
   }
 
-  const fallback = normalizeSubredditName(requestedSubreddit);
-  return fallback ? [fallback] : [];
+  return [];
 }
 
 async function updateSubredditRotation(
@@ -440,6 +436,7 @@ export async function POST(req: Request): Promise<NextResponse> {
       websiteConfig?.business_context_terms || []
     );
     const safeWebsiteConfig = {
+      ...websiteConfig,
       website_url: websiteConfig?.website_url || '',
       website_description: websiteConfig?.website_description || '',
       target_keywords: websiteConfig?.target_keywords || [],
@@ -448,7 +445,6 @@ export async function POST(req: Request): Promise<NextResponse> {
       business_context_terms: decodedCollections.businessContextTerms,
       target_subreddits: getWebsiteConfigSubreddits(websiteConfig),
       relevance_threshold: websiteConfig?.relevance_threshold || 0.7,
-      ...websiteConfig,
     };
 
     console.log(
@@ -460,10 +456,7 @@ export async function POST(req: Request): Promise<NextResponse> {
       process.env.SUPABASE_SERVICE_ROLE_KEY || ''
     );
 
-    const subredditRotation = getSubredditRotation(
-      safeWebsiteConfig,
-      subreddit
-    );
+    const subredditRotation = getSubredditRotation(safeWebsiteConfig);
 
     if (subredditRotation.length === 0) {
       return NextResponse.json(
@@ -514,7 +507,7 @@ export async function POST(req: Request): Promise<NextResponse> {
     try {
       const paginationManager = new RedditPaginationManagerServer(
         userId,
-        configId
+        safeWebsiteConfig.id
       );
       const {
         discussions,
@@ -699,6 +692,14 @@ async function processDiscussions(
   }
 
   if (!discussions || discussions.length === 0) {
+    await paginationManager.updatePaginationState(
+      subreddit,
+      afterToken,
+      beforeToken,
+      rawFetched,
+      isReset
+    );
+
     return NextResponse.json({
       success: true,
       posted: false,
@@ -885,7 +886,7 @@ async function processDiscussions(
             .eq('id', configId)
             .single();
 
-          const subredditRotation = getSubredditRotation(websiteConfig, subreddit);
+          const subredditRotation = getSubredditRotation(websiteConfig);
           const currentIndex = currentConfig?.current_subreddit_index || 0;
           const nextIndex = (currentIndex + 1) % subredditRotation.length;
 

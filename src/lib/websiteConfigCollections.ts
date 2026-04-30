@@ -64,10 +64,9 @@ export function getWebsiteConfigSubreddits(
   websiteConfig:
     | { business_context_terms?: string[]; target_subreddits?: string[] }
     | null
-    | undefined,
-  fallback: string[] = ['saas', 'entrepreneur', 'startups']
+    | undefined
 ) {
-  if (!websiteConfig) return fallback;
+  if (!websiteConfig) return [];
 
   if (
     Array.isArray(websiteConfig.target_subreddits) &&
@@ -82,7 +81,5 @@ export function getWebsiteConfigSubreddits(
   const decoded = decodeWebsiteConfigCollections(
     websiteConfig.business_context_terms || []
   );
-  return decoded.targetSubreddits.length > 0
-    ? decoded.targetSubreddits
-    : fallback;
+  return decoded.targetSubreddits;
 }

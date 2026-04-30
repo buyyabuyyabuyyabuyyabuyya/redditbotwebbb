@@ -398,13 +398,16 @@ function DiscussionsStep({ url, description, selectedSegments, onDiscussionsFoun
         relevance_threshold: 70,
         auto_poster_enabled: false
       };
+      const configuredSubreddits = Array.isArray(description.target_subreddits)
+        ? description.target_subreddits
+        : [];
       const queries = generateRedditSearchQueries(websiteConfig);
       
       // Search Reddit for relevant discussions
       const allDiscussions = [];
       for (const query of queries.slice(0, 5)) { // Limit to top 5 queries
         try {
-          const discussions = await searchMultipleSubreddits(query, undefined, 25);
+          const discussions = await searchMultipleSubreddits(query, configuredSubreddits, 25);
           allDiscussions.push(...discussions);
         } catch (error) {
           console.warn('Failed to search Reddit for query:', query, error);

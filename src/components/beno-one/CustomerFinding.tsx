@@ -105,10 +105,10 @@ export default function CustomerFinding({ url, name, description, segments, onCu
         // 4. Custom discussions logic (replacing old Beno API)
         setCurrentStep('scanning');
         setProgress(60);
-        
+
         // Use custom Reddit discussions logic
         const { generateRedditSearchQueries, searchMultipleSubreddits } = await import('../../lib/redditService');
-        
+
         // Generate search queries based on website config
         const websiteConfig = {
           id: createData.product_id,
@@ -119,25 +119,27 @@ export default function CustomerFinding({ url, name, description, segments, onCu
           target_keywords: [name, ...description.split(' ').slice(0, 5)],
           negative_keywords: [],
           business_context_terms: [],
+          target_subreddits: [],
           relevance_threshold: 70
         };
+        const configuredSubreddits = websiteConfig.target_subreddits;
         const queries = generateRedditSearchQueries(websiteConfig);
-        
+
         // Search Reddit for relevant discussions
         const allDiscussions = [];
         for (const query of queries.slice(0, 5)) { // Limit to top 5 queries
           try {
-            const discussions = await searchMultipleSubreddits(query, undefined, 25);
+            const discussions = await searchMultipleSubreddits(query, configuredSubreddits, 25);
             allDiscussions.push(...discussions);
             setProgress(p => Math.min(85, p + 5)); // Update progress
           } catch (error) {
             console.warn('Failed to search Reddit for query:', query, error);
           }
         }
-        
+
         // Convert to expected DiscussionItem format
         const discussionItems = allDiscussions
-          .filter((discussion, index, self) => 
+          .filter((discussion, index, self) =>
             index === self.findIndex(d => d.id === discussion.id)
           )
           .slice(0, 10)
@@ -150,7 +152,7 @@ export default function CustomerFinding({ url, name, description, segments, onCu
             relevance_score: Math.min(100, Math.max(0, discussion.score * 2)),
             comment: discussion.content || discussion.title
           }));
-        
+
         let discData: any = { items: discussionItems };
         setProgress(90);
 
@@ -213,7 +215,7 @@ export default function CustomerFinding({ url, name, description, segments, onCu
                 className="transition-all duration-1000 ease-out"
               />
             </svg>
-            
+
             {/* Progress text */}
             <div className="absolute inset-0 flex items-center justify-center">
               <span className="text-2xl font-bold text-zinc-50">{progress}%</span>
@@ -236,7 +238,7 @@ export default function CustomerFinding({ url, name, description, segments, onCu
 
         {/* Progress Bar */}
         <div className="w-full bg-gray-200 rounded-full h-2 mb-8">
-          <div 
+          <div
             className="bg-orange-500 h-2 rounded-full transition-all duration-1000 ease-out"
             style={{ width: `${progress}%` }}
           ></div>
@@ -294,4 +296,4 @@ export default function CustomerFinding({ url, name, description, segments, onCu
       </div>
     </div>
   );
-} 
+}

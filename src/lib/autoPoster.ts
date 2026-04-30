@@ -2,6 +2,7 @@ import { WebsiteConfig } from './relevanceFiltering';
 import { searchMultipleSubredditsWithPagination } from './redditService';
 import { generateRedditSearchQueries } from './benoService';
 import { normalizeProductContext } from './redditReplyPrompt';
+import { getWebsiteConfigSubreddits } from './websiteConfigCollections';
 
 export interface AutoPosterConfig {
   id: string;
@@ -122,12 +123,21 @@ export class AutoPoster {
         this.status.currentWebsiteConfig.description,
         this.status.currentWebsiteConfig.customer_segments
       );
+      const configuredSubreddits = getWebsiteConfigSubreddits(
+        this.status.currentWebsiteConfig
+      );
+
+      if (configuredSubreddits.length === 0) {
+        this.status.lastPostResult = 'No user-configured subreddits found';
+        this.updateStatus();
+        return;
+      }
 
       // Search for relevant discussions using pagination
       const discussions = await searchMultipleSubredditsWithPagination(
         queries[0], // Use the first query
         this.userId,
-        undefined, // Use default subreddits
+        configuredSubreddits,
         10,
         this.status.currentWebsiteConfig,
         true // Use pagination
