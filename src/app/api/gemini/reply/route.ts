@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { apiKeyManager } from '../../../../utils/apiKeyManager';
-import { buildBridgeReplyPrompt } from '../../../../lib/redditReplyPrompt';
+import {
+  buildBridgeReplyPrompt,
+  enforceContextFirstReplyOpening,
+} from '../../../../lib/redditReplyPrompt';
 
 // Create a Supabase admin client with service role key for bypassing RLS
 const supabaseAdmin = createClient(
@@ -225,6 +228,8 @@ export async function POST(req: Request) {
           if (!replyResult.reply || typeof replyResult.reply !== 'string') {
             throw new Error('Invalid reply structure - missing or invalid reply text');
           }
+
+          replyResult.reply = enforceContextFirstReplyOpening(replyResult.reply);
 
           // Ensure character count is accurate
           replyResult.character_count = replyResult.reply.length;

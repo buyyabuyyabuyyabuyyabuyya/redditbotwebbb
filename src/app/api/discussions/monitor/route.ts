@@ -3,7 +3,10 @@ import { auth } from '@clerk/nextjs';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { callGroqForText } from '../../../../utils/groqTextGeneration';
-import { buildBridgeReplyPrompt } from '../../../../lib/redditReplyPrompt';
+import {
+  buildBridgeReplyPrompt,
+  enforceContextFirstReplyOpening,
+} from '../../../../lib/redditReplyPrompt';
 import snoowrap from 'snoowrap';
 
 const createSupabaseServerClient = () => {
@@ -238,7 +241,9 @@ export async function POST(req: Request) {
                   aiReplyResponse.text &&
                   !aiReplyResponse.error
                 ) {
-                  const replyContent = aiReplyResponse.text.trim();
+                  const replyContent = enforceContextFirstReplyOpening(
+                    aiReplyResponse.text
+                  );
 
                   // Schedule the reply posting with 3.20 minute delay using Upstash QStash
                   const { scheduleQStashMessage } = await import(
