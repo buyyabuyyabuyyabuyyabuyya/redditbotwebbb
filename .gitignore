@@ -166,3 +166,5 @@ scripts/scratch/
 
 # Tool state
 .omx/
+
+/migrations/*

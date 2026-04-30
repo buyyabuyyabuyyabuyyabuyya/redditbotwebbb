@@ -104,11 +104,7 @@ export function buildBridgeReplyPrompt(input: BridgeReplyPromptInput): string {
   const maxLength = input.maxLength || 500;
   const truncatedPostContent = (input.postContent || '').substring(0, 3500);
   const context = normalizeProductContext(input.websiteConfig, input.keywords || []);
-  const includeLink = input.includeLink !== false; // Default to true
-
-  const productMention = includeLink && context.productUrl
-    ? `${context.productName} (${context.productUrl})`
-    : context.productName;
+  const productMention = context.productName;
 
   const outputInstructions =
     input.outputFormat === 'json'
@@ -124,20 +120,13 @@ JSON response structure:
 }`
       : 'Return only the final Reddit reply text. No markdown wrapper, no labels, no extra commentary.';
 
-  const linkInstructions = includeLink 
-    ? `- Integrate the URL (${context.productUrl}) in the recommendation sentence; do not paste it as a standalone CTA.`
-    : `- DO NOT include any https:// URLs or links. 
-- Instead, use a "Human Search Phrase" to guide the user to find the product.
-- Example: "Check out ${context.productName} (just search for it on Google)."
-- Example: "I've been using ${context.productName}—you can find it easily with a quick search."
-- Sound like a cautious user who is avoiding spam filters.`;
+  const linkInstructions = '- MANDATORY: DO NOT include any URLs, links, https:// strings, or "search for it on Google" instructions. Just mention the brand name naturally in the sentence.';
 
   return `
 You write Reddit replies for a managed posting network. The goal is value-first product discovery: solve the OP's problem first, then recommend the product only when it genuinely fits.
 
 PRODUCT CONTEXT:
 Name: ${context.productName}
-${includeLink ? `URL: ${context.productUrl || 'Not provided'}` : 'URL: [DISABLED - Do not include]'}
 Description: ${context.productDescription}
 Customer segments: ${context.customerSegments.join(', ') || 'Not specified'}
 Business context terms: ${context.contextTerms.join(', ') || 'Not specified'}
@@ -151,12 +140,14 @@ Content: ${truncatedPostContent || 'No content provided'}
 BRIDGE METHOD:
 1. Diagnose the root pain behind the post, not just the literal words. Look for time pressure, money constraints, confusion, loneliness, risk, technical friction, or lack of options.
 2. Map that pain to one specific value point from the product description.
-3. Write a concise reply that gives the OP a practical next step, then naturally bridges to ${productMention} as one option to evaluate.
-4. End with exactly one secondary free tip, resource, or recommendation that is not the product. It can be a subreddit, search phrase, checklist, YouTube channel, open-source tool, habit, or general tactic.
+3. Write a concise reply that gives the OP a practical next step. MANDATORY: You must mention ${productMention} as a specific tool/resource that solves one of the problems discussed. No generic descriptions without the name.
+4. End with exactly one secondary free tip, resource, or recommendation that is not the product. It can be a subreddit, search phrase, checklist, YouTube channel, open-source tool, habit, or general tactic. This tip is REQUIRED.
+5. TOTAL LENGTH: The entire reply must be exactly 3 sentences. No more, no less.
 
 ANGLE SELECTION:
 - If the post is emotional, use the Empathy Angle: name the exact concrete frustration or fear from the post, then move into the useful point. No generic sympathy.
-- If the post is technical or execution-focused, use the Efficiency Angle: summarize the likely bottleneck and give a direct path forward.
+- If the post is technical or execution-focused, use the Efficiency Angle: summarize the likely bottleneck and give a direct path forward. 
+- Beno Strategy: Talk like a peer who is sharing a "find." Use "Actually...", "I noticed...", "The move is usually...", or "If you want to [goal], then [action]." Avoid sounding like a consultant.
 
 CONTEXT-FIRST OPENING RULES:
 - The first sentence must jump directly into the OP's topic, action, or bottleneck. Do not use introductory filler. Do not apologize or sympathize generically. Jump straight to the context of the user's problem.
@@ -177,9 +168,12 @@ STYLE RULES:
 - Sound like a helpful Redditor, not a brand account.
 - Be specific to the post. Avoid canned openings and vary the first sentence based on the OP's actual situation.
 - Do not start with "Great post", "Love your honesty", "This is exactly", or generic praise.
+- DO NOT use "Have you considered", "I suggest", "One option is", "You might want to", or "Have you thought about". These are AI giveaways. 
+- DO NOT start with "For [Subreddit/Group] founders," or "As a [Role],". Just jump into the point.
 - Do not use corporate language such as "our solution", "we help you", "click here", "book a demo", or "revolutionary".
 - Use lazy human grammar: prefer contractions like "don't", "it's", "you're", and "I'd". It's okay to start one sentence with "So..." or "Actually..." if it sounds natural, but don't overdo it.
-- Do not fabricate personal experience, product ownership, or customer status. Do not say "I use this", "I found this", "I built this", "I recently stumbled upon", or "I was in your shoes" unless that fact is explicitly provided in the input. (EXCEPTION: You MAY use the "I've been using" search phrase from the link instructions if includeLink is disabled, as it sounds like a cautious user recommendation).
+- MANDATORY: Keep the total reply to exactly 3 sentences. Be extremely punchy. Sentence 1: Context/Hook. Sentence 2: Product Bridge. Sentence 3: Secondary Tip.
+- Do not fabricate personal experience, product ownership, or customer status. Do not say "I use this", "I found this", "I built this", "I recently stumbled upon", or "I was in your shoes" unless that fact is explicitly provided in the input.
 - Make the product bridge feel like a useful discovery/comparison, not a sales pitch. Prefer phrasing like "worth checking", "one thing I'd compare", "this may fit because...", or "it lines up with the problem because...".
 ${linkInstructions}
 - Put the secondary unrelated helpful tip at the end, e.g. "Also, try r/[subreddit] for..." or "Also, search [phrase] before you pick a tool."

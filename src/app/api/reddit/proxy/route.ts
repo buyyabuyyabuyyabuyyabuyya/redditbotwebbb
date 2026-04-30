@@ -841,7 +841,7 @@ async function processDiscussions(
         },
         {
           tone: 'pseudo-advice marketing',
-          maxLength: 500,
+          maxLength: 350,
           keywords: websiteConfig.target_keywords || [],
           websiteConfig,
           accountId: redditAccount.id,

@@ -219,7 +219,7 @@ export async function POST(req: Request) {
                   postContent: post.selftext || 'No content',
                   subreddit,
                   tone: 'helpful, conversational, Reddit-native',
-                  maxLength: 500,
+                  maxLength: 350,
                   keywords,
                   websiteConfig: {
                     name: product.name,
