@@ -160,26 +160,45 @@ export async function POST(req: Request) {
         .eq('status', 'active');
 
       if (activeConfigs && activeConfigs.length > 0) {
-        console.log(
-          `[CRON] Found ${activeConfigs.length} active configs with future post times, resetting to post now`
+        const activeConfigsUnderDailyLimit = activeConfigs.filter(
+          (config) => (config.posts_today || 0) < (config.max_posts_per_day || 10)
         );
+        const dailyLimitedCount =
+          activeConfigs.length - activeConfigsUnderDailyLimit.length;
 
-        // Reset next_post_at to current time for all active configs
-        const { error: resetError } = await supabaseAdmin
-          .from('auto_poster_configs')
-          .update({ next_post_at: currentTime })
-          .eq('enabled', true)
-          .eq('status', 'active');
+        if (dailyLimitedCount > 0) {
+          console.log(
+            `[CRON] ${dailyLimitedCount} active config(s) already hit their daily post limit; leaving them paused until reset`
+          );
+        }
 
-        if (resetError) {
-          console.error(
-            '[CRON] Error resetting config post times:',
-            resetError
+        if (activeConfigsUnderDailyLimit.length === 0) {
+          console.log(
+            '[CRON] No active configs are under the daily post limit; skipping reset/rotation'
           );
         } else {
           console.log(
-            '[CRON] Successfully reset config post times, re-querying for ready configs'
+            `[CRON] Found ${activeConfigsUnderDailyLimit.length} active configs under daily limit with future post times, resetting to post now`
           );
+
+          // Reset next_post_at only for configs that are still under their daily limit.
+          const { error: resetError } = await supabaseAdmin
+            .from('auto_poster_configs')
+            .update({ next_post_at: currentTime })
+            .in(
+              'id',
+              activeConfigsUnderDailyLimit.map((config) => config.id)
+            );
+
+          if (resetError) {
+            console.error(
+              '[CRON] Error resetting config post times:',
+              resetError
+            );
+          } else {
+            console.log(
+              '[CRON] Successfully reset config post times, re-querying for ready configs'
+            );
 
           // Re-query for configs now that we've reset the times (use fresh timestamp)
           const freshTime = new Date().toISOString();
@@ -208,7 +227,7 @@ export async function POST(req: Request) {
             console.log(
               '[CRON] Still no ready configs after reset – rotating subreddit index for active configs'
             );
-            for (const activeConfig of activeConfigs || []) {
+            for (const activeConfig of activeConfigsUnderDailyLimit) {
               const { data: activeWebsiteConfig } = await supabaseAdmin
                 .from('website_configs')
                 .select('*')
@@ -236,6 +255,7 @@ export async function POST(req: Request) {
                 })
                 .eq('id', activeConfig.id);
             }
+          }
           }
         }
       }

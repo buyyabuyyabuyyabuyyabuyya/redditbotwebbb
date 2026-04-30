@@ -292,6 +292,46 @@ async function checkAlreadyPostedDiscussions(
   return data?.map((row: any) => row.reddit_post_id) || [];
 }
 
+function getNextDailyResetIso(): string {
+  const tomorrow = new Date();
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+  tomorrow.setUTCHours(0, 5, 0, 0);
+  return tomorrow.toISOString();
+}
+
+async function getAutoPosterDailyState(
+  supabaseAdmin: any,
+  configId?: string
+): Promise<{
+  postsToday: number;
+  maxPostsPerDay: number;
+  limitReached: boolean;
+} | null> {
+  if (!configId) return null;
+
+  const { data, error } = await supabaseAdmin
+    .from('auto_poster_configs')
+    .select('posts_today, max_posts_per_day')
+    .eq('id', configId)
+    .maybeSingle();
+
+  if (error) {
+    console.error('[REDDIT_PROXY] Failed to check auto-poster daily limit:', error);
+    return null;
+  }
+
+  if (!data) return null;
+
+  const postsToday = data.posts_today || 0;
+  const maxPostsPerDay = data.max_posts_per_day || 10;
+
+  return {
+    postsToday,
+    maxPostsPerDay,
+    limitReached: postsToday >= maxPostsPerDay,
+  };
+}
+
 function getSiteUrl(req: Request): string {
   const configured =
     process.env.NEXT_PUBLIC_SITE_URL ||
@@ -497,6 +537,22 @@ export async function POST(req: Request): Promise<NextResponse> {
     const checkedEverySubreddit =
       attemptedSubreddits.length >= subredditRotation.length;
 
+    const dailyState = await getAutoPosterDailyState(supabaseAdmin, configId);
+    if (dailyState?.limitReached) {
+      console.log(
+        `[REDDIT_PROXY] Daily post limit reached for config ${configId}: ${dailyState.postsToday}/${dailyState.maxPostsPerDay}`
+      );
+      return NextResponse.json({
+        success: true,
+        posted: false,
+        dailyLimitReached: true,
+        message: 'Daily auto-poster limit reached',
+        postsToday: dailyState.postsToday,
+        maxPostsPerDay: dailyState.maxPostsPerDay,
+        nextPostAt: getNextDailyResetIso(),
+      });
+    }
+
     console.log(
       `[REDDIT_PROXY] Searching r/${activeSubreddit}; checked=${attemptedSubreddits.length}/${subredditRotation.length}`
     );
@@ -640,6 +696,23 @@ async function processDiscussions(
   rawFetched: number,
   attemptedSubreddits: string[]
 ): Promise<NextResponse> {
+  const dailyState = await getAutoPosterDailyState(supabaseAdmin, configId);
+  if (dailyState?.limitReached) {
+    console.log(
+      `[REDDIT_PROXY] Skipping post because daily limit is already reached for config ${configId}: ${dailyState.postsToday}/${dailyState.maxPostsPerDay}`
+    );
+    return NextResponse.json({
+      success: true,
+      posted: false,
+      dailyLimitReached: true,
+      message: 'Daily auto-poster limit reached',
+      subreddit,
+      postsToday: dailyState.postsToday,
+      maxPostsPerDay: dailyState.maxPostsPerDay,
+      attemptedSubreddits,
+    });
+  }
+
   // Check if we've already posted to these discussions for this website config.
   // Important: websiteConfig.id is not the same as auto_poster_configs.id.
   const postIds = discussions.map((d: any) => d.id);
@@ -882,13 +955,16 @@ async function processDiscussions(
         if (configId) {
           const { data: currentConfig } = await supabaseAdmin
             .from('auto_poster_configs')
-            .select('current_subreddit_index, posts_today')
+            .select('current_subreddit_index, posts_today, max_posts_per_day')
             .eq('id', configId)
             .single();
 
           const subredditRotation = getSubredditRotation(websiteConfig);
           const currentIndex = currentConfig?.current_subreddit_index || 0;
           const nextIndex = (currentIndex + 1) % subredditRotation.length;
+          const nextPostsToday = (currentConfig?.posts_today || 0) + 1;
+          const maxPostsPerDay = currentConfig?.max_posts_per_day || 10;
+          const limitReached = nextPostsToday >= maxPostsPerDay;
 
           await updateSubredditRotation(
             supabaseAdmin,
@@ -897,10 +973,17 @@ async function processDiscussions(
             nextIndex,
             `successful post on r/${subreddit}`,
             {
-              posts_today: (currentConfig?.posts_today || 0) + 1,
+              posts_today: nextPostsToday,
               last_posted_at: new Date().toISOString(),
+              ...(limitReached ? { next_post_at: getNextDailyResetIso() } : {}),
             }
           );
+
+          if (limitReached) {
+            console.log(
+              `[REDDIT_PROXY] Config ${configId} reached daily post limit: ${nextPostsToday}/${maxPostsPerDay}`
+            );
+          }
         }
 
         posted = true;

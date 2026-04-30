@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     const { data: existingAutoPoster } = await supabaseAdmin
       .from('auto_poster_configs')
-      .select('id, status, enabled')
+      .select('id, status, enabled, posts_today, last_reset_date, current_subreddit_index')
       .eq('user_id', userId)
       .eq('website_config_id', config.id)
       .limit(1)
@@ -132,6 +132,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Create auto-poster config entry
+    const today = new Date().toISOString().split('T')[0];
+    const existingPostsToday =
+      existingAutoPoster?.last_reset_date === today
+        ? existingAutoPoster.posts_today || 0
+        : 0;
+
     const autoPosterPayload = {
       user_id: userId,
       website_config_id: config.id, // Use website config UUID
@@ -142,10 +148,10 @@ export async function POST(request: NextRequest) {
       max_posts_per_day: 10,
       status: 'active',
       next_post_at: new Date().toISOString(), // Post immediately
-      posts_today: 0,
-      current_subreddit_index: 0,
+      posts_today: existingPostsToday,
+      current_subreddit_index: existingAutoPoster?.current_subreddit_index || 0,
       last_subreddit_used: subredditRotation[0],
-      last_reset_date: new Date().toISOString().split('T')[0],
+      last_reset_date: today,
     };
 
     const autoPosterMutation = existingAutoPoster
