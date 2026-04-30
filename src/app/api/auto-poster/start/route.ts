@@ -9,6 +9,13 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+function getNextDailyResetIso(): string {
+  const tomorrow = new Date();
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+  tomorrow.setUTCHours(0, 5, 0, 0);
+  return tomorrow.toISOString();
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { userId } = auth();
@@ -49,11 +56,29 @@ export async function POST(request: NextRequest) {
 
     const { data: existingAutoPoster } = await supabaseAdmin
       .from('auto_poster_configs')
-      .select('id, status, enabled, posts_today, last_reset_date, current_subreddit_index')
+      .select('id, status, enabled, posts_today, max_posts_per_day, last_reset_date, current_subreddit_index')
       .eq('user_id', userId)
       .eq('website_config_id', config.id)
       .limit(1)
       .maybeSingle();
+
+    const dailyMax = existingAutoPoster?.max_posts_per_day || 10;
+    if (
+      existingAutoPoster?.enabled &&
+      existingAutoPoster.status === 'active' &&
+      (existingAutoPoster.posts_today || 0) >= dailyMax
+    ) {
+      return NextResponse.json(
+        {
+          error: 'daily_limit_reached',
+          message: `This website config already reached its ${dailyMax} comments/day limit. It will resume after the daily reset.`,
+          postsToday: existingAutoPoster.posts_today || 0,
+          maxPostsPerDay: dailyMax,
+          nextDailyResetAt: getNextDailyResetIso(),
+        },
+        { status: 429 }
+      );
+    }
 
     if (!existingAutoPoster?.enabled || existingAutoPoster.status !== 'active') {
       const { count: activeAutoPosterCount, error: countError } =

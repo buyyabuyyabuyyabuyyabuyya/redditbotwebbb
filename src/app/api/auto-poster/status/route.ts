@@ -7,6 +7,33 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+function getNextDailyResetIso(): string {
+  const tomorrow = new Date();
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+  tomorrow.setUTCHours(0, 5, 0, 0);
+  return tomorrow.toISOString();
+}
+
+function getDailyLimitState(config?: {
+  posts_today?: number | null;
+  max_posts_per_day?: number | null;
+} | null) {
+  const postsToday = config?.posts_today || 0;
+  const maxPostsPerDay = config?.max_posts_per_day || 10;
+  const dailyLimitReached = postsToday >= maxPostsPerDay;
+
+  return {
+    postsToday,
+    maxPostsPerDay,
+    dailyLimitReached,
+    nextDailyResetAt: dailyLimitReached ? getNextDailyResetIso() : null,
+    statusLabel: dailyLimitReached ? 'Daily limit reached' : null,
+    statusMessage: dailyLimitReached
+      ? `This auto-poster has reached its ${maxPostsPerDay} comments/day limit for this website config. It will resume after the daily reset.`
+      : null,
+  };
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { userId } = auth();
@@ -53,17 +80,30 @@ export async function GET(request: NextRequest) {
             .from('posted_reddit_discussions')
             .select('id', { count: 'exact', head: true })
             .eq('website_config_id', config.website_config_id);
+          const dailyLimitState = getDailyLimitState(config);
+          const isRunning =
+            config.enabled === true &&
+            config.status === 'active' &&
+            !dailyLimitState.dailyLimitReached;
 
           return {
             id: config.id,
             websiteConfigId: config.website_config_id,
-            isRunning: config.enabled === true && config.status === 'active',
-            nextPostTime: config.next_post_at || null,
+            isRunning,
+            dailyLimitReached: dailyLimitState.dailyLimitReached,
+            statusLabel:
+              dailyLimitState.statusLabel ||
+              (isRunning ? 'Running' : 'Stopped'),
+            statusMessage: dailyLimitState.statusMessage,
+            nextDailyResetAt: dailyLimitState.nextDailyResetAt,
+            nextPostTime: dailyLimitState.dailyLimitReached
+              ? dailyLimitState.nextDailyResetAt
+              : config.next_post_at || null,
             lastPostTime: config.last_posted_at || null,
-            postsToday: config.posts_today || 0,
+            postsToday: dailyLimitState.postsToday,
             totalPosts: totalPosts || 0,
             intervalMinutes: config.interval_minutes || 30,
-            maxPostsPerDay: config.max_posts_per_day || 10,
+            maxPostsPerDay: dailyLimitState.maxPostsPerDay,
             redditAccount: 'Managed network',
             currentWebsiteConfig: config.website_configs,
           };
@@ -151,21 +191,32 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    const dailyLimitState = getDailyLimitState(autoposterConfig);
     const isRunning =
-      autoposterConfig.enabled === true && autoposterConfig.status === 'active';
+      autoposterConfig.enabled === true &&
+      autoposterConfig.status === 'active' &&
+      !dailyLimitState.dailyLimitReached;
 
     return NextResponse.json({
       isRunning,
-      nextPostTime: autoposterConfig.next_post_at || null,
-      postsToday: postsToday || 0,
+      dailyLimitReached: dailyLimitState.dailyLimitReached,
+      statusLabel:
+        dailyLimitState.statusLabel || (isRunning ? 'Running' : 'Stopped'),
+      statusMessage: dailyLimitState.statusMessage,
+      nextDailyResetAt: dailyLimitState.nextDailyResetAt,
+      nextPostTime: dailyLimitState.dailyLimitReached
+        ? dailyLimitState.nextDailyResetAt
+        : autoposterConfig.next_post_at || null,
+      postsToday: dailyLimitState.postsToday || postsToday || 0,
       totalPosts: totalPosts || 0,
       lastPostTime:
         lastPost?.created_at || autoposterConfig.last_posted_at || null,
       lastCommentUrl: lastPost?.comment_url || null,
-      lastPostResult: isRunning ? 'Running' : 'Stopped',
+      lastPostResult:
+        dailyLimitState.statusLabel || (isRunning ? 'Running' : 'Stopped'),
       currentWebsiteConfig: config,
       intervalMinutes: autoposterConfig.interval_minutes || 30,
-      maxPostsPerDay: autoposterConfig.max_posts_per_day || 10,
+      maxPostsPerDay: dailyLimitState.maxPostsPerDay,
       redditAccount: 'Managed network',
     });
   } catch (error) {

@@ -5,6 +5,10 @@ import { WebsiteConfig } from '../lib/relevanceFiltering';
 
 interface AutoPosterStatus {
   isRunning: boolean;
+  dailyLimitReached?: boolean;
+  statusLabel?: string | null;
+  statusMessage?: string | null;
+  nextDailyResetAt?: string | null;
   nextPostTime: Date | null;
   postsToday: number;
   totalPosts: number;
@@ -21,6 +25,10 @@ interface ActiveAutoPosterConfig {
   id: string;
   websiteConfigId: string;
   isRunning: boolean;
+  dailyLimitReached?: boolean;
+  statusLabel?: string | null;
+  statusMessage?: string | null;
+  nextDailyResetAt?: string | null;
   nextPostTime: string | null;
   lastPostTime: string | null;
   postsToday: number;
@@ -68,6 +76,7 @@ export default function AutoPosterManager({
   const [nowMs, setNowMs] = useState(() => Date.now());
 
   const hasActiveConfigs = activeConfigs.length > 0;
+  const selectedDailyLimitReached = Boolean(status?.dailyLimitReached);
 
   const fetchActiveConfigs = async () => {
     const response = await fetch('/api/auto-poster/status');
@@ -197,7 +206,9 @@ export default function AutoPosterManager({
       });
       const data = await response.json();
       if (!response.ok)
-        throw new Error(data.error || 'Failed to start auto-poster');
+        throw new Error(
+          data.message || data.error || 'Failed to start auto-poster'
+        );
       await refreshAll(selectedConfigId);
       onRefreshConfigs?.();
     } catch (error: any) {
@@ -280,11 +291,13 @@ export default function AutoPosterManager({
 
         <div className="grid gap-4 md:grid-cols-3">
           {[
-            ['Posts today', postingStats.postsToday],
+            ['Posts today', status ? status.postsToday : postingStats.postsToday],
             ['Total posts', postingStats.totalPosts],
             [
               'Next run',
-              status?.nextPostTime
+              status?.dailyLimitReached
+                ? 'Daily cap reached'
+                : status?.nextPostTime
                 ? formatNextPostTime(status.nextPostTime)
                 : 'Not scheduled',
             ],
@@ -342,11 +355,20 @@ export default function AutoPosterManager({
           </div>
           <button
             onClick={handleStart}
-            disabled={starting || !selectedConfigId}
+            disabled={starting || !selectedConfigId || selectedDailyLimitReached}
             className="ui-button-primary w-full disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {starting ? 'Starting…' : 'Start auto-poster'}
+            {starting
+              ? 'Starting…'
+              : selectedDailyLimitReached
+                ? 'Daily limit reached'
+                : 'Start auto-poster'}
           </button>
+          {selectedDailyLimitReached && status?.statusMessage ? (
+            <div className="rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-amber-200">
+              {status.statusMessage}
+            </div>
+          ) : null}
         </div>
       </section>
 
@@ -370,11 +392,25 @@ export default function AutoPosterManager({
                     </div>
                     <div className="mt-1 text-sm text-zinc-500">
                       {config.postsToday} posts today • {config.totalPosts}{' '}
-                      total • next run{' '}
-                      {formatNextPostValue(config.nextPostTime)}
+                      total •{' '}
+                      {config.dailyLimitReached
+                        ? `daily cap reached, resumes ${formatNextPostValue(config.nextDailyResetAt || config.nextPostTime)}`
+                        : `next run ${formatNextPostValue(config.nextPostTime)}`}
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-medium ${
+                        config.dailyLimitReached
+                          ? 'border border-amber-400/30 bg-amber-400/10 text-amber-200'
+                          : config.isRunning
+                            ? 'border border-emerald-400/30 bg-emerald-400/10 text-emerald-300'
+                            : 'border border-white/10 bg-zinc-950 text-zinc-300'
+                      }`}
+                    >
+                      {config.statusLabel ||
+                        (config.isRunning ? 'Running' : 'Stopped')}
+                    </span>
                     <button
                       onClick={() =>
                         setSelectedConfigId(config.websiteConfigId)
@@ -414,11 +450,23 @@ export default function AutoPosterManager({
               </p>
             </div>
             <span
-              className={`rounded-full px-3 py-1 text-xs font-medium ${status.isRunning ? 'border border-emerald-400/30 bg-emerald-400/10 text-emerald-300' : 'border border-white/10 bg-zinc-950 text-zinc-300'}`}
+              className={`rounded-full px-3 py-1 text-xs font-medium ${
+                status.dailyLimitReached
+                  ? 'border border-amber-400/30 bg-amber-400/10 text-amber-200'
+                  : status.isRunning
+                    ? 'border border-emerald-400/30 bg-emerald-400/10 text-emerald-300'
+                    : 'border border-white/10 bg-zinc-950 text-zinc-300'
+              }`}
             >
-              {status.isRunning ? 'Running' : 'Stopped'}
+              {status.statusLabel || (status.isRunning ? 'Running' : 'Stopped')}
             </span>
           </div>
+
+          {status.dailyLimitReached && status.statusMessage ? (
+            <div className="mb-4 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-amber-200">
+              {status.statusMessage}
+            </div>
+          ) : null}
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {[
