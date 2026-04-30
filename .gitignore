@@ -163,3 +163,6 @@ reddit-chrome-extension/
 
 # Local scratch scripts
 scripts/scratch/
+
+# Tool state
+.omx/

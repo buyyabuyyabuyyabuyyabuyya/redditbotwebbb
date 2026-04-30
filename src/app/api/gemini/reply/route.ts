@@ -49,7 +49,8 @@ export async function POST(req: Request) {
       tone = 'pseudo-advice marketing',
       maxLength = 500,
       keywords = [],
-      websiteConfig = {}
+      websiteConfig = {},
+      includeLink = true
     } = await req.json();
 
     // Proactively truncate post content to stay under TPM limits
@@ -90,6 +91,7 @@ export async function POST(req: Request) {
           keywords,
           websiteConfig,
           outputFormat: 'json',
+          includeLink,
         });
 
         // Show the key being used in the console (partial for security)

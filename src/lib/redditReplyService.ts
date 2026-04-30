@@ -36,6 +36,7 @@ interface RedditReplyOptions {
   websiteConfig?: WebsiteReplyContext;
   accountId: string;
   userId?: string;
+  includeLink?: boolean;
 }
 
 interface RedditReplyResult {
@@ -80,6 +81,7 @@ export class RedditReplyService {
           maxLength: options.maxLength || 500,
           keywords: options.keywords || [],
           websiteConfig: options.websiteConfig || {},
+          includeLink: options.includeLink,
         }),
       });
 

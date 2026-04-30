@@ -29,6 +29,7 @@ export interface BridgeReplyPromptInput {
   keywords?: string[];
   websiteConfig?: WebsiteReplyContext;
   outputFormat: 'json' | 'text';
+  includeLink?: boolean;
 }
 
 const FORBIDDEN_REPLY_OPENING_PATTERNS = [
@@ -103,7 +104,9 @@ export function buildBridgeReplyPrompt(input: BridgeReplyPromptInput): string {
   const maxLength = input.maxLength || 500;
   const truncatedPostContent = (input.postContent || '').substring(0, 3500);
   const context = normalizeProductContext(input.websiteConfig, input.keywords || []);
-  const productMention = context.productUrl
+  const includeLink = input.includeLink !== false; // Default to true
+
+  const productMention = includeLink && context.productUrl
     ? `${context.productName} (${context.productUrl})`
     : context.productName;
 
@@ -121,12 +124,20 @@ JSON response structure:
 }`
       : 'Return only the final Reddit reply text. No markdown wrapper, no labels, no extra commentary.';
 
+  const linkInstructions = includeLink 
+    ? `- Integrate the URL (${context.productUrl}) in the recommendation sentence; do not paste it as a standalone CTA.`
+    : `- DO NOT include any https:// URLs or links. 
+- Instead, use a "Human Search Phrase" to guide the user to find the product.
+- Example: "Check out ${context.productName} (just search for it on Google)."
+- Example: "I've been using ${context.productName}—you can find it easily with a quick search."
+- Sound like a cautious user who is avoiding spam filters.`;
+
   return `
 You write Reddit replies for a managed posting network. The goal is value-first product discovery: solve the OP's problem first, then recommend the product only when it genuinely fits.
 
 PRODUCT CONTEXT:
 Name: ${context.productName}
-URL: ${context.productUrl || 'Not provided'}
+${includeLink ? `URL: ${context.productUrl || 'Not provided'}` : 'URL: [DISABLED - Do not include]'}
 Description: ${context.productDescription}
 Customer segments: ${context.customerSegments.join(', ') || 'Not specified'}
 Business context terms: ${context.contextTerms.join(', ') || 'Not specified'}
@@ -168,9 +179,9 @@ STYLE RULES:
 - Do not start with "Great post", "Love your honesty", "This is exactly", or generic praise.
 - Do not use corporate language such as "our solution", "we help you", "click here", "book a demo", or "revolutionary".
 - Use lazy human grammar: prefer contractions like "don't", "it's", "you're", and "I'd". It's okay to start one sentence with "So..." or "Actually..." if it sounds natural, but don't overdo it.
-- Do not fabricate personal experience, product ownership, or customer status. Do not say "I use this", "I found this", "I built this", "I recently stumbled upon", "I've been using", or "I was in your shoes" unless that fact is explicitly provided in the input.
+- Do not fabricate personal experience, product ownership, or customer status. Do not say "I use this", "I found this", "I built this", "I recently stumbled upon", or "I was in your shoes" unless that fact is explicitly provided in the input. (EXCEPTION: You MAY use the "I've been using" search phrase from the link instructions if includeLink is disabled, as it sounds like a cautious user recommendation).
 - Make the product bridge feel like a useful discovery/comparison, not a sales pitch. Prefer phrasing like "worth checking", "one thing I'd compare", "this may fit because...", or "it lines up with the problem because...".
-- Integrate the URL in the recommendation sentence; do not paste it as a standalone CTA.
+${linkInstructions}
 - Put the secondary unrelated helpful tip at the end, e.g. "Also, try r/[subreddit] for..." or "Also, search [phrase] before you pick a tool."
 - If the product is not a real fit for the post, give the free helpful advice and make the product mention very light or omit it.
 
