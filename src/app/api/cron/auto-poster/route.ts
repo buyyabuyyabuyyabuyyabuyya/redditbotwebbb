@@ -3,6 +3,80 @@ import { createClient } from '@supabase/supabase-js';
 import { PostQueueService } from '../../../../lib/postQueueService';
 import { CircuitBreakerService } from '../../../../lib/circuitBreakerService';
 import { getWebsiteConfigSubreddits } from '@/lib/websiteConfigCollections';
+import { getAutoPosterRunLimitState } from '@/lib/autoPosterRunLimit';
+
+async function deleteQstashSchedule(scheduleId?: string | null) {
+  if (!scheduleId || !process.env.QSTASH_TOKEN) return;
+
+  try {
+    const response = await fetch(
+      `https://qstash.upstash.io/v2/schedules/${scheduleId}`,
+      {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${process.env.QSTASH_TOKEN}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      console.error(
+        '[CRON] Failed to delete expired auto-poster schedule:',
+        await response.text()
+      );
+    }
+  } catch (error) {
+    console.error('[CRON] Error deleting expired auto-poster schedule:', error);
+  }
+}
+
+async function stopExpiredAutoPosterRuns(supabaseAdmin: any) {
+  const { data: activeConfigs, error } = await supabaseAdmin
+    .from('auto_poster_configs')
+    .select('id, user_id, website_config_id, enabled, status, created_at, upstash_schedule_id')
+    .eq('enabled', true)
+    .eq('status', 'active');
+
+  if (error) {
+    console.error('[CRON] Failed to check auto-poster runtime limits:', error);
+    return 0;
+  }
+
+  const expiredConfigs = (activeConfigs || []).filter((config: any) =>
+    getAutoPosterRunLimitState(config).runtimeLimitReached
+  );
+
+  for (const config of expiredConfigs) {
+    console.log(
+      `[CRON] Stopping config ${config.id}; 5-hour run window has completed`
+    );
+
+    await supabaseAdmin
+      .from('auto_poster_configs')
+      .update({
+        enabled: false,
+        status: 'paused',
+        next_post_at: null,
+        upstash_schedule_id: null,
+      })
+      .eq('id', config.id);
+
+    if (config.website_config_id) {
+      await supabaseAdmin
+        .from('website_configs')
+        .update({
+          auto_poster_enabled: false,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', config.website_config_id)
+        .eq('user_id', config.user_id);
+    }
+
+    await deleteQstashSchedule(config.upstash_schedule_id);
+  }
+
+  return expiredConfigs.length;
+}
 
 // Cron job endpoint for automated posting
 export async function POST(req: Request) {
@@ -97,8 +171,12 @@ export async function POST(req: Request) {
       `[CRON] ${accountCheck.count} Reddit accounts available for posting`
     );
 
-    // Reset daily counters if needed
-    await supabaseAdmin.rpc('reset_daily_post_counts');
+    const expiredRunCount = await stopExpiredAutoPosterRuns(supabaseAdmin);
+    if (expiredRunCount > 0) {
+      console.log(
+        `[CRON] Stopped ${expiredRunCount} auto-poster run(s) that exceeded the 5-hour runtime limit`
+      );
+    }
 
     // First, let's see ALL configs to debug the issue
     const { data: debugConfigs, error: debugError } = await supabaseAdmin
@@ -111,7 +189,7 @@ export async function POST(req: Request) {
     if (debugConfigs && debugConfigs.length > 0) {
       debugConfigs.forEach((config) => {
         console.log(
-          `[CRON] DEBUG Config ${config.id}: enabled=${config.enabled}, status=${config.status}, next_post_at=${config.next_post_at}, posts_today=${config.posts_today}/${config.max_posts_per_day}`
+          `[CRON] DEBUG Config ${config.id}: enabled=${config.enabled}, status=${config.status}, next_post_at=${config.next_post_at}, run_started_at=${config.created_at}`
         );
       });
     }
@@ -136,14 +214,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Database error' }, { status: 500 });
     }
 
-    // Filter configs that haven't reached daily limit
-    const readyConfigs =
-      allConfigs?.filter(
-        (config) => config.posts_today < config.max_posts_per_day
-      ) || [];
+    const readyConfigs = allConfigs || [];
 
     console.log(
-      `[CRON] Found ${readyConfigs?.length || 0} configs ready to post after daily limit filter`
+      `[CRON] Found ${readyConfigs?.length || 0} configs ready to post`
     );
 
     // If no configs are ready but we have active configs with future next_post_at,
@@ -160,34 +234,18 @@ export async function POST(req: Request) {
         .eq('status', 'active');
 
       if (activeConfigs && activeConfigs.length > 0) {
-        const activeConfigsUnderDailyLimit = activeConfigs.filter(
-          (config) => (config.posts_today || 0) < (config.max_posts_per_day || 10)
+        console.log(
+          `[CRON] Found ${activeConfigs.length} active configs with future post times, resetting to post now`
         );
-        const dailyLimitedCount =
-          activeConfigs.length - activeConfigsUnderDailyLimit.length;
 
-        if (dailyLimitedCount > 0) {
-          console.log(
-            `[CRON] ${dailyLimitedCount} active config(s) already hit their daily post limit; leaving them paused until reset`
-          );
-        }
-
-        if (activeConfigsUnderDailyLimit.length === 0) {
-          console.log(
-            '[CRON] No active configs are under the daily post limit; skipping reset/rotation'
-          );
-        } else {
-          console.log(
-            `[CRON] Found ${activeConfigsUnderDailyLimit.length} active configs under daily limit with future post times, resetting to post now`
-          );
-
-          // Reset next_post_at only for configs that are still under their daily limit.
+          // Reset next_post_at for active configs that have not exceeded the
+          // 5-hour run window.
           const { error: resetError } = await supabaseAdmin
             .from('auto_poster_configs')
             .update({ next_post_at: currentTime })
             .in(
               'id',
-              activeConfigsUnderDailyLimit.map((config) => config.id)
+              activeConfigs.map((config) => config.id)
             );
 
           if (resetError) {
@@ -213,9 +271,7 @@ export async function POST(req: Request) {
 
           // Update readyConfigs with the newly available ones
           const updatedReadyConfigs =
-            updatedConfigs?.filter(
-              (config) => config.posts_today < config.max_posts_per_day
-            ) || [];
+            updatedConfigs || [];
 
           console.log(
             `[CRON] After reset: ${updatedReadyConfigs.length} configs now ready to post`
@@ -227,7 +283,7 @@ export async function POST(req: Request) {
             console.log(
               '[CRON] Still no ready configs after reset – rotating subreddit index for active configs'
             );
-            for (const activeConfig of activeConfigsUnderDailyLimit) {
+            for (const activeConfig of activeConfigs) {
               const { data: activeWebsiteConfig } = await supabaseAdmin
                 .from('website_configs')
                 .select('*')
@@ -256,7 +312,6 @@ export async function POST(req: Request) {
                 .eq('id', activeConfig.id);
             }
           }
-          }
         }
       }
     }
@@ -268,6 +323,14 @@ export async function POST(req: Request) {
     for (const config of readyConfigs || []) {
       try {
         const configId = config.website_config_id || config.product_id;
+        if (getAutoPosterRunLimitState(config).runtimeLimitReached) {
+          console.log(
+            `[CRON] Skipping expired config ${config.id}; stopping 5-hour run`
+          );
+          await stopExpiredAutoPosterRuns(supabaseAdmin);
+          continue;
+        }
+
         console.log(
           `[CRON] Processing config ${config.id} for website config ${configId}`
         );

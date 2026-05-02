@@ -5,10 +5,11 @@ import { WebsiteConfig } from '../lib/relevanceFiltering';
 
 interface AutoPosterStatus {
   isRunning: boolean;
-  dailyLimitReached?: boolean;
+  runtimeLimitReached?: boolean;
   statusLabel?: string | null;
   statusMessage?: string | null;
-  nextDailyResetAt?: string | null;
+  runStartedAt?: string | null;
+  runExpiresAt?: string | null;
   nextPostTime: Date | null;
   postsToday: number;
   totalPosts: number;
@@ -17,7 +18,7 @@ interface AutoPosterStatus {
   lastPostResult: string | null;
   currentWebsiteConfig: WebsiteConfig | null;
   intervalMinutes: number;
-  maxPostsPerDay: number;
+  runtimeHours: number;
   redditAccount: string;
 }
 
@@ -25,16 +26,17 @@ interface ActiveAutoPosterConfig {
   id: string;
   websiteConfigId: string;
   isRunning: boolean;
-  dailyLimitReached?: boolean;
+  runtimeLimitReached?: boolean;
   statusLabel?: string | null;
   statusMessage?: string | null;
-  nextDailyResetAt?: string | null;
+  runStartedAt?: string | null;
+  runExpiresAt?: string | null;
   nextPostTime: string | null;
   lastPostTime: string | null;
   postsToday: number;
   totalPosts: number;
   intervalMinutes: number;
-  maxPostsPerDay: number;
+  runtimeHours: number;
   redditAccount: string;
   currentWebsiteConfig: WebsiteConfig | null;
 }
@@ -75,8 +77,10 @@ export default function AutoPosterManager({
   const [stoppingConfigId, setStoppingConfigId] = useState<string | null>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
 
+  const runningConfigCount = activeConfigs.filter(
+    (config) => config.isRunning
+  ).length;
   const hasActiveConfigs = activeConfigs.length > 0;
-  const selectedDailyLimitReached = Boolean(status?.dailyLimitReached);
 
   const fetchActiveConfigs = async () => {
     const response = await fetch('/api/auto-poster/status');
@@ -284,7 +288,7 @@ export default function AutoPosterManager({
           </div>
           <div className="rounded-full border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-zinc-300">
             {hasActiveConfigs
-              ? `${activeConfigs.length} active configuration${activeConfigs.length === 1 ? '' : 's'}`
+              ? `${runningConfigCount} active configuration${runningConfigCount === 1 ? '' : 's'}`
               : 'No active auto-posters'}
           </div>
         </div>
@@ -295,8 +299,8 @@ export default function AutoPosterManager({
             ['Total posts', postingStats.totalPosts],
             [
               'Next run',
-              status?.dailyLimitReached
-                ? 'Daily cap reached'
+              status?.runtimeLimitReached
+                ? 'Run complete'
                 : status?.nextPostTime
                 ? formatNextPostTime(status.nextPostTime)
                 : 'Not scheduled',
@@ -355,16 +359,16 @@ export default function AutoPosterManager({
           </div>
           <button
             onClick={handleStart}
-            disabled={starting || !selectedConfigId || selectedDailyLimitReached}
+            disabled={starting || !selectedConfigId || status?.isRunning}
             className="ui-button-primary w-full disabled:cursor-not-allowed disabled:opacity-50"
           >
             {starting
               ? 'Starting…'
-              : selectedDailyLimitReached
-                ? 'Daily limit reached'
+              : status?.isRunning
+                ? 'Already running'
                 : 'Start auto-poster'}
           </button>
-          {selectedDailyLimitReached && status?.statusMessage ? (
+          {status?.runtimeLimitReached && status?.statusMessage ? (
             <div className="rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-amber-200">
               {status.statusMessage}
             </div>
@@ -393,15 +397,15 @@ export default function AutoPosterManager({
                     <div className="mt-1 text-sm text-zinc-500">
                       {config.postsToday} posts today • {config.totalPosts}{' '}
                       total •{' '}
-                      {config.dailyLimitReached
-                        ? `daily cap reached, resumes ${formatNextPostValue(config.nextDailyResetAt || config.nextPostTime)}`
+                      {config.runtimeLimitReached
+                        ? '5-hour run complete'
                         : `next run ${formatNextPostValue(config.nextPostTime)}`}
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-medium ${
-                        config.dailyLimitReached
+                        config.runtimeLimitReached
                           ? 'border border-amber-400/30 bg-amber-400/10 text-amber-200'
                           : config.isRunning
                             ? 'border border-emerald-400/30 bg-emerald-400/10 text-emerald-300'
@@ -451,7 +455,7 @@ export default function AutoPosterManager({
             </div>
             <span
               className={`rounded-full px-3 py-1 text-xs font-medium ${
-                status.dailyLimitReached
+                status.runtimeLimitReached
                   ? 'border border-amber-400/30 bg-amber-400/10 text-amber-200'
                   : status.isRunning
                     ? 'border border-emerald-400/30 bg-emerald-400/10 text-emerald-300'
@@ -462,7 +466,7 @@ export default function AutoPosterManager({
             </span>
           </div>
 
-          {status.dailyLimitReached && status.statusMessage ? (
+          {status.runtimeLimitReached && status.statusMessage ? (
             <div className="mb-4 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-amber-200">
               {status.statusMessage}
             </div>
@@ -472,7 +476,7 @@ export default function AutoPosterManager({
             {[
               ['Posting network', 'Managed rotation'],
               ['Posting interval', `Every ${status.intervalMinutes} minutes`],
-              ['Daily max', status.maxPostsPerDay],
+              ['Run window', `${status.runtimeHours || 5} hours`],
               [
                 'Last post',
                 status.lastPostTime

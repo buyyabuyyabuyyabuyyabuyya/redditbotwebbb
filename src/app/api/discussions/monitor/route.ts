@@ -7,6 +7,7 @@ import {
   buildBridgeReplyPrompt,
   enforceContextFirstReplyOpening,
 } from '../../../../lib/redditReplyPrompt';
+import { getPlanLimits } from '../../../../utils/planLimits';
 import snoowrap from 'snoowrap';
 
 const createSupabaseServerClient = () => {
@@ -78,22 +79,10 @@ export async function POST(req: Request) {
       throw new Error('Failed to fetch user plan information');
     }
 
-    // Check plan limits before proceeding
-    if (
-      userData.subscription_status === 'pro' &&
-      userData.message_count >= 200
-    ) {
+    const limits = getPlanLimits(userData.subscription_status);
+    if ((userData.message_count || 0) >= limits.monthlyCommentLimit) {
       throw new Error(
-        'Pro plan comment-action limit reached (200/month). Please upgrade to Advanced for unlimited usage.'
-      );
-    }
-
-    if (
-      userData.subscription_status === 'free' &&
-      userData.message_count >= 15
-    ) {
-      throw new Error(
-        'Free plan comment-action limit reached (15/month). Please upgrade to Pro or Advanced for more usage.'
+        `Monthly comment-action limit reached (${limits.monthlyCommentLimit}/month). Please upgrade for more usage.`
       );
     }
 

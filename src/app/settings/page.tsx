@@ -28,14 +28,22 @@ export default async function Settings() {
   monthStart.setUTCDate(1);
   monthStart.setUTCHours(0, 0, 0, 0);
 
-  const { count: commentCount } = await supabaseAdmin
-    .from('posted_reddit_discussions')
-    .select('id, website_configs!inner(user_id)', {
-      count: 'exact',
-      head: true,
-    })
-    .eq('website_configs.user_id', userId)
-    .gte('created_at', monthStart.toISOString());
+  const { data: configs } = await supabaseAdmin
+    .from('website_configs')
+    .select('id')
+    .eq('user_id', userId);
+  const configIds = (configs || []).map((config) => config.id);
+  const { count: commentCount } =
+    configIds.length > 0
+      ? await supabaseAdmin
+          .from('posted_reddit_discussions')
+          .select('id', {
+            count: 'exact',
+            head: true,
+          })
+          .in('website_config_id', configIds)
+          .gte('created_at', monthStart.toISOString())
+      : { count: 0 };
   const planStatus = user?.subscription_status || 'free';
   const limits = getPlanLimits(planStatus);
   const planLabel =
@@ -89,7 +97,7 @@ export default async function Settings() {
             </div>
             <div className="surface-subtle p-5">
               <div className="text-xs font-medium uppercase tracking-[0.2em] text-zinc-500">
-                Comments posted
+                Monthly comments posted
               </div>
               <div className="mt-3 text-2xl font-semibold text-zinc-50">
                 <CommentCounter initialCount={commentCount || 0} />

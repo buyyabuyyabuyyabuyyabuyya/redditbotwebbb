@@ -12,6 +12,8 @@ import {
   decodeWebsiteConfigCollections,
   getWebsiteConfigSubreddits,
 } from '@/lib/websiteConfigCollections';
+import { getAutoPosterRunLimitState } from '@/lib/autoPosterRunLimit';
+import { getPlanLimits } from '@/utils/planLimits';
 
 const userAgents = [
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
@@ -292,43 +294,93 @@ async function checkAlreadyPostedDiscussions(
   return data?.map((row: any) => row.reddit_post_id) || [];
 }
 
-function getNextDailyResetIso(): string {
-  const tomorrow = new Date();
-  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
-  tomorrow.setUTCHours(0, 5, 0, 0);
-  return tomorrow.toISOString();
-}
-
-async function getAutoPosterDailyState(
+async function getAutoPosterRuntimeState(
   supabaseAdmin: any,
   configId?: string
 ): Promise<{
-  postsToday: number;
-  maxPostsPerDay: number;
+  runStartedAt: string | null;
+  runExpiresAt: string | null;
   limitReached: boolean;
+  runtimeHours: number;
 } | null> {
   if (!configId) return null;
 
   const { data, error } = await supabaseAdmin
     .from('auto_poster_configs')
-    .select('posts_today, max_posts_per_day')
+    .select('id, user_id, website_config_id, enabled, status, created_at')
     .eq('id', configId)
     .maybeSingle();
 
   if (error) {
-    console.error('[REDDIT_PROXY] Failed to check auto-poster daily limit:', error);
+    console.error('[REDDIT_PROXY] Failed to check auto-poster runtime limit:', error);
     return null;
   }
 
   if (!data) return null;
 
-  const postsToday = data.posts_today || 0;
-  const maxPostsPerDay = data.max_posts_per_day || 10;
+  const runState = getAutoPosterRunLimitState(data);
+
+  if (runState.runtimeLimitReached) {
+    await supabaseAdmin
+      .from('auto_poster_configs')
+      .update({
+        enabled: false,
+        status: 'paused',
+        next_post_at: null,
+      })
+      .eq('id', configId);
+
+    if (data.website_config_id) {
+      await supabaseAdmin
+        .from('website_configs')
+        .update({
+          auto_poster_enabled: false,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', data.website_config_id)
+        .eq('user_id', data.user_id);
+    }
+  }
 
   return {
-    postsToday,
-    maxPostsPerDay,
-    limitReached: postsToday >= maxPostsPerDay,
+    runStartedAt: runState.runStartedAt,
+    runExpiresAt: runState.runExpiresAt,
+    runtimeHours: runState.runtimeHours,
+    limitReached: runState.runtimeLimitReached,
+  };
+}
+
+async function getMonthlyCommentQuotaState(supabaseAdmin: any, userId: string) {
+  const { data: userRow } = await supabaseAdmin
+    .from('users')
+    .select('subscription_status')
+    .eq('id', userId)
+    .maybeSingle();
+
+  const limits = getPlanLimits(userRow?.subscription_status);
+  const monthStart = new Date();
+  monthStart.setUTCDate(1);
+  monthStart.setUTCHours(0, 0, 0, 0);
+
+  const { count, error } = await supabaseAdmin
+    .from('posted_reddit_discussions')
+    .select('id, website_configs!inner(user_id)', {
+      count: 'exact',
+      head: true,
+    })
+    .eq('website_configs.user_id', userId)
+    .gte('created_at', monthStart.toISOString());
+
+  if (error) {
+    throw new Error(`Failed to check monthly comment usage: ${error.message}`);
+  }
+
+  const used = count || 0;
+
+  return {
+    used,
+    limit: limits.monthlyCommentLimit,
+    limitReached: used >= limits.monthlyCommentLimit,
   };
 }
 
@@ -537,19 +589,18 @@ export async function POST(req: Request): Promise<NextResponse> {
     const checkedEverySubreddit =
       attemptedSubreddits.length >= subredditRotation.length;
 
-    const dailyState = await getAutoPosterDailyState(supabaseAdmin, configId);
-    if (dailyState?.limitReached) {
+    const runtimeState = await getAutoPosterRuntimeState(supabaseAdmin, configId);
+    if (runtimeState?.limitReached) {
       console.log(
-        `[REDDIT_PROXY] Daily post limit reached for config ${configId}: ${dailyState.postsToday}/${dailyState.maxPostsPerDay}`
+        `[REDDIT_PROXY] 5-hour runtime limit reached for config ${configId}`
       );
       return NextResponse.json({
         success: true,
         posted: false,
-        dailyLimitReached: true,
-        message: 'Daily auto-poster limit reached',
-        postsToday: dailyState.postsToday,
-        maxPostsPerDay: dailyState.maxPostsPerDay,
-        nextPostAt: getNextDailyResetIso(),
+        runtimeLimitReached: true,
+        message: 'Auto-poster run completed its 5-hour window',
+        runStartedAt: runtimeState.runStartedAt,
+        runExpiresAt: runtimeState.runExpiresAt,
       });
     }
 
@@ -696,19 +747,19 @@ async function processDiscussions(
   rawFetched: number,
   attemptedSubreddits: string[]
 ): Promise<NextResponse> {
-  const dailyState = await getAutoPosterDailyState(supabaseAdmin, configId);
-  if (dailyState?.limitReached) {
+  const runtimeState = await getAutoPosterRuntimeState(supabaseAdmin, configId);
+  if (runtimeState?.limitReached) {
     console.log(
-      `[REDDIT_PROXY] Skipping post because daily limit is already reached for config ${configId}: ${dailyState.postsToday}/${dailyState.maxPostsPerDay}`
+      `[REDDIT_PROXY] Skipping post because the 5-hour run is complete for config ${configId}`
     );
     return NextResponse.json({
       success: true,
       posted: false,
-      dailyLimitReached: true,
-      message: 'Daily auto-poster limit reached',
+      runtimeLimitReached: true,
+      message: 'Auto-poster run completed its 5-hour window',
       subreddit,
-      postsToday: dailyState.postsToday,
-      maxPostsPerDay: dailyState.maxPostsPerDay,
+      runStartedAt: runtimeState.runStartedAt,
+      runExpiresAt: runtimeState.runExpiresAt,
       attemptedSubreddits,
     });
   }
@@ -805,6 +856,27 @@ async function processDiscussions(
       discussions: [],
       total: 0,
       rawFetched,
+      attemptedSubreddits,
+    });
+  }
+
+  const monthlyQuota = await getMonthlyCommentQuotaState(
+    supabaseAdmin,
+    userId
+  );
+
+  if (monthlyQuota.limitReached) {
+    console.log(
+      `[REDDIT_PROXY] Monthly comment limit reached for user ${userId}: ${monthlyQuota.used}/${monthlyQuota.limit}`
+    );
+    return NextResponse.json({
+      success: true,
+      posted: false,
+      monthlyLimitReached: true,
+      message: `Monthly comment limit reached: ${monthlyQuota.used}/${monthlyQuota.limit}`,
+      current: monthlyQuota.used,
+      limit: monthlyQuota.limit,
+      subreddit,
       attemptedSubreddits,
     });
   }
@@ -955,7 +1027,7 @@ async function processDiscussions(
         if (configId) {
           const { data: currentConfig } = await supabaseAdmin
             .from('auto_poster_configs')
-            .select('current_subreddit_index, posts_today, max_posts_per_day')
+            .select('current_subreddit_index, posts_today')
             .eq('id', configId)
             .single();
 
@@ -963,8 +1035,6 @@ async function processDiscussions(
           const currentIndex = currentConfig?.current_subreddit_index || 0;
           const nextIndex = (currentIndex + 1) % subredditRotation.length;
           const nextPostsToday = (currentConfig?.posts_today || 0) + 1;
-          const maxPostsPerDay = currentConfig?.max_posts_per_day || 10;
-          const limitReached = nextPostsToday >= maxPostsPerDay;
 
           await updateSubredditRotation(
             supabaseAdmin,
@@ -975,15 +1045,8 @@ async function processDiscussions(
             {
               posts_today: nextPostsToday,
               last_posted_at: new Date().toISOString(),
-              ...(limitReached ? { next_post_at: getNextDailyResetIso() } : {}),
             }
           );
-
-          if (limitReached) {
-            console.log(
-              `[REDDIT_PROXY] Config ${configId} reached daily post limit: ${nextPostsToday}/${maxPostsPerDay}`
-            );
-          }
         }
 
         posted = true;

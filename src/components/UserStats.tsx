@@ -24,7 +24,13 @@ export default function UserStats({
     activeAutoPosters: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
-  const { commentActionCount, remaining, limit, maxAutoPosters } =
+  const {
+    commentActionCount,
+    remaining,
+    limit,
+    maxAutoPosters,
+    loading: planLoading,
+  } =
     useUserPlan();
 
   useEffect(() => {
@@ -50,7 +56,8 @@ export default function UserStats({
             ? postedStatsData.totalPosts || 0
             : 0,
           activeAutoPosters: autoPosterResponse.ok
-            ? autoPosterData.configs?.length || 0
+            ? autoPosterData.configs?.filter((config: any) => config.isRunning)
+                .length || 0
             : 0,
         });
       } catch (error) {
@@ -63,8 +70,10 @@ export default function UserStats({
     void fetchStats();
   }, [userId, refreshTrigger]);
 
-  const displayCount = commentActionCount ?? stats.totalCommentsPosted;
-  const monthlyLimit = limit ?? 30;
+  const displayCount = planLoading
+    ? stats.totalCommentsPosted
+    : (commentActionCount ?? stats.totalCommentsPosted);
+  const monthlyLimit = limit ?? 5;
 
   if (isLoading) {
     return (

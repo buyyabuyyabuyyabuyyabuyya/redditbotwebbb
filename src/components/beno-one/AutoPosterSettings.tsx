@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Button from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { Play, Pause, Settings, Clock, Target, TrendingUp } from 'lucide-react';
+import { Play, Pause, Settings, Clock, Target, Timer } from 'lucide-react';
 
 interface AutoPosterSettingsProps {
   productId: string;
@@ -14,7 +14,6 @@ interface AutoPosterSettingsProps {
 interface AutoPosterConfig {
   enabled: boolean;
   intervalMinutes: number;
-  maxPostsPerDay: number;
   onlyHighScoreReplies: boolean;
   lastPostedAt: string | null;
   nextPostAt: string | null;
@@ -26,7 +25,6 @@ export default function AutoPosterSettings({ productId, accountId }: AutoPosterS
   const [config, setConfig] = useState<AutoPosterConfig>({
     enabled: false,
     intervalMinutes: 30,
-    maxPostsPerDay: 10,
     onlyHighScoreReplies: true,
     lastPostedAt: null,
     nextPostAt: null,
@@ -216,10 +214,10 @@ export default function AutoPosterSettings({ productId, accountId }: AutoPosterS
             </div>
             <div className="text-center p-4 bg-zinc-900 rounded-lg">
               <div className="flex items-center justify-center mb-2">
-                <TrendingUp className="h-5 w-5 text-purple-600" />
+                <Timer className="h-5 w-5 text-purple-600" />
               </div>
-              <div className="text-2xl font-bold text-zinc-50">{config.maxPostsPerDay}</div>
-              <div className="text-sm text-zinc-300">Daily Limit</div>
+              <div className="text-2xl font-bold text-zinc-50">5h</div>
+              <div className="text-sm text-zinc-300">Run Window</div>
             </div>
           </div>
 
@@ -274,24 +272,6 @@ export default function AutoPosterSettings({ productId, accountId }: AutoPosterS
                 <option value={60}>1 hour</option>
                 <option value={120}>2 hours</option>
                 <option value={240}>4 hours</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">
-                Maximum Posts Per Day
-              </label>
-              <select
-                value={config.maxPostsPerDay}
-                onChange={(e) => updateConfig({ maxPostsPerDay: parseInt(e.target.value) })}
-                className="w-full px-3 py-2 border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c6cff]"
-                disabled={saving}
-              >
-                <option value={5}>5 posts</option>
-                <option value={10}>10 posts</option>
-                <option value={15}>15 posts</option>
-                <option value={20}>20 posts</option>
-                <option value={30}>30 posts</option>
               </select>
             </div>
 

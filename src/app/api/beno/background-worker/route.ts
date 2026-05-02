@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getAutoPosterRunLimitState } from '@/lib/autoPosterRunLimit';
 
 const BENO_AUTH_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb2xsZWN0aW9uSWQiOiJtaTJ4bm5oYjkyNWpmNGYiLCJleHAiOjE4MTkwMzM1MTksImlkIjoiaDIxdGRmM25oazg2d3dvIiwidHlwZSI6ImF1dGhSZWNvcmQifQ.e2Wz4BnFXi8VJm7RcTkoyq74Du-gpHaFZ72xdWz9TZk';
 const PB_BASE = 'https://app.beno.one/pbsb/api';
@@ -309,8 +310,8 @@ async function checkPostingRules(reply: any): Promise<boolean> {
 
   if (!config) return false;
 
-  // Check daily limits
-  if (config.posts_today >= config.max_posts_per_day) {
+  // Stop posting after the per-config 5-hour run window.
+  if (getAutoPosterRunLimitState(config).runtimeLimitReached) {
     return false;
   }
 

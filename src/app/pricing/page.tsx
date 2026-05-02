@@ -48,7 +48,7 @@ export default async function Pricing() {
       features: [
         'Up to 1 website config',
         'Up to 1 auto-poster',
-        '30 comments per month',
+        '5 comments per month',
         '1 reply playbook',
         'Managed Posting Network access',
         'Basic analytics',

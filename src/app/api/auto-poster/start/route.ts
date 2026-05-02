@@ -3,18 +3,12 @@ import { auth } from '@clerk/nextjs/server';
 import { createClient } from '@supabase/supabase-js';
 import { getWebsiteConfigSubreddits } from '@/lib/websiteConfigCollections';
 import { getPlanLimits } from '@/utils/planLimits';
+import { getAutoPosterRunLimitState } from '@/lib/autoPosterRunLimit';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-
-function getNextDailyResetIso(): string {
-  const tomorrow = new Date();
-  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
-  tomorrow.setUTCHours(0, 5, 0, 0);
-  return tomorrow.toISOString();
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -56,35 +50,46 @@ export async function POST(request: NextRequest) {
 
     const { data: existingAutoPoster } = await supabaseAdmin
       .from('auto_poster_configs')
-      .select('id, status, enabled, posts_today, max_posts_per_day, last_reset_date, current_subreddit_index')
+      .select('id, status, enabled, posts_today, last_reset_date, current_subreddit_index, created_at')
       .eq('user_id', userId)
       .eq('website_config_id', config.id)
       .limit(1)
       .maybeSingle();
 
-    const dailyMax = existingAutoPoster?.max_posts_per_day || 10;
-    if (
-      existingAutoPoster?.enabled &&
-      existingAutoPoster.status === 'active' &&
-      (existingAutoPoster.posts_today || 0) >= dailyMax
-    ) {
-      return NextResponse.json(
-        {
-          error: 'daily_limit_reached',
-          message: `This website config already reached its ${dailyMax} comments/day limit. It will resume after the daily reset.`,
-          postsToday: existingAutoPoster.posts_today || 0,
-          maxPostsPerDay: dailyMax,
-          nextDailyResetAt: getNextDailyResetIso(),
-        },
-        { status: 429 }
-      );
-    }
-
-    if (!existingAutoPoster?.enabled || existingAutoPoster.status !== 'active') {
-      const { count: activeAutoPosterCount, error: countError } =
+    const existingRunState = getAutoPosterRunLimitState(existingAutoPoster);
+    if (existingAutoPoster?.enabled && existingAutoPoster.status === 'active') {
+      if (existingRunState.runtimeLimitReached) {
         await supabaseAdmin
           .from('auto_poster_configs')
-          .select('id', { count: 'exact', head: true })
+          .update({
+            enabled: false,
+            status: 'paused',
+            next_post_at: null,
+          })
+          .eq('id', existingAutoPoster.id);
+      } else {
+        return NextResponse.json(
+          {
+            error: 'auto_poster_already_running',
+            message:
+              'This website config already has an active auto-poster run. Stop it before starting another run.',
+            runStartedAt: existingRunState.runStartedAt,
+            runExpiresAt: existingRunState.runExpiresAt,
+          },
+          { status: 409 }
+        );
+      }
+    }
+
+    if (
+      !existingAutoPoster?.enabled ||
+      existingAutoPoster.status !== 'active' ||
+      existingRunState.runtimeLimitReached
+    ) {
+      const { data: activeAutoPosters, error: countError } =
+        await supabaseAdmin
+          .from('auto_poster_configs')
+          .select('id, user_id, website_config_id, enabled, status, created_at')
           .eq('user_id', userId)
           .eq('enabled', true)
           .eq('status', 'active');
@@ -97,12 +102,46 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      if ((activeAutoPosterCount || 0) >= limits.maxAutoPosters) {
+      const expiredAutoPosters = (activeAutoPosters || []).filter(
+        (autoPoster) =>
+          getAutoPosterRunLimitState(autoPoster).runtimeLimitReached
+      );
+
+      if (expiredAutoPosters.length > 0) {
+        await supabaseAdmin
+          .from('auto_poster_configs')
+          .update({
+            enabled: false,
+            status: 'paused',
+            next_post_at: null,
+          })
+          .in(
+            'id',
+            expiredAutoPosters.map((autoPoster) => autoPoster.id)
+          );
+        for (const expiredAutoPoster of expiredAutoPosters) {
+          if (expiredAutoPoster.website_config_id) {
+            await supabaseAdmin
+              .from('website_configs')
+              .update({
+                auto_poster_enabled: false,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', expiredAutoPoster.website_config_id)
+              .eq('user_id', userId);
+          }
+        }
+      }
+
+      const activeAutoPosterCount =
+        (activeAutoPosters || []).length - expiredAutoPosters.length;
+
+      if (activeAutoPosterCount >= limits.maxAutoPosters) {
         return NextResponse.json(
           {
             error: 'auto_poster_limit_reached',
             limit: limits.maxAutoPosters,
-            current: activeAutoPosterCount || 0,
+            current: activeAutoPosterCount,
             message: `Your plan allows ${limits.maxAutoPosters} active auto-poster${limits.maxAutoPosters === 1 ? '' : 's'}.`,
           },
           { status: 403 }
@@ -170,13 +209,13 @@ export async function POST(request: NextRequest) {
       account_id: account.id,
       enabled: true,
       interval_minutes: 30,
-      max_posts_per_day: 10,
       status: 'active',
       next_post_at: new Date().toISOString(), // Post immediately
       posts_today: existingPostsToday,
       current_subreddit_index: existingAutoPoster?.current_subreddit_index || 0,
       last_subreddit_used: subredditRotation[0],
       last_reset_date: today,
+      created_at: new Date().toISOString(), // Treat as the current run start marker.
     };
 
     const autoPosterMutation = existingAutoPoster

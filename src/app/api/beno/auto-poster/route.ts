@@ -20,7 +20,6 @@ export async function POST(req: Request) {
     const postingSettings = {
       enabled: settings?.enabled ?? false,
       intervalMinutes: settings?.intervalMinutes ?? 30, // Post every 30 minutes
-      maxPostsPerDay: settings?.maxPostsPerDay ?? 10,
       onlyHighScoreReplies: settings?.onlyHighScoreReplies ?? true, // Only post replies with >80% relevance
       ...settings
     };
@@ -39,7 +38,6 @@ export async function POST(req: Request) {
         account_id: accountId,
         enabled: postingSettings.enabled,
         interval_minutes: postingSettings.intervalMinutes,
-        max_posts_per_day: postingSettings.maxPostsPerDay,
         only_high_score_replies: postingSettings.onlyHighScoreReplies,
         min_relevance_score: postingSettings.onlyHighScoreReplies ? 80 : 0,
         min_validation_score: postingSettings.onlyHighScoreReplies ? 75 : 0,
@@ -103,7 +101,6 @@ export async function GET(req: Request) {
     const responseConfig = config ? {
       enabled: config.enabled,
       intervalMinutes: config.interval_minutes,
-      maxPostsPerDay: config.max_posts_per_day,
       onlyHighScoreReplies: config.only_high_score_replies,
       postsToday: config.posts_today,
       lastPostedAt: config.last_posted_at,
@@ -111,7 +108,6 @@ export async function GET(req: Request) {
     } : {
       enabled: false,
       intervalMinutes: 30,
-      maxPostsPerDay: 10,
       onlyHighScoreReplies: true,
       postsToday: 0,
       lastPostedAt: null,

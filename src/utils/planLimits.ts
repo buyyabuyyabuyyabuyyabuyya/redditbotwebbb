@@ -10,12 +10,12 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
   free: {
     maxWebsiteConfigs: 1,
     maxAutoPosters: 1,
-    monthlyCommentLimit: 30,
+    monthlyCommentLimit: 5,
   },
   starter: {
     maxWebsiteConfigs: 1,
     maxAutoPosters: 1,
-    monthlyCommentLimit: 30,
+    monthlyCommentLimit: 5,
   },
   pro: {
     maxWebsiteConfigs: 5,

@@ -1,37 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { createClient } from '@supabase/supabase-js';
+import { getAutoPosterRunLimitState } from '@/lib/autoPosterRunLimit';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-function getNextDailyResetIso(): string {
-  const tomorrow = new Date();
-  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
-  tomorrow.setUTCHours(0, 5, 0, 0);
-  return tomorrow.toISOString();
-}
+async function stopExpiredRun(config: {
+  id: string;
+  website_config_id?: string | null;
+  user_id?: string | null;
+}) {
+  await supabaseAdmin
+    .from('auto_poster_configs')
+    .update({
+      enabled: false,
+      status: 'paused',
+      next_post_at: null,
+    })
+    .eq('id', config.id);
 
-function getDailyLimitState(config?: {
-  posts_today?: number | null;
-  max_posts_per_day?: number | null;
-} | null) {
-  const postsToday = config?.posts_today || 0;
-  const maxPostsPerDay = config?.max_posts_per_day || 10;
-  const dailyLimitReached = postsToday >= maxPostsPerDay;
-
-  return {
-    postsToday,
-    maxPostsPerDay,
-    dailyLimitReached,
-    nextDailyResetAt: dailyLimitReached ? getNextDailyResetIso() : null,
-    statusLabel: dailyLimitReached ? 'Daily limit reached' : null,
-    statusMessage: dailyLimitReached
-      ? `This auto-poster has reached its ${maxPostsPerDay} comments/day limit for this website config. It will resume after the daily reset.`
-      : null,
-  };
+  if (config.website_config_id && config.user_id) {
+    await supabaseAdmin
+      .from('website_configs')
+      .update({
+        auto_poster_enabled: false,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', config.website_config_id)
+      .eq('user_id', config.user_id);
+  }
 }
 
 export async function GET(request: NextRequest) {
@@ -56,8 +56,9 @@ export async function GET(request: NextRequest) {
           next_post_at,
           last_posted_at,
           interval_minutes,
-          max_posts_per_day,
           posts_today,
+          created_at,
+          user_id,
           reddit_accounts(username),
           website_configs!inner(id, website_url, website_description, user_id)
         `
@@ -80,30 +81,34 @@ export async function GET(request: NextRequest) {
             .from('posted_reddit_discussions')
             .select('id', { count: 'exact', head: true })
             .eq('website_config_id', config.website_config_id);
-          const dailyLimitState = getDailyLimitState(config);
+          const runLimitState = getAutoPosterRunLimitState(config);
+          if (runLimitState.runtimeLimitReached) {
+            await stopExpiredRun(config);
+          }
           const isRunning =
             config.enabled === true &&
             config.status === 'active' &&
-            !dailyLimitState.dailyLimitReached;
+            !runLimitState.runtimeLimitReached;
 
           return {
             id: config.id,
             websiteConfigId: config.website_config_id,
             isRunning,
-            dailyLimitReached: dailyLimitState.dailyLimitReached,
+            runtimeLimitReached: runLimitState.runtimeLimitReached,
             statusLabel:
-              dailyLimitState.statusLabel ||
+              runLimitState.statusLabel ||
               (isRunning ? 'Running' : 'Stopped'),
-            statusMessage: dailyLimitState.statusMessage,
-            nextDailyResetAt: dailyLimitState.nextDailyResetAt,
-            nextPostTime: dailyLimitState.dailyLimitReached
-              ? dailyLimitState.nextDailyResetAt
+            statusMessage: runLimitState.statusMessage,
+            runStartedAt: runLimitState.runStartedAt,
+            runExpiresAt: runLimitState.runExpiresAt,
+            nextPostTime: runLimitState.runtimeLimitReached
+              ? null
               : config.next_post_at || null,
             lastPostTime: config.last_posted_at || null,
-            postsToday: dailyLimitState.postsToday,
+            postsToday: config.posts_today || 0,
             totalPosts: totalPosts || 0,
             intervalMinutes: config.interval_minutes || 30,
-            maxPostsPerDay: dailyLimitState.maxPostsPerDay,
+            runtimeHours: runLimitState.runtimeHours,
             redditAccount: 'Managed network',
             currentWebsiteConfig: config.website_configs,
           };
@@ -186,37 +191,41 @@ export async function GET(request: NextRequest) {
         lastPostResult: 'Not started',
         currentWebsiteConfig: config,
         intervalMinutes: 30,
-        maxPostsPerDay: 10,
+        runtimeHours: 5,
         redditAccount: 'Managed network',
       });
     }
 
-    const dailyLimitState = getDailyLimitState(autoposterConfig);
+    const runLimitState = getAutoPosterRunLimitState(autoposterConfig);
+    if (runLimitState.runtimeLimitReached) {
+      await stopExpiredRun(autoposterConfig);
+    }
     const isRunning =
       autoposterConfig.enabled === true &&
       autoposterConfig.status === 'active' &&
-      !dailyLimitState.dailyLimitReached;
+      !runLimitState.runtimeLimitReached;
 
     return NextResponse.json({
       isRunning,
-      dailyLimitReached: dailyLimitState.dailyLimitReached,
+      runtimeLimitReached: runLimitState.runtimeLimitReached,
       statusLabel:
-        dailyLimitState.statusLabel || (isRunning ? 'Running' : 'Stopped'),
-      statusMessage: dailyLimitState.statusMessage,
-      nextDailyResetAt: dailyLimitState.nextDailyResetAt,
-      nextPostTime: dailyLimitState.dailyLimitReached
-        ? dailyLimitState.nextDailyResetAt
+        runLimitState.statusLabel || (isRunning ? 'Running' : 'Stopped'),
+      statusMessage: runLimitState.statusMessage,
+      runStartedAt: runLimitState.runStartedAt,
+      runExpiresAt: runLimitState.runExpiresAt,
+      nextPostTime: runLimitState.runtimeLimitReached
+        ? null
         : autoposterConfig.next_post_at || null,
-      postsToday: dailyLimitState.postsToday || postsToday || 0,
+      postsToday: autoposterConfig.posts_today || postsToday || 0,
       totalPosts: totalPosts || 0,
       lastPostTime:
         lastPost?.created_at || autoposterConfig.last_posted_at || null,
       lastCommentUrl: lastPost?.comment_url || null,
       lastPostResult:
-        dailyLimitState.statusLabel || (isRunning ? 'Running' : 'Stopped'),
+        runLimitState.statusLabel || (isRunning ? 'Running' : 'Stopped'),
       currentWebsiteConfig: config,
       intervalMinutes: autoposterConfig.interval_minutes || 30,
-      maxPostsPerDay: dailyLimitState.maxPostsPerDay,
+      runtimeHours: runLimitState.runtimeHours,
       redditAccount: 'Managed network',
     });
   } catch (error) {

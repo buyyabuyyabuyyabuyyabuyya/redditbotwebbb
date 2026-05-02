@@ -77,7 +77,20 @@ export function useUserPlan() {
     void fetchUserPlan();
     void setupRealtimeSubscription();
 
+    const pollInterval = window.setInterval(() => {
+      void fetchUserPlan();
+    }, 30_000);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void fetchUserPlan();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
+      window.clearInterval(pollInterval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (channelRef.current) {
         const supabase = createClientSupabaseClient();
         supabase.removeChannel(channelRef.current);
