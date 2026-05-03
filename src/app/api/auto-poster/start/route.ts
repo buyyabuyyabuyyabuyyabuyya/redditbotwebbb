@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     const { data: existingAutoPoster } = await supabaseAdmin
       .from('auto_poster_configs')
-      .select('id, status, enabled, posts_today, last_reset_date, current_subreddit_index, created_at')
+      .select('id, status, enabled, posts_today, last_reset_date, current_subreddit_index, run_started_at, created_at')
       .eq('user_id', userId)
       .eq('website_config_id', config.id)
       .limit(1)
@@ -65,6 +65,7 @@ export async function POST(request: NextRequest) {
             enabled: false,
             status: 'paused',
             next_post_at: null,
+            run_started_at: null,
           })
           .eq('id', existingAutoPoster.id);
       } else {
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
       const { data: activeAutoPosters, error: countError } =
         await supabaseAdmin
           .from('auto_poster_configs')
-          .select('id, user_id, website_config_id, enabled, status, created_at')
+          .select('id, user_id, website_config_id, enabled, status, run_started_at, created_at')
           .eq('user_id', userId)
           .eq('enabled', true)
           .eq('status', 'active');
@@ -114,6 +115,7 @@ export async function POST(request: NextRequest) {
             enabled: false,
             status: 'paused',
             next_post_at: null,
+            run_started_at: null,
           })
           .in(
             'id',
@@ -215,7 +217,7 @@ export async function POST(request: NextRequest) {
       current_subreddit_index: existingAutoPoster?.current_subreddit_index || 0,
       last_subreddit_used: subredditRotation[0],
       last_reset_date: today,
-      created_at: new Date().toISOString(), // Treat as the current run start marker.
+      run_started_at: new Date().toISOString(),
     };
 
     const autoPosterMutation = existingAutoPoster

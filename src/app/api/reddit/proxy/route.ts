@@ -307,7 +307,7 @@ async function getAutoPosterRuntimeState(
 
   const { data, error } = await supabaseAdmin
     .from('auto_poster_configs')
-    .select('id, user_id, website_config_id, enabled, status, created_at')
+    .select('id, user_id, website_config_id, enabled, status, run_started_at, created_at')
     .eq('id', configId)
     .maybeSingle();
 
@@ -327,6 +327,7 @@ async function getAutoPosterRuntimeState(
         enabled: false,
         status: 'paused',
         next_post_at: null,
+        run_started_at: null,
       })
       .eq('id', configId);
 

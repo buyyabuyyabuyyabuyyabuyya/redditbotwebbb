@@ -19,6 +19,7 @@ async function stopExpiredRun(config: {
       enabled: false,
       status: 'paused',
       next_post_at: null,
+      run_started_at: null,
     })
     .eq('id', config.id);
 
@@ -57,6 +58,7 @@ export async function GET(request: NextRequest) {
           last_posted_at,
           interval_minutes,
           posts_today,
+          run_started_at,
           created_at,
           user_id,
           reddit_accounts(username),

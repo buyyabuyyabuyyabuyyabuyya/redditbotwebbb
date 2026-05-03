@@ -33,7 +33,7 @@ async function deleteQstashSchedule(scheduleId?: string | null) {
 async function stopExpiredAutoPosterRuns(supabaseAdmin: any) {
   const { data: activeConfigs, error } = await supabaseAdmin
     .from('auto_poster_configs')
-    .select('id, user_id, website_config_id, enabled, status, created_at, upstash_schedule_id')
+    .select('id, user_id, website_config_id, enabled, status, run_started_at, created_at, upstash_schedule_id')
     .eq('enabled', true)
     .eq('status', 'active');
 
@@ -57,6 +57,7 @@ async function stopExpiredAutoPosterRuns(supabaseAdmin: any) {
         enabled: false,
         status: 'paused',
         next_post_at: null,
+        run_started_at: null,
         upstash_schedule_id: null,
       })
       .eq('id', config.id);
@@ -189,7 +190,7 @@ export async function POST(req: Request) {
     if (debugConfigs && debugConfigs.length > 0) {
       debugConfigs.forEach((config) => {
         console.log(
-          `[CRON] DEBUG Config ${config.id}: enabled=${config.enabled}, status=${config.status}, next_post_at=${config.next_post_at}, run_started_at=${config.created_at}`
+          `[CRON] DEBUG Config ${config.id}: enabled=${config.enabled}, status=${config.status}, next_post_at=${config.next_post_at}, run_started_at=${config.run_started_at || config.created_at}`
         );
       });
     }

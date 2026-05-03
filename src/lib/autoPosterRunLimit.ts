@@ -5,6 +5,7 @@ export const AUTO_POSTER_MAX_RUNTIME_MS =
 export interface AutoPosterRunLimitSource {
   enabled?: boolean | null;
   status?: string | null;
+  run_started_at?: string | null;
   created_at?: string | null;
 }
 
@@ -21,7 +22,7 @@ export function getAutoPosterRunLimitState(
   config?: AutoPosterRunLimitSource | null,
   now: Date = new Date()
 ): AutoPosterRunLimitState {
-  const runStartedAt = config?.created_at || null;
+  const runStartedAt = config?.run_started_at || config?.created_at || null;
   const startTime = runStartedAt ? new Date(runStartedAt).getTime() : NaN;
   const hasValidStart = Number.isFinite(startTime);
   const runExpiresAt = hasValidStart
