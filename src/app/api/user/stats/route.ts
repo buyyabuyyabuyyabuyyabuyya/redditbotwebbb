@@ -3,6 +3,8 @@ import { auth } from '@clerk/nextjs/server';
 import { createClient } from '@supabase/supabase-js';
 import { getPlanLimits } from '@/utils/planLimits';
 
+export const dynamic = 'force-dynamic';
+
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -14,7 +16,26 @@ const supabaseAdmin = createClient(
   }
 );
 
-async function getUserCommentCounts(userId: string, monthStartIso: string) {
+async function countPostedDiscussionsByUserColumn(
+  userId: string,
+  monthStartIso?: string
+) {
+  let query = supabaseAdmin
+    .from('posted_reddit_discussions')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId);
+
+  if (monthStartIso) {
+    query = query.gte('created_at', monthStartIso);
+  }
+
+  return query;
+}
+
+async function countPostedDiscussionsByWebsiteConfigs(
+  userId: string,
+  monthStartIso?: string
+) {
   const { data: configs, error: configsError } = await supabaseAdmin
     .from('website_configs')
     .select('id')
@@ -26,29 +47,55 @@ async function getUserCommentCounts(userId: string, monthStartIso: string) {
 
   const configIds = (configs || []).map((config) => config.id);
   if (configIds.length === 0) {
-    return { total: 0, monthly: 0 };
+    return 0;
   }
 
-  const [{ count: total, error: totalError }, { count: monthly, error: monthlyError }] =
-    await Promise.all([
-      supabaseAdmin
-        .from('posted_reddit_discussions')
-        .select('id', { count: 'exact', head: true })
-        .in('website_config_id', configIds),
-      supabaseAdmin
-        .from('posted_reddit_discussions')
-        .select('id', { count: 'exact', head: true })
-        .in('website_config_id', configIds)
-        .gte('created_at', monthStartIso),
-    ]);
+  let query = supabaseAdmin
+    .from('posted_reddit_discussions')
+    .select('id', { count: 'exact', head: true })
+    .in('website_config_id', configIds);
 
-  if (totalError || monthlyError) {
-    throw new Error(totalError?.message || monthlyError?.message);
+  if (monthStartIso) {
+    query = query.gte('created_at', monthStartIso);
   }
+
+  const { count, error } = await query;
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return count || 0;
+}
+
+async function countPostedDiscussionsForUser(
+  userId: string,
+  monthStartIso?: string
+) {
+  const directCount = await countPostedDiscussionsByUserColumn(
+    userId,
+    monthStartIso
+  );
+
+  if (!directCount.error) {
+    return directCount.count || 0;
+  }
+
+  // Some deployed schemas track ownership only through website_configs.
+  // Fall back to that relation when posted_reddit_discussions.user_id is not
+  // available.
+  return countPostedDiscussionsByWebsiteConfigs(userId, monthStartIso);
+}
+
+async function getUserCommentCounts(userId: string, monthStartIso: string) {
+  const [total, monthly] = await Promise.all([
+    countPostedDiscussionsForUser(userId),
+    countPostedDiscussionsForUser(userId, monthStartIso),
+  ]);
 
   return {
-    total: total || 0,
-    monthly: monthly || 0,
+    total,
+    monthly,
   };
 }
 
@@ -65,7 +112,7 @@ export async function GET(req: Request) {
 
     const { data: userStatsData, error: userStatsError } = await supabaseAdmin
       .from('users')
-      .select('subscription_status, message_count')
+      .select('subscription_status')
       .eq('id', userId)
       .maybeSingle();
 
@@ -99,7 +146,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({
       subscription_status: subscriptionStatus,
-      message_count: userStatsData?.message_count || 0,
+      message_count: usageCount,
       usage_count: usageCount,
       comment_count: commentCounts.total,
       monthly_comment_count: usageCount,
@@ -112,6 +159,10 @@ export async function GET(req: Request) {
       max_website_configs: limits.maxWebsiteConfigs,
       max_auto_posters: limits.maxAutoPosters,
       monthly_comment_limit: limits.monthlyCommentLimit,
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, max-age=0',
+      },
     });
   } catch (error: any) {
     return NextResponse.json(

@@ -25,6 +25,7 @@ export function useUserPlan() {
       try {
         const token = await (user as any)?.getToken?.();
         const response = await fetch('/api/user/stats', {
+          cache: 'no-store',
           headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
             'x-user-id': user?.id || '',

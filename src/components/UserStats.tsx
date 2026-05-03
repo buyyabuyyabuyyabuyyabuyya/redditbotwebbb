@@ -40,9 +40,11 @@ export default function UserStats({
       try {
         const [templatesResponse, postedStatsResponse, autoPosterResponse] =
           await Promise.all([
-            fetch('/api/reddit/templates'),
-            fetch('/api/posted-discussions?action=stats'),
-            fetch('/api/auto-poster/status'),
+            fetch('/api/reddit/templates', { cache: 'no-store' }),
+            fetch('/api/posted-discussions?action=stats', {
+              cache: 'no-store',
+            }),
+            fetch('/api/auto-poster/status', { cache: 'no-store' }),
           ]);
         const templatesData = await templatesResponse.json();
         const postedStatsData = await postedStatsResponse.json();
