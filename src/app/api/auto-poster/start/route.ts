@@ -87,10 +87,10 @@ export async function POST(request: NextRequest) {
       existingAutoPoster.status !== 'active' ||
       existingRunState.runtimeLimitReached
     ) {
-      const { count: activeAutoPosterCount, error: countError } =
+      const { data: activeAutoPosters, error: countError } =
         await supabaseAdmin
           .from('auto_poster_configs')
-          .select('id', { count: 'exact', head: true })
+          .select('id, user_id, website_config_id, enabled, status, run_started_at, created_at')
           .eq('user_id', userId)
           .eq('enabled', true)
           .eq('status', 'active');
@@ -103,12 +103,47 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      if ((activeAutoPosterCount || 0) >= limits.maxAutoPosters) {
+      const expiredAutoPosters = (activeAutoPosters || []).filter(
+        (autoPoster) =>
+          getAutoPosterRunLimitState(autoPoster).runtimeLimitReached
+      );
+
+      if (expiredAutoPosters.length > 0) {
+        await supabaseAdmin
+          .from('auto_poster_configs')
+          .update({
+            enabled: false,
+            status: 'paused',
+            next_post_at: null,
+            run_started_at: null,
+          })
+          .in(
+            'id',
+            expiredAutoPosters.map((autoPoster) => autoPoster.id)
+          );
+        for (const expiredAutoPoster of expiredAutoPosters) {
+          if (expiredAutoPoster.website_config_id) {
+            await supabaseAdmin
+              .from('website_configs')
+              .update({
+                auto_poster_enabled: false,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', expiredAutoPoster.website_config_id)
+              .eq('user_id', userId);
+          }
+        }
+      }
+
+      const activeAutoPosterCount =
+        (activeAutoPosters || []).length - expiredAutoPosters.length;
+
+      if (activeAutoPosterCount >= limits.maxAutoPosters) {
         return NextResponse.json(
           {
             error: 'auto_poster_limit_reached',
             limit: limits.maxAutoPosters,
-            current: activeAutoPosterCount || 0,
+            current: activeAutoPosterCount,
             message: `Your plan allows ${limits.maxAutoPosters} active auto-poster${limits.maxAutoPosters === 1 ? '' : 's'}.`,
           },
           { status: 403 }
