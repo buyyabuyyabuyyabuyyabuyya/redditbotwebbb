@@ -222,99 +222,15 @@ export async function POST(req: Request) {
     );
 
     // If no configs are ready but we have active configs with future next_post_at,
-    // check if any should be reset to post now (this handles the case where configs get stuck in the future)
-    // ----------------------------------------------------------------------------------
-    // If no configs are ready we still want to rotate the subreddit index so we do not
-    // keep querying the same subreddit on every cron run (e.g. r/productivity twice).
-    // ----------------------------------------------------------------------------------
+    // If no configs are ready, the next_post_at is still in the future.
+    // Simply exit — Upstash will fire again in 30 minutes at the right time.
     if (readyConfigs.length === 0) {
-      const { data: activeConfigs } = await supabaseAdmin
-        .from('auto_poster_configs')
-        .select('*')
-        .eq('enabled', true)
-        .eq('status', 'active');
-
-      if (activeConfigs && activeConfigs.length > 0) {
-        console.log(
-          `[CRON] Found ${activeConfigs.length} active configs with future post times, resetting to post now`
-        );
-
-          // Reset next_post_at for active configs that have not exceeded the
-          // 5-hour run window.
-          const { error: resetError } = await supabaseAdmin
-            .from('auto_poster_configs')
-            .update({ next_post_at: currentTime })
-            .in(
-              'id',
-              activeConfigs.map((config) => config.id)
-            );
-
-          if (resetError) {
-            console.error(
-              '[CRON] Error resetting config post times:',
-              resetError
-            );
-          } else {
-            console.log(
-              '[CRON] Successfully reset config post times, re-querying for ready configs'
-            );
-
-          // Re-query for configs now that we've reset the times (use fresh timestamp)
-          const freshTime = new Date().toISOString();
-          console.log(`[CRON] Fresh time for re-query: ${freshTime}`);
-
-          const { data: updatedConfigs } = await supabaseAdmin
-            .from('auto_poster_configs')
-            .select('*')
-            .eq('enabled', true)
-            .eq('status', 'active')
-            .or('next_post_at.is.null,next_post_at.lt.' + freshTime);
-
-          // Update readyConfigs with the newly available ones
-          const updatedReadyConfigs =
-            updatedConfigs || [];
-
-          console.log(
-            `[CRON] After reset: ${updatedReadyConfigs.length} configs now ready to post`
-          );
-          readyConfigs.push(...updatedReadyConfigs);
-
-          // If we STILL have 0 configs ready, rotate subreddit index for all active configs
-          if (readyConfigs.length === 0) {
-            console.log(
-              '[CRON] Still no ready configs after reset – rotating subreddit index for active configs'
-            );
-            for (const activeConfig of activeConfigs) {
-              const { data: activeWebsiteConfig } = await supabaseAdmin
-                .from('website_configs')
-                .select('*')
-                .eq(
-                  'id',
-                  activeConfig.website_config_id || activeConfig.product_id
-                )
-                .maybeSingle();
-              const activeSubreddits =
-                getWebsiteConfigSubreddits(activeWebsiteConfig);
-              if (activeSubreddits.length === 0) {
-                console.warn(
-                  `[CRON] Active config ${activeConfig.id} has no user-configured subreddits; skipping rotation`
-                );
-                continue;
-              }
-              const nextIndex =
-                ((activeConfig.current_subreddit_index || 0) + 1) %
-                activeSubreddits.length;
-              await supabaseAdmin
-                .from('auto_poster_configs')
-                .update({
-                  current_subreddit_index: nextIndex,
-                  last_subreddit_used: activeSubreddits[nextIndex],
-                })
-                .eq('id', activeConfig.id);
-            }
-          }
-        }
-      }
+      console.log('[CRON] No configs ready to post yet. next_post_at has not arrived. Waiting for next cron fire.');
+      return NextResponse.json({
+        success: true,
+        message: 'No configs ready to post yet',
+        stats: { configsProcessed: 0, totalPosts: 0, totalErrors: 0 },
+      });
     }
 
     let totalPosts = 0;
