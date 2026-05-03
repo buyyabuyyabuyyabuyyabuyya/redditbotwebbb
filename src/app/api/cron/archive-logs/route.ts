@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { publishQStashMessage } from '../../../../utils/qstash';
 
+export const dynamic = 'force-dynamic';
+
 // Create a Supabase admin client with service role key for bypassing RLS
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

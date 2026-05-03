@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
 import { createClient } from '@supabase/supabase-js';
 
+export const dynamic = 'force-dynamic';
+
 const PB_BASE = 'https://app.beno.one/pbsb/api';
 
 export async function GET(req: Request) {

@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 const PB_BASE = 'https://app.beno.one/pbsb/api';
 
 // GET /api/beno/replies?productId=<id>
