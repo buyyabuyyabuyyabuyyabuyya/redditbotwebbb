@@ -195,19 +195,25 @@ export async function POST(req: Request) {
       });
     }
 
-    // Get configs that are ready to post
+    // Get configs that are ready to post.
+    // We use a 5-minute slack window to handle timing misalignment between
+    // the Upstash cron fire (on :00/:30 boundaries) and next_post_at (set
+    // relative to when the last post was made). Without this, a post at 8:00:24
+    // sets next_post_at=8:30:24 but the cron fires at 8:30:00 and misses it,
+    // causing a 60-minute gap instead of 30 minutes.
     const currentTime = new Date().toISOString();
-    console.log(`[CRON] Current time for comparison: ${currentTime}`);
+    const slackTime = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // 5 min ahead
+    console.log(`[CRON] Current time for comparison: ${currentTime} (slack window: ${slackTime})`);
 
     const { data: allConfigs, error: configError } = await supabaseAdmin
       .from('auto_poster_configs')
       .select('*')
       .eq('enabled', true)
       .eq('status', 'active')
-      .or('next_post_at.is.null,next_post_at.lt.' + currentTime);
+      .or('next_post_at.is.null,next_post_at.lt.' + slackTime);
 
     console.log(
-      `[CRON] Configs matching enabled=true AND status=active: ${allConfigs?.length || 0}`
+      `[CRON] Configs matching enabled=true AND status=active (within 5min slack): ${allConfigs?.length || 0}`
     );
 
     if (configError) {
