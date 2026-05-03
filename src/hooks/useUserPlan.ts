@@ -37,12 +37,20 @@ export function useUserPlan() {
         }
 
         const data = await response.json();
+        const accountCommentCount =
+          data.comment_count ??
+          data.monthly_comment_count ??
+          data.message_count ??
+          0;
+        const planLimit = data.limit ?? data.monthly_comment_limit ?? null;
         setPlan(data.subscription_status);
-        setCommentActionCount(
-          data.monthly_comment_count ?? data.comment_count ?? data.message_count ?? 0
+        setCommentActionCount(accountCommentCount);
+        setRemaining(
+          planLimit === null
+            ? data.remaining
+            : Math.max(0, planLimit - accountCommentCount)
         );
-        setRemaining(data.remaining);
-        setLimit(data.limit);
+        setLimit(planLimit);
         setMaxWebsiteConfigs(data.max_website_configs ?? 1);
         setMaxAutoPosters(data.max_auto_posters ?? 1);
       } catch (error) {

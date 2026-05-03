@@ -89,7 +89,7 @@ export default function UserStats({
 
   const cards = [
     {
-      title: 'Monthly usage',
+      title: 'Usage',
       value: `${displayCount}/${monthlyLimit}`,
       desc: `${remaining ?? Math.max(0, monthlyLimit - displayCount)} comments remaining`,
     },

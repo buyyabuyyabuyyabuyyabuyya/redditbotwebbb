@@ -24,10 +24,6 @@ export default async function Settings() {
     .select('*')
     .eq('id', userId)
     .single();
-  const monthStart = new Date();
-  monthStart.setUTCDate(1);
-  monthStart.setUTCHours(0, 0, 0, 0);
-
   const { data: configs } = await supabaseAdmin
     .from('website_configs')
     .select('id')
@@ -42,7 +38,6 @@ export default async function Settings() {
             head: true,
           })
           .in('website_config_id', configIds)
-          .gte('created_at', monthStart.toISOString())
       : { count: 0 };
   const planStatus = user?.subscription_status || 'free';
   const limits = getPlanLimits(planStatus);
@@ -97,7 +92,7 @@ export default async function Settings() {
             </div>
             <div className="surface-subtle p-5">
               <div className="text-xs font-medium uppercase tracking-[0.2em] text-zinc-500">
-                Monthly comments posted
+                Total comments posted
               </div>
               <div className="mt-3 text-2xl font-semibold text-zinc-50">
                 <CommentCounter initialCount={commentCount || 0} />
