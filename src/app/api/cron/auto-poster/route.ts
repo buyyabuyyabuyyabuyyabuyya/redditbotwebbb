@@ -227,11 +227,31 @@ export async function POST(req: Request) {
       `[CRON] Found ${readyConfigs?.length || 0} configs ready to post`
     );
 
-    // If no configs are ready but we have active configs with future next_post_at,
     // If no configs are ready, the next_post_at is still in the future.
-    // Simply exit — Upstash will fire again in 30 minutes at the right time.
+    // Before exiting, check if this Upstash schedule is a zombie (no active config owns it).
+    // If so, self-terminate the schedule so it stops firing indefinitely.
     if (readyConfigs.length === 0) {
-      console.log('[CRON] No configs ready to post yet. next_post_at has not arrived. Waiting for next cron fire.');
+      const incomingScheduleId = req.headers.get('upstash-schedule-id');
+      if (incomingScheduleId) {
+        const { data: ownerConfig } = await supabaseAdmin
+          .from('auto_poster_configs')
+          .select('id')
+          .eq('upstash_schedule_id', incomingScheduleId)
+          .eq('enabled', true)
+          .maybeSingle();
+
+        if (!ownerConfig) {
+          console.log(`[CRON] No active config owns schedule ${incomingScheduleId}. Self-terminating zombie schedule.`);
+          await deleteQstashSchedule(incomingScheduleId);
+          // Also clear the stale schedule ID from any paused config that still references it
+          await supabaseAdmin
+            .from('auto_poster_configs')
+            .update({ upstash_schedule_id: null })
+            .eq('upstash_schedule_id', incomingScheduleId);
+        }
+      }
+
+      console.log('[CRON] No configs ready to post yet. Waiting for next cron fire.');
       return NextResponse.json({
         success: true,
         message: 'No configs ready to post yet',

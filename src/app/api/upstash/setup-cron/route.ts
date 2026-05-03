@@ -56,11 +56,11 @@ export async function POST(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY || ''
     );
 
-    // Get the config to check if it exists
+    // Get the config including any existing schedule ID so we can clean it up first
     console.log('[UPSTASH] Looking for config with:', { userId: effectiveUserId, websiteConfigId: productId, accountId });
     const { data: config, error: configError } = await supabaseAdmin
       .from('auto_poster_configs')
-      .select('id')
+      .select('id, upstash_schedule_id')
       .eq('user_id', effectiveUserId)
       .eq('website_config_id', productId) // productId param actually contains the website config UUID
       .eq('account_id', accountId)
@@ -76,6 +76,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Auto-poster config not found' }, { status: 404 });
     }
     console.log('[UPSTASH] Found config:', config.id);
+
+    // Delete any existing old schedule before creating a new one (prevents zombie duplicates)
+    if (config.upstash_schedule_id) {
+      console.log(`[UPSTASH] Deleting old schedule ${config.upstash_schedule_id} before creating new one...`);
+      try {
+        const deleteRes = await fetch(
+          `https://qstash.upstash.io/v2/schedules/${config.upstash_schedule_id}`,
+          { method: 'DELETE', headers: { Authorization: `Bearer ${qstashToken}` } }
+        );
+        if (deleteRes.ok) {
+          console.log('[UPSTASH] Old schedule deleted successfully.');
+        } else {
+          console.warn('[UPSTASH] Old schedule delete returned:', deleteRes.status, '(may already be gone)');
+        }
+      } catch (e) {
+        console.warn('[UPSTASH] Failed to delete old schedule (non-blocking):', e);
+      }
+    }
 
     // Create Upstash QStash schedule using correct API format
     const targetUrl = `https://redditoutreach.com/api/cron/auto-poster`;
